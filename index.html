@@ -108,66 +108,56 @@
             /* Let clicks pass through */
         }
 
-        /* --- Modern UI Elements --- */
+        /* --- Unified High-Contrast UI Elements --- */
         .ui-element {
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
-            border: 2px solid #00ffff;
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
+            background: #000000;
+            border: 3px solid #ffffff;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
             box-shadow: 
-                0 4px 12px rgba(0, 255, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+                0 6px 0 #333333,
+                0 8px 12px rgba(0, 0, 0, 0.4);
             z-index: 150;
             position: relative;
         }
 
-        .ui-element:hover {
-            border-color: #ffffff;
-            box-shadow: 
-                0 6px 16px rgba(0, 255, 255, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
         .ui-label {
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 0.6em;
-            color: #00ffff;
-            text-shadow: 0 0 8px #00ffff;
-            margin-bottom: 4px;
-            letter-spacing: 1px;
-            font-weight: normal;
+            font-size: 0.7em;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+            font-weight: bold;
         }
 
         #score-value {
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 1.4em;
+            font-size: 1.8em;
             color: #ffff00;
-            text-shadow: 0 0 15px #ffff00, 2px 2px 4px rgba(0, 0, 0, 0.8);
             font-weight: bold;
             letter-spacing: 2px;
-            min-width: 60px;
+            min-width: 80px;
             text-align: center;
+            text-shadow: 2px 2px 0 #000000;
         }
 
         #timer-value {
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 1.4em;
+            font-size: 1.8em;
             color: #ffffff;
-            text-shadow: 0 0 15px #ffffff, 2px 2px 4px rgba(0, 0, 0, 0.8);
             font-weight: bold;
             letter-spacing: 2px;
-            min-width: 60px;
+            min-width: 80px;
             text-align: center;
+            text-shadow: 2px 2px 0 #000000;
         }
 
         #timer-value.warning {
             color: #ff0040;
-            text-shadow: 0 0 20px #ff0040, 2px 2px 6px rgba(0, 0, 0, 0.9);
             animation: pulse 0.5s infinite;
         }
 
@@ -299,11 +289,11 @@
         }
 
         .game-control-pad {
-            width: 100px;
-            height: 80px;
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            border: 2px solid #00ffff;
-            border-radius: 12px;
+            width: 110px;
+            height: 90px;
+            background: #000000;
+            border: 3px solid #ffffff;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -320,66 +310,54 @@
             -moz-user-select: none !important;
             -webkit-tap-highlight-color: transparent !important;
             pointer-events: auto !important;
-            /* Modern transitions */
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Solid, professional transitions */
+            transition: all 0.1s ease;
             box-shadow: 
-                0 4px 12px rgba(0, 255, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                0 6px 0 #333333,
+                0 8px 12px rgba(0, 0, 0, 0.4);
         }
 
         .control-icon {
-            font-size: 2.4em;
-            color: #00ffff;
-            text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff;
-            margin-bottom: 4px;
-            font-weight: bold;
-            filter: drop-shadow(0 0 8px #00ffff);
+            font-size: 3em;
+            color: #ffffff;
+            text-shadow: none;
+            margin-bottom: 2px;
+            font-weight: 900;
+            filter: none;
         }
 
         .control-label {
-            font-size: 0.75em;
+            font-size: 0.8em;
             color: #ffffff;
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-weight: normal;
-            letter-spacing: 2px;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: none;
         }
 
         /* Active/Pressed State */
         .game-control-pad:active,
         .game-control-pad.pressed {
-            background: linear-gradient(145deg, #00ffff, #ffffff) !important;
-            border-color: #ffffff !important;
-            transform: scale(0.92) translateY(3px);
+            background: #ffffff !important;
+            border-color: #000000 !important;
+            transform: translateY(6px);
             box-shadow: 
-                0 1px 4px rgba(0, 255, 255, 0.6),
-                inset 0 3px 6px rgba(0, 0, 0, 0.4);
-            animation: buttonPulse 0.15s ease-out;
+                0 0 0 #333333,
+                0 2px 8px rgba(0, 0, 0, 0.6);
         }
 
         .game-control-pad.pressed .control-icon {
             color: #000000 !important;
-            text-shadow: 0 0 4px rgba(0, 0, 0, 0.3) !important;
-            filter: none !important;
         }
 
         .game-control-pad.pressed .control-label {
             color: #000000 !important;
-            text-shadow: 0 0 2px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        @keyframes buttonPulse {
-            0% { transform: scale(1) translateY(0px); }
-            50% { transform: scale(0.88) translateY(4px); }
-            100% { transform: scale(0.92) translateY(3px); }
         }
 
         /* Hover effect for desktop */
         .game-control-pad:hover {
-            border-color: #ffffff;
-            box-shadow: 
-                0 6px 16px rgba(0, 255, 255, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            background: #222222;
+            border-color: #00ffff;
         }
 
         /* Hide controls when game over */
@@ -1237,14 +1215,38 @@
         function animate(currentTime) {
             requestAnimationFrame(animate); // IMPORTANT: This creates the continuous game loop
 
-            // DEBUG: Check game state (reduced logging)
-            if (moveLeft || moveRight) {
-                console.log('🎮 GAME STATE - isGameOver:', isGameOver, 'gameStarted:', gameStarted, 'moveLeft:', moveLeft, 'moveRight:', moveRight);
+            // CRITICAL: ALWAYS render the scene first
+            renderer.render(scene, camera);
+
+            // CRITICAL MOVEMENT ISOLATION: Process car movement BEFORE any game state checks
+            if (carModel && (moveLeft || moveRight || window.moveLeft || window.moveRight)) {
+                console.log('🚗 CRITICAL MOVEMENT - moveLeft:', moveLeft, 'moveRight:', moveRight);
+                
+                // Calculate movement speed (use fixed deltaTime if currentTime unavailable)
+                const safeDeltaTime = lastFrameTime > 0 ? (currentTime - lastFrameTime) / 1000 : 1/60;
+                const frameAdjustedMoveSpeed = carMoveSpeed * (safeDeltaTime * 60);
+                
+                // Apply movement immediately - HIGHEST PRIORITY
+                const isMovingLeft = moveLeft || window.moveLeft;
+                const isMovingRight = moveRight || window.moveRight;
+                
+                if (isMovingLeft) {
+                    carModel.position.x += frameAdjustedMoveSpeed;
+                    console.log("✅ IMMEDIATE LEFT MOVEMENT - Position:", carModel.position.x.toFixed(2));
+                }
+                if (isMovingRight) {
+                    carModel.position.x -= frameAdjustedMoveSpeed;
+                    console.log("✅ IMMEDIATE RIGHT MOVEMENT - Position:", carModel.position.x.toFixed(2));
+                }
+                
+                // Clamp to bounds immediately
+                const maxBounds = (roadWidth / 2) - kerbWidth - 1;
+                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
             }
 
+            // Game state checks AFTER movement processing
             if (isGameOver || !gameStarted) {
-                renderer.render(scene, camera);
-                return; // Stop game logic updates if game over or not started
+                return; // Stop other game logic but movement already processed
             }
 
             // --- Calculate Delta Time ---
@@ -1390,40 +1392,8 @@
             });
 
 
-            // --- Handle Player Car Controls with Smooth Movement ---
-            if (carModel && carBaseY > 0) { // Ensure car model is loaded and positioned
-                let maxBounds = roadWidth / 2 - kerbWidth - 0.1; // Default fallback bounds
-                let carHalfWidth = 1; // Default fallback for car width
-                try {
-                    const box = new THREE.Box3().setFromObject(carModel);
-                    carHalfWidth = (box.max.x - box.min.x) / 2;
-                    maxBounds = (roadWidth / 2) - kerbWidth - carHalfWidth - 0.1;
-                } catch (e) {
-                    // console.warn("Could not get car bounding box size, using default bounds.");
-                }
-
-                // BUTTON-BASED STEERING: Frame-rate independent continuous movement
-                // Apply continuous horizontal movement based on button flags
-                const frameAdjustedMoveSpeed = carMoveSpeed * (deltaTime * 60); // Normalize to 60fps
-                
-                // Check both local and global flags for maximum reliability
-                const isMovingLeft = moveLeft || window.moveLeft;
-                const isMovingRight = moveRight || window.moveRight;
-                
-                if (isMovingLeft) {
-                    // Move left continuously while button is held
-                    carModel.position.x += frameAdjustedMoveSpeed;
-                    console.log("✅ MOVING LEFT - Position:", carModel.position.x.toFixed(2));
-                }
-                if (isMovingRight) {
-                    // Move right continuously while button is held
-                    carModel.position.x -= frameAdjustedMoveSpeed;
-                    console.log("✅ MOVING RIGHT - Position:", carModel.position.x.toFixed(2));
-                }
-                
-                // Clamp to bounds
-                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
-
+            // --- Update Player Bounding Box (movement handled at top of loop) ---
+            if (carModel) {
                 playerBox.setFromObject(carModel); // Always update player's bounding box
             }
 
