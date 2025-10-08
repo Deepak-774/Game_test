@@ -14,33 +14,50 @@
             /* Light sky blue background */
             font-family: 'Press Start 2P', cursive, sans-serif;
             /* A retro arcade font for style */
-            /* CRITICAL WEBVIEW FIX: Prevent default touch behaviors */
-            overscroll-behavior: none;
-            touch-action: none;
-            -ms-touch-action: none; /* for compatibility */
-            user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            -moz-user-select: none;
-            /* Prevent native mobile gestures from interfering */
+            /* NUCLEAR OPTION: Maximum webview override */
+            overscroll-behavior: none !important;
+            touch-action: none !important;
+            -ms-touch-action: none !important;
+            -webkit-touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -ms-user-select: none !important;
+            -moz-user-select: none !important;
+            -webkit-touch-callout: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            /* Prevent ALL native mobile gestures */
         }
 
         canvas {
             display: block;
             /* Remove annoying space below canvas */
             /* CRITICAL WEBVIEW FIX: Prevent canvas touch interference */
-            touch-action: none;
-            -ms-touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
+            touch-action: none !important;
+            -ms-touch-action: none !important;
+            -webkit-touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            /* Additional mobile gesture prevention */
+            -webkit-touch-callout: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            pointer-events: auto !important;
         }
 
         #container {
-            /* CRITICAL WEBVIEW FIX: Ensure container doesn't interfere with touch */
-            touch-action: none;
-            -ms-touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
+            /* NUCLEAR OPTION: Maximum container touch prevention */
+            touch-action: none !important;
+            -ms-touch-action: none !important;
+            -webkit-touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -ms-user-select: none !important;
+            -moz-user-select: none !important;
+            -webkit-touch-callout: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            pointer-events: auto !important;
+            /* Force container to be completely touch-neutral */
         }
 
         #loading-screen {
@@ -93,22 +110,25 @@
 
         #score {
             margin-bottom: 5px;
-            color: #00ff00; /* Bright neon green for score */
-            font-family: 'Courier New', monospace; /* Consistent with timer */
-            text-shadow: 0 0 8px #00ff00, 2px 2px 4px rgba(0, 0, 0, 0.8); /* Glowing effect */
+            color: #ffff00; /* Bright yellow for high contrast like reference image */
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 12px #ffff00, 2px 2px 6px rgba(0, 0, 0, 0.9); /* Enhanced glow for visibility */
             font-weight: bold;
             letter-spacing: 1px;
+            font-size: 1.3em; /* Slightly larger for better visibility */
+            position: relative;
+            z-index: 100;
         }
 
         #timer {
-            font-size: 1.2em;
-            color: #00ffff; /* Bright neon cyan for high-tech look */
-            font-family: 'Courier New', monospace; /* Monospace for tech aesthetic */
-            text-shadow: 0 0 10px #00ffff, 2px 2px 4px rgba(0, 0, 0, 0.8); /* Glowing effect */
+            font-size: 1.3em; /* Increased size for better visibility */
+            color: #ffffff; /* Bright white for maximum contrast */
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 15px #ffffff, 3px 3px 8px rgba(0, 0, 0, 0.9); /* Strong glow and shadow */
             font-weight: bold;
-            letter-spacing: 1px; /* Spacing for readability */
+            letter-spacing: 1px;
             position: relative;
-            z-index: 100; /* Ensure visibility */
+            z-index: 100;
         }
 
         #timer.warning {
@@ -139,20 +159,52 @@
 
         #game-over-message {
             position: absolute;
-            top: 12%;
+            top: 45%;
             left: 50%;
-            transform: translateX(-50%);
-            color: #ff0040; /* Bright red for game over */
-            font-family: 'Courier New', monospace; /* Consistent tech font */
-            font-size: 2.5em;
+            transform: translate(-50%, -50%);
+            color: #ff4444; /* Bright red matching reference image */
+            font-family: 'Courier New', monospace;
+            font-size: 3em; /* Larger for impact */
             font-weight: bold;
             text-align: center;
-            text-shadow: 0 0 20px #ff0040, 3px 3px 8px rgba(0, 0, 0, 0.9); /* Enhanced glowing effect */
+            text-shadow: 0 0 25px #ff4444, 4px 4px 12px rgba(0, 0, 0, 0.95); /* Strong glow and shadow */
             display: none;
             z-index: 101;
             pointer-events: none;
             white-space: nowrap;
-            letter-spacing: 2px; /* Spacing for tech aesthetic */
+            letter-spacing: 3px;
+            /* Add subtle animation */
+            animation: gameOverGlow 2s ease-in-out infinite alternate;
+        }
+
+        #restart-message {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 15px #00ffff, 2px 2px 6px rgba(0, 0, 0, 0.9);
+            display: none;
+            z-index: 101;
+            cursor: pointer;
+            pointer-events: auto;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        #restart-message:hover {
+            color: #ffffff;
+            text-shadow: 0 0 20px #ffffff, 2px 2px 8px rgba(0, 0, 0, 0.9);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        @keyframes gameOverGlow {
+            0% { text-shadow: 0 0 25px #ff4444, 4px 4px 12px rgba(0, 0, 0, 0.95); }
+            100% { text-shadow: 0 0 35px #ff4444, 4px 4px 12px rgba(0, 0, 0, 0.95); }
         }
 
 
@@ -166,52 +218,58 @@
         }
 
 
-        /* --- Tilt Control Start Button --- */
-        #start-button {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
-            border-radius: 10px;
-            color: #00ffff;
-            font-family: 'Courier New', monospace;
-            font-size: 1.2em;
-            font-weight: bold;
-            padding: 15px 30px;
-            cursor: pointer;
-            text-shadow: 0 0 10px #00ffff;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-            z-index: 200;
-            user-select: none;
-            -webkit-user-select: none;
-            transition: all 0.3s ease;
-        }
-
-        #start-button:hover {
-            background-color: rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-        }
-
-        #start-button.hidden {
-            display: none;
-        }
-
-        /* Tilt indicator */
-        #tilt-indicator {
+        /* --- Virtual Control Buttons --- */
+        .control-button {
             position: absolute;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #00ffff;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            text-shadow: 0 0 8px #00ffff;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
             z-index: 60;
-            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5em;
+            color: rgba(0, 0, 0, 0.7);
+            cursor: pointer;
+            /* CRITICAL WEBVIEW OVERRIDE */
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -ms-user-select: none !important;
+            -moz-user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: none !important;
+            -webkit-touch-action: none !important;
+            -ms-touch-action: none !important;
+            pointer-events: auto !important;
+            /* Visual feedback transitions */
+            transition: background-color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        /* --- End Tilt Control Elements --- */
+
+        #steer-left {
+            left: 20px;
+        }
+
+        #steer-right {
+            right: 20px;
+        }
+
+        /* Pressed state with maximum visual feedback */
+        .control-button:active,
+        .control-button.pressed {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hide buttons when game over */
+        .control-button.hidden {
+            display: none !important;
+        }
+        /* --- End Virtual Control Buttons --- */
 
         /* Import Google Font for UI */
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -236,11 +294,12 @@
 
     <!-- New game over UI -->
     <div id="game-over-blur"></div>
-    <div id="game-over-message">Better luck next time</div>
+    <div id="game-over-message">GAME OVER</div>
+    <div id="restart-message">TAP TO RESTART</div>
 
-    <!-- Tilt Control Elements -->
-    <button id="start-button">Start Tilt Control</button>
-    <div id="tilt-indicator">Tilt: 0.0</div>
+    <!-- Virtual Control Buttons -->
+    <button id="steer-left" class="control-button">◀</button>
+    <button id="steer-right" class="control-button">▶</button>
 
     <script type="importmap">
         {
@@ -257,14 +316,15 @@
         import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
         import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'; // For HDRI
 
-        // Tilt control elements
-        const startButton = document.getElementById('start-button');
-        const tiltIndicator = document.getElementById('tilt-indicator');
+        // Virtual control elements
+        const restartMessage = document.getElementById('restart-message');
+        const steerLeftButton = document.getElementById('steer-left');
+        const steerRightButton = document.getElementById('steer-right');
         
-        // Tilt steering variables
-        let tiltSteering = 0; // Range: -1 to 1
-        let tiltControlEnabled = false;
-        let gameStarted = false;
+        // Movement control variables
+        let moveLeft = false;
+        let moveRight = false;
+        let gameStarted = true; // Start immediately without permission
 
         let scene, camera, renderer, carModel, enemyCar;
         let ambientLight, directionalLight;
@@ -286,8 +346,6 @@
         const kerbWidth = 0.3;
 
         // --- Game State ---
-        let moveLeft = false;
-        let moveRight = false;
         const carMoveSpeed = 0.25; // How fast the player car moves left/right (base speed)
         let carTargetX = 0; // Target X position for smooth interpolation
         let carBaseY = 0; // Will be calculated based on car model bounding box
@@ -366,20 +424,72 @@
         init(); // Initialize the scene and elements
         setupControls(); // Set up both keyboard and touch controls
         
-        // ULTIMATE WEBVIEW FIX: Global document-level touch override
+        // NUCLEAR OPTION: Ultimate document-level touch override
         document.addEventListener('touchstart', (e) => {
-            // Only prevent default if not touching our control buttons
+            // Allow only specific interactive elements
             const target = e.target;
-            if (!target.classList.contains('control-button')) {
+            const allowedElements = ['steer-left', 'steer-right', 'restart-message'];
+            const isAllowed = allowedElements.some(id => target.id === id || target.closest(`#${id}`));
+            
+            if (!isAllowed) {
                 e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                console.log('Document touchstart blocked for:', target.tagName);
             }
         }, { passive: false, capture: true });
         
         document.addEventListener('touchmove', (e) => {
-            e.preventDefault(); // Always prevent scrolling
+            e.preventDefault(); // ALWAYS prevent scrolling
+            e.stopPropagation();
+            e.stopImmediatePropagation();
         }, { passive: false, capture: true });
         
-        console.log('Ultimate webview touch overrides applied');
+        document.addEventListener('touchend', (e) => {
+            // Block touchend on non-interactive elements
+            const target = e.target;
+            const allowedElements = ['steer-left', 'steer-right', 'restart-message'];
+            const isAllowed = allowedElements.some(id => target.id === id || target.closest(`#${id}`));
+            
+            if (!isAllowed) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+        }, { passive: false, capture: true });
+        
+        // NUCLEAR OPTION: Block all pointer events on document
+        document.addEventListener('pointerdown', (e) => {
+            const target = e.target;
+            const allowedElements = ['steer-left', 'steer-right', 'restart-message'];
+            const isAllowed = allowedElements.some(id => target.id === id || target.closest(`#${id}`));
+            
+            if (!isAllowed) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+        }, { passive: false, capture: true });
+        
+        document.addEventListener('pointermove', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }, { passive: false, capture: true });
+        
+        document.addEventListener('pointerup', (e) => {
+            const target = e.target;
+            const allowedElements = ['steer-left', 'steer-right', 'restart-message'];
+            const isAllowed = allowedElements.some(id => target.id === id || target.closest(`#${id}`));
+            
+            if (!isAllowed) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+        }, { passive: false, capture: true });
+        
+        console.log('NUCLEAR OPTION: Complete document gesture isolation applied');
         
         // animate() will be called by loadingManager.onLoad after everything is ready.
 
@@ -401,32 +511,58 @@
             renderer.toneMappingExposure = 1.2; // Adjust exposure for HDRI
             document.getElementById('container').appendChild(renderer.domElement);
             
-            // CRITICAL WEBVIEW FIX: Force disable all touch behaviors on canvas
+            // NUCLEAR OPTION: Maximum canvas touch override
             renderer.domElement.style.touchAction = 'none';
+            renderer.domElement.style.webkitTouchAction = 'none';
+            renderer.domElement.style.msTouchAction = 'none';
             renderer.domElement.style.userSelect = 'none';
             renderer.domElement.style.webkitUserSelect = 'none';
             renderer.domElement.style.msUserSelect = 'none';
             renderer.domElement.style.mozUserSelect = 'none';
             renderer.domElement.style.webkitTouchCallout = 'none';
             renderer.domElement.style.webkitTapHighlightColor = 'transparent';
+            renderer.domElement.style.pointerEvents = 'auto';
             
-            // Additional aggressive webview overrides
+            // NUCLEAR OPTION: Aggressive canvas event blocking with capture
             renderer.domElement.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
+                console.log('Canvas touchstart blocked');
             }, { passive: false, capture: true });
             
             renderer.domElement.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
             }, { passive: false, capture: true });
             
             renderer.domElement.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
             }, { passive: false, capture: true });
             
-            console.log('Canvas touch-action set to none with aggressive webview overrides');
+            // Additional pointer events blocking
+            renderer.domElement.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }, { passive: false, capture: true });
+            
+            renderer.domElement.addEventListener('pointermove', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }, { passive: false, capture: true });
+            
+            renderer.domElement.addEventListener('pointerup', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }, { passive: false, capture: true });
+            
+            console.log('NUCLEAR OPTION: Canvas completely isolated from webview gestures');
 
             // --- Lights ---
             ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Softer ambient light
@@ -783,84 +919,115 @@
             updateScoreDisplay();
         }
 
-        // --- Function to Set Up Controls (Keyboard & Tilt) ---
+        // --- ABSOLUTE CONTROL GUARANTEE: Most Aggressive Button Controls ---
         function setupControls() {
             // Keyboard Listeners for desktop compatibility
             window.addEventListener('keydown', (event) => {
-                if (isGameOver || !gameStarted) return;
-                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
-                    tiltSteering = Math.max(tiltSteering - 0.1, -1);
-                }
-                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
-                    tiltSteering = Math.min(tiltSteering + 0.1, 1);
-                }
+                if (isGameOver) return;
+                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = true; }
+                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = true; }
             });
             window.addEventListener('keyup', (event) => {
-                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a' ||
-                    event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
-                    tiltSteering = 0; // Reset to center when key released
-                }
+                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = false; }
+                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = false; }
             });
 
-            // Device Orientation Event Listener for Tilt Control
-            window.addEventListener('deviceorientation', (event) => {
-                if (!tiltControlEnabled || isGameOver || !gameStarted) return;
+            // ABSOLUTE CONTROL GUARANTEE: Left Button with Maximum Override
+            if (steerLeftButton) {
+                // POINTERDOWN: Start continuous left movement
+                steerLeftButton.addEventListener('pointerdown', (e) => {
+                    if (isGameOver) return;
+                    e.preventDefault(); // MANDATORY webview override
+                    e.stopPropagation(); // MANDATORY webview override
+                    e.stopImmediatePropagation(); // Nuclear option
+                    
+                    moveLeft = true;
+                    window.moveLeft = true; // Global backup flag
+                    steerLeftButton.classList.add('pressed');
+                    
+                    console.log('LEFT BUTTON ACTIVATED - moveLeft:', moveLeft);
+                }, { passive: false }); // MANDATORY for webview
                 
-                // Use gamma (side-to-side tilt) for steering
-                // gamma ranges from -90 to 90 degrees
-                const gamma = event.gamma || 0;
+                // POINTERUP: Stop left movement
+                steerLeftButton.addEventListener('pointerup', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    moveLeft = false;
+                    window.moveLeft = false;
+                    steerLeftButton.classList.remove('pressed');
+                    
+                    console.log('LEFT BUTTON RELEASED - moveLeft:', moveLeft);
+                }, { passive: false });
                 
-                // Normalize and clamp gamma to -1 to 1 range
-                // Use a smaller range (±30 degrees) for more sensitive control
-                const maxTilt = 30;
-                tiltSteering = Math.max(-1, Math.min(1, gamma / maxTilt));
-                
-                // Update tilt indicator
-                tiltIndicator.textContent = `Tilt: ${tiltSteering.toFixed(2)}`;
-                
-                console.log('Tilt steering:', tiltSteering.toFixed(2), 'Gamma:', gamma.toFixed(1));
-            });
-
-            // Start button event listener
-            startButton.addEventListener('click', requestOrientationPermission);
-        }
-
-        // Permission handling for device orientation
-        async function requestOrientationPermission() {
-            try {
-                // Check if permission is required (iOS 13+)
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    const permission = await DeviceOrientationEvent.requestPermission();
-                    if (permission === 'granted') {
-                        enableTiltControl();
-                    } else {
-                        alert('Device orientation permission denied. Game cannot start.');
-                    }
-                } else {
-                    // Permission not required or already granted
-                    enableTiltControl();
-                }
-            } catch (error) {
-                console.error('Error requesting orientation permission:', error);
-                // Fallback: try to enable anyway
-                enableTiltControl();
+                // POINTERCANCEL: Safety stop for interrupted gestures
+                steerLeftButton.addEventListener('pointercancel', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    moveLeft = false;
+                    window.moveLeft = false;
+                    steerLeftButton.classList.remove('pressed');
+                    
+                    console.log('LEFT BUTTON CANCELLED - moveLeft:', moveLeft);
+                }, { passive: false });
             }
-        }
 
-        function enableTiltControl() {
-            tiltControlEnabled = true;
-            gameStarted = true;
-            startButton.classList.add('hidden');
-            console.log('Tilt control enabled');
+            // ABSOLUTE CONTROL GUARANTEE: Right Button with Maximum Override
+            if (steerRightButton) {
+                // POINTERDOWN: Start continuous right movement
+                steerRightButton.addEventListener('pointerdown', (e) => {
+                    if (isGameOver) return;
+                    e.preventDefault(); // MANDATORY webview override
+                    e.stopPropagation(); // MANDATORY webview override
+                    e.stopImmediatePropagation(); // Nuclear option
+                    
+                    moveRight = true;
+                    window.moveRight = true; // Global backup flag
+                    steerRightButton.classList.add('pressed');
+                    
+                    console.log('RIGHT BUTTON ACTIVATED - moveRight:', moveRight);
+                }, { passive: false }); // MANDATORY for webview
+                
+                // POINTERUP: Stop right movement
+                steerRightButton.addEventListener('pointerup', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    moveRight = false;
+                    window.moveRight = false;
+                    steerRightButton.classList.remove('pressed');
+                    
+                    console.log('RIGHT BUTTON RELEASED - moveRight:', moveRight);
+                }, { passive: false });
+                
+                // POINTERCANCEL: Safety stop for interrupted gestures
+                steerRightButton.addEventListener('pointercancel', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    moveRight = false;
+                    window.moveRight = false;
+                    steerRightButton.classList.remove('pressed');
+                    
+                    console.log('RIGHT BUTTON CANCELLED - moveRight:', moveRight);
+                }, { passive: false });
+            }
             
-            // Test device orientation support
-            window.addEventListener('deviceorientation', (event) => {
-                if (event.gamma !== null) {
-                    console.log('Device orientation working - Gamma:', event.gamma);
-                } else {
-                    console.warn('Device orientation not supported or blocked');
-                }
-            }, { once: true });
+            // Restart message event listener
+            restartMessage.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                restartGame();
+                console.log('Restart button activated');
+            }, { passive: false });
+            
+            restartMessage.addEventListener('click', restartGame);
         }
         // --- End Setup Controls ---
 
@@ -1061,18 +1228,23 @@
                     // console.warn("Could not get car bounding box size, using default bounds.");
                 }
 
-                // TILT-BASED STEERING: Frame-rate independent continuous movement
-                // Apply continuous horizontal movement based on tilt steering
+                // BUTTON-BASED STEERING: Frame-rate independent continuous movement
+                // Apply continuous horizontal movement based on button flags
                 const frameAdjustedMoveSpeed = carMoveSpeed * (deltaTime * 60); // Normalize to 60fps
                 
-                // Calculate target position based on tilt steering
-                // tiltSteering ranges from -1 (left) to 1 (right)
-                const steeringInput = tiltSteering * frameAdjustedMoveSpeed;
+                // Check both local and global flags for maximum reliability
+                const isMovingLeft = moveLeft || window.moveLeft;
+                const isMovingRight = moveRight || window.moveRight;
                 
-                // Apply steering movement
-                if (Math.abs(tiltSteering) > 0.05) { // Dead zone to prevent micro-movements
-                    carModel.position.x -= steeringInput; // Negative because right tilt should move right (decrease X)
-                    console.log("TILT STEERING - Value:", tiltSteering.toFixed(2), "Position:", carModel.position.x.toFixed(2));
+                if (isMovingLeft) {
+                    // Move left continuously while button is held
+                    carModel.position.x += frameAdjustedMoveSpeed;
+                    console.log("MOVING LEFT - Position:", carModel.position.x.toFixed(2));
+                }
+                if (isMovingRight) {
+                    // Move right continuously while button is held
+                    carModel.position.x -= frameAdjustedMoveSpeed;
+                    console.log("MOVING RIGHT - Position:", carModel.position.x.toFixed(2));
                 }
                 
                 // Clamp to bounds
@@ -1144,14 +1316,22 @@
             
             isGameOver = true;
             
-            // Reset tilt steering
-            tiltSteering = 0;
+            // Reset movement flags and hide buttons
+            moveLeft = false;
+            moveRight = false;
+            window.moveLeft = false;
+            window.moveRight = false;
+            
+            // Hide control buttons
+            steerLeftButton.classList.add('hidden');
+            steerRightButton.classList.add('hidden');
             
             // Show blur overlay
             document.getElementById('game-over-blur').style.display = 'block';
             
             // Show custom message
             document.getElementById('game-over-message').style.display = 'block';
+            document.getElementById('restart-message').style.display = 'block';
             
             // Report final score to parent (PROTECTED CODE)
             window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
@@ -1174,9 +1354,17 @@
             // Hide new game over UI
             document.getElementById('game-over-blur').style.display = 'none';
             document.getElementById('game-over-message').style.display = 'none';
+            document.getElementById('restart-message').style.display = 'none';
             
-            // Reset tilt steering
-            tiltSteering = 0;
+            // Reset movement flags and show buttons
+            moveLeft = false;
+            moveRight = false;
+            window.moveLeft = false;
+            window.moveRight = false;
+            
+            // Show control buttons
+            steerLeftButton.classList.remove('hidden');
+            steerRightButton.classList.remove('hidden');
             
             gameOverElement.style.display = 'none';
 
