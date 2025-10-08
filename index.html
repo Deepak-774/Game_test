@@ -457,7 +457,8 @@
         const leftControlButton = document.getElementById('control-left');
         const rightControlButton = document.getElementById('control-right');
         
-        // DISCRETE VELOCITY MODEL: Simple Space Invaders-style movement
+        // ROBUST VELOCITY-BASED SYSTEM: Space Invaders movement model
+        const CAR_SPEED = 0.5; // Fixed car speed constant
         let carVelocityX = 0; // Global velocity variable - initialized to 0
         let gameStarted = true; // Start immediately without permission
 
@@ -481,8 +482,6 @@
         const kerbWidth = 0.3;
 
         // --- Game State ---
-        const carMoveSpeed = 0.25; // How fast the player car moves left/right (base speed)
-        let carTargetX = 0; // Target X position for smooth interpolation
         let carBaseY = 0; // Will be calculated based on car model bounding box
         let score = 0;
         let isGameOver = false;
@@ -1069,15 +1068,15 @@
 
         // --- ABSOLUTE FINAL FAIL-SAFE BUTTON LOGIC ---
         function setupControls() {
-            // Desktop keyboard compatibility - VELOCITY MODEL
+            // Desktop keyboard compatibility - ROBUST VELOCITY SYSTEM
             window.addEventListener('keydown', (event) => {
                 if (isGameOver) return;
                 if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
-                    carVelocityX = -0.05; // Fixed velocity left
+                    carVelocityX = -CAR_SPEED; // Use constant speed left
                     leftControlButton.classList.add('pressed');
                 }
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
-                    carVelocityX = 0.05; // Fixed velocity right
+                    carVelocityX = CAR_SPEED; // Use constant speed right
                     rightControlButton.classList.add('pressed');
                 }
             });
@@ -1103,8 +1102,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // VELOCITY MODEL: Set fixed velocity left
-                    carVelocityX = -0.05;
+                    // ROBUST VELOCITY SYSTEM: Set constant speed left
+                    carVelocityX = -CAR_SPEED;
                     
                     // Visual feedback
                     leftControlButton.classList.add('pressed');
@@ -1144,8 +1143,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // VELOCITY MODEL: Set fixed velocity right
-                    carVelocityX = 0.05;
+                    // ROBUST VELOCITY SYSTEM: Set constant speed right
+                    carVelocityX = CAR_SPEED;
                     
                     // Visual feedback
                     rightControlButton.classList.add('pressed');
@@ -1229,12 +1228,12 @@
         function animate(currentTime) {
             requestAnimationFrame(animate); // IMPORTANT: This creates the continuous game loop
 
-            // DISCRETE VELOCITY MODEL: Direct velocity application (Space Invaders style)
+            // ROBUST VELOCITY-BASED SYSTEM: Direct position update (Space Invaders model)
             if (carModel && !isGameOver) {
-                // Apply velocity directly - no complex interpolation or flags
+                // Apply velocity directly - no interpolation, no complex logic
                 carModel.position.x += carVelocityX;
                 
-                // Clamp to road bounds
+                // Clamp to road bounds to prevent car from going off the road
                 const maxBounds = (roadWidth / 2) - kerbWidth - 1;
                 carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
                 
@@ -1508,7 +1507,6 @@
             // Reset player car position
             if (carModel) {
                 carModel.position.set(0, carBaseY, 0);
-                carTargetX = 0; // Reset target position
             }
 
             // Reset enemy car position
