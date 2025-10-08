@@ -407,6 +407,22 @@
 
         init(); // Initialize the scene and elements
         setupControls(); // Set up both keyboard and touch controls
+        
+        // ULTIMATE WEBVIEW FIX: Global document-level touch override
+        document.addEventListener('touchstart', (e) => {
+            // Only prevent default if not touching our control buttons
+            const target = e.target;
+            if (!target.classList.contains('control-button')) {
+                e.preventDefault();
+            }
+        }, { passive: false, capture: true });
+        
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Always prevent scrolling
+        }, { passive: false, capture: true });
+        
+        console.log('Ultimate webview touch overrides applied');
+        
         // animate() will be called by loadingManager.onLoad after everything is ready.
 
         function init() {
@@ -426,6 +442,33 @@
             renderer.toneMapping = THREE.ACESFilmicToneMapping; // For PBR realism
             renderer.toneMappingExposure = 1.2; // Adjust exposure for HDRI
             document.getElementById('container').appendChild(renderer.domElement);
+            
+            // CRITICAL WEBVIEW FIX: Force disable all touch behaviors on canvas
+            renderer.domElement.style.touchAction = 'none';
+            renderer.domElement.style.userSelect = 'none';
+            renderer.domElement.style.webkitUserSelect = 'none';
+            renderer.domElement.style.msUserSelect = 'none';
+            renderer.domElement.style.mozUserSelect = 'none';
+            renderer.domElement.style.webkitTouchCallout = 'none';
+            renderer.domElement.style.webkitTapHighlightColor = 'transparent';
+            
+            // Additional aggressive webview overrides
+            renderer.domElement.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false, capture: true });
+            
+            renderer.domElement.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false, capture: true });
+            
+            renderer.domElement.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false, capture: true });
+            
+            console.log('Canvas touch-action set to none with aggressive webview overrides');
 
             // --- Lights ---
             ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Softer ambient light
@@ -805,9 +848,17 @@
                     if (isGameOver) return;
                     e.preventDefault(); // CRITICAL: Prevent scrolling/webview interference
                     e.stopPropagation(); // Prevent event bubbling
+                    e.stopImmediatePropagation(); // AGGRESSIVE: Stop all other handlers
+                    
+                    // FORCE movement flag - multiple assignments for reliability
                     moveLeft = true;
+                    window.moveLeft = true; // Global backup
+                    
                     steerLeftButton.classList.add('pressed'); // Visual feedback
-                    console.log('Left steering activated'); // Debug log
+                    console.log('Left steering FORCE activated - moveLeft:', moveLeft); // Enhanced debug
+                    
+                    // Additional webview override
+                    if (e.cancelable) e.preventDefault();
                 }, { passive: false, capture: true });
 
                 // Pointer up - stop left movement
@@ -854,9 +905,17 @@
                     if (isGameOver) return;
                     e.preventDefault(); // CRITICAL: Prevent scrolling/webview interference
                     e.stopPropagation(); // Prevent event bubbling
+                    e.stopImmediatePropagation(); // AGGRESSIVE: Stop all other handlers
+                    
+                    // FORCE movement flag - multiple assignments for reliability
                     moveRight = true;
+                    window.moveRight = true; // Global backup
+                    
                     steerRightButton.classList.add('pressed'); // Visual feedback
-                    console.log('Right steering activated'); // Debug log
+                    console.log('Right steering FORCE activated - moveRight:', moveRight); // Enhanced debug
+                    
+                    // Additional webview override
+                    if (e.cancelable) e.preventDefault();
                 }, { passive: false, capture: true });
 
                 // Pointer up - stop right movement
@@ -1097,17 +1156,19 @@
                 // Apply continuous horizontal movement based on input flags
                 const frameAdjustedMoveSpeed = carMoveSpeed * (deltaTime * 60); // Normalize to 60fps
                 
-                if (moveLeft) {
+                // AGGRESSIVE WEBVIEW FIX: Check both local and global flags for maximum reliability
+                const isMovingLeft = moveLeft || window.moveLeft;
+                const isMovingRight = moveRight || window.moveRight;
+                
+                if (isMovingLeft) {
                     // Move left continuously while button is held (increase X in this coordinate system)
                     carModel.position.x += frameAdjustedMoveSpeed;
-                    // Debug: Uncomment to see movement in console
-                    // console.log("Moving left. Position:", carModel.position.x);
+                    console.log("MOVING LEFT - Position:", carModel.position.x.toFixed(2)); // Force debug
                 }
-                if (moveRight) {
+                if (isMovingRight) {
                     // Move right continuously while button is held (decrease X in this coordinate system)
                     carModel.position.x -= frameAdjustedMoveSpeed;
-                    // Debug: Uncomment to see movement in console
-                    // console.log("Moving right. Position:", carModel.position.x);
+                    console.log("MOVING RIGHT - Position:", carModel.position.x.toFixed(2)); // Force debug
                 }
                 
                 // Clamp to bounds
