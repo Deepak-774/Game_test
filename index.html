@@ -108,35 +108,72 @@
             /* Let clicks pass through */
         }
 
-        #score {
-            margin-bottom: 5px;
-            color: #ffff00 !important; /* Bright yellow for maximum visibility */
-            font-family: 'Courier New', monospace !important;
-            text-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00, 4px 4px 8px rgba(0, 0, 0, 0.95) !important;
-            font-weight: bold !important;
-            letter-spacing: 2px !important;
-            font-size: 1.5em !important; /* Larger for better visibility */
-            position: relative !important;
-            z-index: 150 !important; /* Higher z-index */
-            background: rgba(0, 0, 0, 0.7) !important; /* Dark background for contrast */
-            padding: 8px 12px !important;
-            border-radius: 6px !important;
-            border: 2px solid #ffff00 !important;
+        /* --- Modern UI Elements --- */
+        .ui-element {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+            border: 2px solid #00ffff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            box-shadow: 
+                0 4px 12px rgba(0, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            z-index: 150;
+            position: relative;
         }
 
-        #timer {
-            font-size: 1.5em !important; /* Larger for better visibility */
-            color: #ffffff !important; /* Bright white for maximum contrast */
-            font-family: 'Courier New', monospace !important;
-            text-shadow: 0 0 20px #ffffff, 0 0 40px #ffffff, 4px 4px 8px rgba(0, 0, 0, 0.95) !important;
-            font-weight: bold !important;
-            letter-spacing: 2px !important;
-            position: relative !important;
-            z-index: 150 !important; /* Higher z-index */
-            background: rgba(0, 0, 0, 0.7) !important; /* Dark background for contrast */
-            padding: 8px 12px !important;
-            border-radius: 6px !important;
-            border: 2px solid #ffffff !important;
+        .ui-element:hover {
+            border-color: #ffffff;
+            box-shadow: 
+                0 6px 16px rgba(0, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .ui-label {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.6em;
+            color: #00ffff;
+            text-shadow: 0 0 8px #00ffff;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+            font-weight: normal;
+        }
+
+        #score-value {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 1.4em;
+            color: #ffff00;
+            text-shadow: 0 0 15px #ffff00, 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-weight: bold;
+            letter-spacing: 2px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        #timer-value {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 1.4em;
+            color: #ffffff;
+            text-shadow: 0 0 15px #ffffff, 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-weight: bold;
+            letter-spacing: 2px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        #timer-value.warning {
+            color: #ff0040;
+            text-shadow: 0 0 20px #ff0040, 2px 2px 6px rgba(0, 0, 0, 0.9);
+            animation: pulse 0.5s infinite;
+        }
+
+        /* Legacy selectors for compatibility */
+        #score, #timer {
+            display: none; /* Hide old elements */
         }
 
         #timer.warning {
@@ -291,41 +328,50 @@
         }
 
         .control-icon {
-            font-size: 2.2em;
+            font-size: 2.4em;
             color: #00ffff;
-            text-shadow: 0 0 8px #00ffff;
-            margin-bottom: 2px;
+            text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff;
+            margin-bottom: 4px;
             font-weight: bold;
+            filter: drop-shadow(0 0 8px #00ffff);
         }
 
         .control-label {
-            font-size: 0.7em;
+            font-size: 0.75em;
             color: #ffffff;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-weight: normal;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         /* Active/Pressed State */
         .game-control-pad:active,
         .game-control-pad.pressed {
-            background: linear-gradient(145deg, #00ffff, #0099cc) !important;
+            background: linear-gradient(145deg, #00ffff, #ffffff) !important;
             border-color: #ffffff !important;
-            transform: scale(0.95) translateY(2px);
+            transform: scale(0.92) translateY(3px);
             box-shadow: 
-                0 2px 8px rgba(0, 255, 255, 0.4),
-                inset 0 2px 4px rgba(0, 0, 0, 0.3);
+                0 1px 4px rgba(0, 255, 255, 0.6),
+                inset 0 3px 6px rgba(0, 0, 0, 0.4);
+            animation: buttonPulse 0.15s ease-out;
         }
 
         .game-control-pad.pressed .control-icon {
             color: #000000 !important;
-            text-shadow: none !important;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.3) !important;
+            filter: none !important;
         }
 
         .game-control-pad.pressed .control-label {
             color: #000000 !important;
-            text-shadow: none !important;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        @keyframes buttonPulse {
+            0% { transform: scale(1) translateY(0px); }
+            50% { transform: scale(0.88) translateY(4px); }
+            100% { transform: scale(0.92) translateY(3px); }
         }
 
         /* Hover effect for desktop */
@@ -369,8 +415,14 @@
     <div id="container"></div>
 
     <div id="ui-container">
-        <div id="score">Score: 0</div>
-        <div id="timer">Time: 1:00</div>
+        <div id="score-display" class="ui-element">
+            <span class="ui-label">SCORE</span>
+            <span id="score-value">0</span>
+        </div>
+        <div id="timer-display" class="ui-element">
+            <span class="ui-label">TIME</span>
+            <span id="timer-value">1:00</span>
+        </div>
     </div>
     <div id="game-over">
         GAME OVER!
@@ -472,8 +524,8 @@
         // --- UI Elements References ---
         const loadingScreen = document.getElementById('loading-screen');
         const loadingProgress = document.getElementById('loading-progress');
-        const scoreElement = document.getElementById('score');
-        const timerElement = document.getElementById('timer');
+        const scoreElement = document.getElementById('score-value');
+        const timerElement = document.getElementById('timer-value');
         const gameOverElement = document.getElementById('game-over');
         const restartButton = document.getElementById('restart-button');
         // --- End UI Refs ---
@@ -1158,13 +1210,15 @@
             point.visible = true;
         }
 
-        function updateScoreDisplay() { scoreElement.textContent = `Score: ${score}`; }
+        function updateScoreDisplay() { 
+            scoreElement.textContent = score.toString();
+        }
         
         function updateTimerDisplay() {
             const minutes = Math.floor(countdownTime / 60);
             const seconds = Math.floor(countdownTime % 60);
             const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            timerElement.textContent = `Time: ${formattedTime}`;
+            timerElement.textContent = formattedTime;
             
             // Add warning style when time is low (last 10 seconds)
             if (countdownTime <= 10 && countdownTime > 0) {
@@ -1182,6 +1236,11 @@
 
         function animate(currentTime) {
             requestAnimationFrame(animate); // IMPORTANT: This creates the continuous game loop
+
+            // DEBUG: Check game state (reduced logging)
+            if (moveLeft || moveRight) {
+                console.log('🎮 GAME STATE - isGameOver:', isGameOver, 'gameStarted:', gameStarted, 'moveLeft:', moveLeft, 'moveRight:', moveRight);
+            }
 
             if (isGameOver || !gameStarted) {
                 renderer.render(scene, camera);
@@ -1354,12 +1413,12 @@
                 if (isMovingLeft) {
                     // Move left continuously while button is held
                     carModel.position.x += frameAdjustedMoveSpeed;
-                    console.log("MOVING LEFT - Position:", carModel.position.x.toFixed(2));
+                    console.log("✅ MOVING LEFT - Position:", carModel.position.x.toFixed(2));
                 }
                 if (isMovingRight) {
                     // Move right continuously while button is held
                     carModel.position.x -= frameAdjustedMoveSpeed;
-                    console.log("MOVING RIGHT - Position:", carModel.position.x.toFixed(2));
+                    console.log("✅ MOVING RIGHT - Position:", carModel.position.x.toFixed(2));
                 }
                 
                 // Clamp to bounds
