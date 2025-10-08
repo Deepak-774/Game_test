@@ -139,7 +139,7 @@
         }
 
 
-        /* --- Mobile Control Buttons --- */
+        /* --- Enhanced Mobile Control Buttons --- */
         .control-button {
             position: absolute;
             bottom: 20px;
@@ -175,16 +175,40 @@
             -webkit-tap-highlight-color: transparent;
             pointer-events: auto;
             /* Allow interaction */
+            /* Enhanced touch responsiveness */
+            touch-action: manipulation;
+            /* Prevent double-tap zoom */
+            -webkit-touch-callout: none;
+            /* Prevent iOS callout */
+            -webkit-user-drag: none;
+            /* Prevent dragging */
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            /* Smooth transitions for visual feedback */
+            transition: background-color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            /* Add subtle shadow for depth */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Style for when button is pressed */
-        .control-button:active {
-            background-color: rgba(255, 255, 255, 0.5);
+        /* Enhanced pressed state with better visual feedback */
+        .control-button:active,
+        .control-button.pressed {
+            background-color: rgba(255, 255, 255, 0.6);
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* Transition for control buttons */
-        .control-button {
-            transition: opacity 0.3s ease;
+        /* Hover state for desktop */
+        .control-button:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Focus state for accessibility */
+        .control-button:focus {
+            outline: 2px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
         }
 
         #left-button {
@@ -728,79 +752,189 @@
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = false; }
             });
 
-            // Touch Listeners for Buttons - Fixed for iframe compatibility
+            // DEFINITIVE MOBILE WEBVIEW CONTROL FIX
+            // Enhanced touch event handlers optimized for mobile webview environments
             const leftButton = document.getElementById('left-button');
             const rightButton = document.getElementById('right-button');
 
+            // Movement state tracking for reliable control
+            let leftButtonPressed = false;
+            let rightButtonPressed = false;
+            let activePointers = new Map(); // Track multiple touch points
+
+            // Utility function to safely stop movement
+            function stopMovement(direction) {
+                if (direction === 'left') {
+                    leftButtonPressed = false;
+                    moveLeft = false;
+                } else if (direction === 'right') {
+                    rightButtonPressed = false;
+                    moveRight = false;
+                }
+            }
+
+            // Enhanced Left Button Controls
             if (leftButton) {
-                // Using multiple event types for maximum compatibility in iframes
-                // FIXED: Left button now correctly sets moveLeft = true
-                const handleLeftDown = (e) => {
-                    if (!isGameOver) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        moveLeft = true;  // Correct: Left button moves left
-                        console.log("Left button pressed. moveLeft:", moveLeft);
-                    }
-                };
-                const handleLeftUp = (e) => {
+                // Primary touch start handler
+                const handleLeftStart = (e) => {
+                    if (isGameOver) return;
+                    
                     e.preventDefault();
                     e.stopPropagation();
-                    moveLeft = false;
-                    console.log("Left button released. moveLeft:", moveLeft);
+                    
+                    // Track pointer for multi-touch scenarios
+                    if (e.pointerId !== undefined) {
+                        activePointers.set(e.pointerId, 'left');
+                    }
+                    
+                    leftButtonPressed = true;
+                    moveLeft = true;
+                    
+                    // Visual feedback
+                    leftButton.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+                    
+                    console.log('Left movement started - moveLeft:', moveLeft);
                 };
-                
-                leftButton.addEventListener('pointerdown', handleLeftDown, { passive: false });
-                leftButton.addEventListener('touchstart', handleLeftDown, { passive: false });
-                leftButton.addEventListener('mousedown', handleLeftDown, { passive: false });
-                
-                leftButton.addEventListener('pointerup', handleLeftUp, { passive: false });
-                leftButton.addEventListener('touchend', handleLeftUp, { passive: false });
-                leftButton.addEventListener('mouseup', handleLeftUp, { passive: false });
-                
-                leftButton.addEventListener('pointerleave', (e) => {
+
+                // Primary touch end handler
+                const handleLeftEnd = (e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    moveLeft = false;
-                });
-                leftButton.addEventListener('touchcancel', (e) => {
-                    e.stopPropagation();
-                    moveLeft = false;
-                });
+                    
+                    // Remove pointer tracking
+                    if (e.pointerId !== undefined) {
+                        activePointers.delete(e.pointerId);
+                    }
+                    
+                    // Only stop if no other pointers are active on this button
+                    let hasActiveLeftPointer = false;
+                    for (let [pointerId, direction] of activePointers) {
+                        if (direction === 'left') {
+                            hasActiveLeftPointer = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!hasActiveLeftPointer) {
+                        stopMovement('left');
+                        leftButton.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                        console.log('Left movement stopped - moveLeft:', moveLeft);
+                    }
+                };
+
+                // Comprehensive event binding for maximum compatibility
+                // Touch events (primary for mobile)
+                leftButton.addEventListener('touchstart', handleLeftStart, { passive: false, capture: true });
+                leftButton.addEventListener('touchend', handleLeftEnd, { passive: false, capture: true });
+                leftButton.addEventListener('touchcancel', handleLeftEnd, { passive: false, capture: true });
+                
+                // Pointer events (modern standard)
+                leftButton.addEventListener('pointerdown', handleLeftStart, { passive: false, capture: true });
+                leftButton.addEventListener('pointerup', handleLeftEnd, { passive: false, capture: true });
+                leftButton.addEventListener('pointercancel', handleLeftEnd, { passive: false, capture: true });
+                leftButton.addEventListener('pointerleave', handleLeftEnd, { passive: false, capture: true });
+                
+                // Mouse events (fallback for desktop)
+                leftButton.addEventListener('mousedown', handleLeftStart, { passive: false, capture: true });
+                leftButton.addEventListener('mouseup', handleLeftEnd, { passive: false, capture: true });
+                leftButton.addEventListener('mouseleave', handleLeftEnd, { passive: false, capture: true });
+                
+                // Context menu prevention
+                leftButton.addEventListener('contextmenu', (e) => e.preventDefault());
             }
+
+            // Enhanced Right Button Controls
             if (rightButton) {
-                // FIXED: Right button now correctly sets moveRight = true
-                const handleRightDown = (e) => {
-                    if (!isGameOver) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        moveRight = true;  // Correct: Right button moves right
-                        console.log("Right button pressed. moveRight:", moveRight);
-                    }
-                };
-                const handleRightUp = (e) => {
+                // Primary touch start handler
+                const handleRightStart = (e) => {
+                    if (isGameOver) return;
+                    
                     e.preventDefault();
                     e.stopPropagation();
-                    moveRight = false;
-                    console.log("Right button released. moveRight:", moveRight);
+                    
+                    // Track pointer for multi-touch scenarios
+                    if (e.pointerId !== undefined) {
+                        activePointers.set(e.pointerId, 'right');
+                    }
+                    
+                    rightButtonPressed = true;
+                    moveRight = true;
+                    
+                    // Visual feedback
+                    rightButton.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+                    
+                    console.log('Right movement started - moveRight:', moveRight);
                 };
-                
-                rightButton.addEventListener('pointerdown', handleRightDown, { passive: false });
-                rightButton.addEventListener('touchstart', handleRightDown, { passive: false });
-                rightButton.addEventListener('mousedown', handleRightDown, { passive: false });
-                
-                rightButton.addEventListener('pointerup', handleRightUp, { passive: false });
-                rightButton.addEventListener('touchend', handleRightUp, { passive: false });
-                rightButton.addEventListener('mouseup', handleRightUp, { passive: false });
-                
-                rightButton.addEventListener('pointerleave', (e) => {
+
+                // Primary touch end handler
+                const handleRightEnd = (e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    moveRight = false;
-                });
-                rightButton.addEventListener('touchcancel', (e) => {
-                    e.stopPropagation();
-                    moveRight = false;
-                });
+                    
+                    // Remove pointer tracking
+                    if (e.pointerId !== undefined) {
+                        activePointers.delete(e.pointerId);
+                    }
+                    
+                    // Only stop if no other pointers are active on this button
+                    let hasActiveRightPointer = false;
+                    for (let [pointerId, direction] of activePointers) {
+                        if (direction === 'right') {
+                            hasActiveRightPointer = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!hasActiveRightPointer) {
+                        stopMovement('right');
+                        rightButton.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                        console.log('Right movement stopped - moveRight:', moveRight);
+                    }
+                };
+
+                // Comprehensive event binding for maximum compatibility
+                // Touch events (primary for mobile)
+                rightButton.addEventListener('touchstart', handleRightStart, { passive: false, capture: true });
+                rightButton.addEventListener('touchend', handleRightEnd, { passive: false, capture: true });
+                rightButton.addEventListener('touchcancel', handleRightEnd, { passive: false, capture: true });
+                
+                // Pointer events (modern standard)
+                rightButton.addEventListener('pointerdown', handleRightStart, { passive: false, capture: true });
+                rightButton.addEventListener('pointerup', handleRightEnd, { passive: false, capture: true });
+                rightButton.addEventListener('pointercancel', handleRightEnd, { passive: false, capture: true });
+                rightButton.addEventListener('pointerleave', handleRightEnd, { passive: false, capture: true });
+                
+                // Mouse events (fallback for desktop)
+                rightButton.addEventListener('mousedown', handleRightStart, { passive: false, capture: true });
+                rightButton.addEventListener('mouseup', handleRightEnd, { passive: false, capture: true });
+                rightButton.addEventListener('mouseleave', handleRightEnd, { passive: false, capture: true });
+                
+                // Context menu prevention
+                rightButton.addEventListener('contextmenu', (e) => e.preventDefault());
             }
+
+            // Global safety handlers for edge cases in webview
+            // Reset all movement if focus is lost or page becomes hidden
+            window.addEventListener('blur', () => {
+                stopMovement('left');
+                stopMovement('right');
+                activePointers.clear();
+            });
+            
+            window.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopMovement('left');
+                    stopMovement('right');
+                    activePointers.clear();
+                }
+            });
+            
+            // Handle page unload scenarios
+            window.addEventListener('beforeunload', () => {
+                stopMovement('left');
+                stopMovement('right');
+                activePointers.clear();
+            });
         }
         // --- End Setup Controls ---
 
@@ -1001,19 +1135,19 @@
                     // console.warn("Could not get car bounding box size, using default bounds.");
                 }
 
-                // FIXED: Continuous smooth movement while button is held
+                // ENHANCED: Frame-rate independent continuous movement
                 // Apply continuous horizontal movement based on input flags
-                const moveSpeed = carMoveSpeed; // Use the defined move speed
+                const frameAdjustedMoveSpeed = carMoveSpeed * (deltaTime * 60); // Normalize to 60fps
                 
                 if (moveLeft) {
                     // Move left continuously while button is held (increase X in this coordinate system)
-                    carModel.position.x += moveSpeed;
+                    carModel.position.x += frameAdjustedMoveSpeed;
                     // Debug: Uncomment to see movement in console
                     // console.log("Moving left. Position:", carModel.position.x);
                 }
                 if (moveRight) {
                     // Move right continuously while button is held (decrease X in this coordinate system)
-                    carModel.position.x -= moveSpeed;
+                    carModel.position.x -= frameAdjustedMoveSpeed;
                     // Debug: Uncomment to see movement in console
                     // console.log("Moving right. Position:", carModel.position.x);
                 }
