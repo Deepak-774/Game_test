@@ -108,52 +108,55 @@
             /* Let clicks pass through */
         }
 
-        /* --- Unified High-Contrast UI Elements --- */
+        /* --- Compact High-Contrast UI Elements --- */
         .ui-element {
             display: flex;
             flex-direction: column;
             align-items: center;
             background: #000000;
-            border: 3px solid #ffffff;
-            border-radius: 8px;
-            padding: 16px 20px;
-            margin-bottom: 12px;
+            border: 2px solid #ffffff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
             box-shadow: 
-                0 6px 0 #333333,
-                0 8px 12px rgba(0, 0, 0, 0.4);
+                0 3px 0 #333333,
+                0 4px 8px rgba(0, 0, 0, 0.3);
             z-index: 150;
             position: relative;
         }
 
         .ui-label {
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 0.7em;
+            font-size: 0.5em;
             color: #ffffff;
-            margin-bottom: 6px;
-            letter-spacing: 2px;
+            margin-bottom: 3px;
+            letter-spacing: 1px;
             font-weight: bold;
+            line-height: 1;
         }
 
         #score-value {
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 1.8em;
+            font-size: 1em;
             color: #ffff00;
             font-weight: bold;
-            letter-spacing: 2px;
-            min-width: 80px;
+            letter-spacing: 1px;
+            min-width: 50px;
             text-align: center;
-            text-shadow: 2px 2px 0 #000000;
+            text-shadow: 1px 1px 0 #000000;
+            line-height: 1;
         }
 
         #timer-value {
             font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 1.8em;
+            font-size: 1em;
             color: #ffffff;
             font-weight: bold;
-            letter-spacing: 2px;
-            min-width: 80px;
+            letter-spacing: 1px;
+            min-width: 50px;
             text-align: center;
-            text-shadow: 2px 2px 0 #000000;
+            text-shadow: 1px 1px 0 #000000;
+            line-height: 1;
         }
 
         #timer-value.warning {
@@ -289,11 +292,11 @@
         }
 
         .game-control-pad {
-            width: 110px;
-            height: 90px;
+            width: 90px;
+            height: 70px;
             background: #000000;
-            border: 3px solid #ffffff;
-            border-radius: 8px;
+            border: 2px solid #ffffff;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -313,26 +316,28 @@
             /* Solid, professional transitions */
             transition: all 0.1s ease;
             box-shadow: 
-                0 6px 0 #333333,
-                0 8px 12px rgba(0, 0, 0, 0.4);
+                0 4px 0 #333333,
+                0 6px 8px rgba(0, 0, 0, 0.3);
         }
 
         .control-icon {
-            font-size: 3em;
+            font-size: 2.2em;
             color: #ffffff;
             text-shadow: none;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             font-weight: 900;
             filter: none;
+            line-height: 1;
         }
 
         .control-label {
-            font-size: 0.8em;
+            font-size: 0.6em;
             color: #ffffff;
             font-family: 'Press Start 2P', 'Courier New', monospace;
             font-weight: bold;
             letter-spacing: 1px;
             text-shadow: none;
+            line-height: 1;
         }
 
         /* Active/Pressed State */
@@ -340,10 +345,10 @@
         .game-control-pad.pressed {
             background: #ffffff !important;
             border-color: #000000 !important;
-            transform: translateY(6px);
+            transform: translateY(4px);
             box-shadow: 
                 0 0 0 #333333,
-                0 2px 8px rgba(0, 0, 0, 0.6);
+                0 2px 6px rgba(0, 0, 0, 0.5);
         }
 
         .game-control-pad.pressed .control-icon {
@@ -368,14 +373,21 @@
         /* Responsive design */
         @media (max-width: 480px) {
             .game-control-pad {
-                width: 90px;
-                height: 70px;
+                width: 80px;
+                height: 60px;
             }
             .control-icon {
-                font-size: 2em;
+                font-size: 1.8em;
             }
             .control-label {
-                font-size: 0.6em;
+                font-size: 0.5em;
+            }
+            .ui-element {
+                padding: 6px 10px;
+                margin-bottom: 4px;
+            }
+            #score-value, #timer-value {
+                font-size: 0.9em;
             }
         }
         /* --- End Modern Game Control Pad --- */
@@ -547,6 +559,35 @@
 
         init(); // Initialize the scene and elements
         setupControls(); // Set up both keyboard and touch controls
+        
+        // CRITICAL WEBVIEW FIX: Force movement updates with setInterval
+        // This bypasses requestAnimationFrame throttling in aggressive webviews
+        setInterval(() => {
+            // HIGHEST PRIORITY: Only core movement logic, NOT renderer
+            if (carModel && (moveLeft || moveRight || window.moveLeft || window.moveRight)) {
+                console.log('⚡ INTERVAL MOVEMENT - moveLeft:', moveLeft, 'moveRight:', moveRight);
+                
+                // Fixed movement speed for consistent interval updates
+                const intervalMoveSpeed = carMoveSpeed * (1/60 * 60); // Normalize to 60fps
+                
+                // Apply movement immediately
+                const isMovingLeft = moveLeft || window.moveLeft;
+                const isMovingRight = moveRight || window.moveRight;
+                
+                if (isMovingLeft) {
+                    carModel.position.x += intervalMoveSpeed;
+                    console.log("⚡ INTERVAL LEFT - Position:", carModel.position.x.toFixed(2));
+                }
+                if (isMovingRight) {
+                    carModel.position.x -= intervalMoveSpeed;
+                    console.log("⚡ INTERVAL RIGHT - Position:", carModel.position.x.toFixed(2));
+                }
+                
+                // Clamp to bounds immediately
+                const maxBounds = (roadWidth / 2) - kerbWidth - 1;
+                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
+            }
+        }, 1000 / 60); // Force 60 FPS movement updates
         
         // NUCLEAR OPTION: Ultimate document-level touch override
         document.addEventListener('touchstart', (e) => {
