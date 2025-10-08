@@ -560,32 +560,35 @@
         init(); // Initialize the scene and elements
         setupControls(); // Set up both keyboard and touch controls
         
-        // CRITICAL WEBVIEW FIX: Reliable fixed-rate movement timer
-        // Bypasses requestAnimationFrame throttling by using setInterval for movement only
-        const FPS = 60;
+        // CRITICAL WEBVIEW FIX: Aggressive movement bypass for throttled environments
+        // Forces movement at 60 FPS regardless of requestAnimationFrame throttling
+        const MOVEMENT_FPS = 60;
         setInterval(() => {
-            // 1. Check game state: only process if NOT game over
-            if (!isGameOver && carModel) {
-                // 2. Apply steering: check flags and update carTargetX
-                const moveSpeed = carMoveSpeed; // Base movement speed per frame
+            // FORCED MOVEMENT: Bypasses all webview throttling
+            if (!isGameOver && carModel && gameStarted) {
+                // Direct position manipulation - most aggressive approach
+                const moveSpeed = carMoveSpeed * 0.8; // Slightly reduced for smoother control
                 
-                if (moveLeft || window.moveLeft) {
-                    // Move left: increase carTargetX (positive direction)
-                    carTargetX += moveSpeed;
-                } else if (moveRight || window.moveRight) {
-                    // Move right: decrease carTargetX (negative direction)
-                    carTargetX -= moveSpeed;
+                // Check movement flags with multiple fallbacks
+                const movingLeft = moveLeft || window.moveLeft;
+                const movingRight = moveRight || window.moveRight;
+                
+                if (movingLeft && !movingRight) {
+                    // Move left: direct position update
+                    carModel.position.x += moveSpeed;
+                } else if (movingRight && !movingLeft) {
+                    // Move right: direct position update
+                    carModel.position.x -= moveSpeed;
                 }
                 
-                // 3. Clamp carTargetX to bounds
+                // Enforce bounds immediately
                 const maxBounds = (roadWidth / 2) - kerbWidth - 1;
-                carTargetX = Math.max(-maxBounds, Math.min(maxBounds, carTargetX));
+                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
                 
-                // 4. Smooth interpolation: update carModel.position.x toward carTargetX
-                const lerpFactor = 0.15; // Smooth interpolation factor
-                carModel.position.x += (carTargetX - carModel.position.x) * lerpFactor;
+                // Update target for smooth camera following
+                carTargetX = carModel.position.x;
             }
-        }, 1000 / FPS); // Consistent 60 FPS movement updates
+        }, 1000 / MOVEMENT_FPS); // Force 60 FPS movement regardless of throttling
         
         // NUCLEAR OPTION: Ultimate document-level touch override
         document.addEventListener('touchstart', (e) => {
@@ -666,10 +669,22 @@
             // Initial camera position (will be adjusted after car model loads)
             camera.position.set(0, 3, -7);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            // PERFORMANCE OPTIMIZED: Prioritize speed over quality for webview
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: false,           // Disable antialiasing for better performance
+                powerPreference: "high-performance",
+                precision: "mediump"        // Use medium precision for better performance
+            });
+            
+            // Reduce render resolution for better performance on high-DPI displays
+            const pixelRatio = Math.min(window.devicePixelRatio, 2); // Cap at 2x
+            renderer.setPixelRatio(pixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Optimize shadow settings for performance
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+            renderer.shadowMap.type = THREE.BasicShadowMap; // Fastest shadow type
+            renderer.shadowMap.autoUpdate = false; // Manual shadow updates for better performance
             renderer.toneMapping = THREE.ACESFilmicToneMapping; // For PBR realism
             renderer.toneMappingExposure = 1.2; // Adjust exposure for HDRI
             document.getElementById('container').appendChild(renderer.domElement);
@@ -1245,23 +1260,35 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
+        // PERFORMANCE: Target 30 FPS for stable webview performance
+        const TARGET_FPS = 30;
+        const FRAME_INTERVAL = 1000 / TARGET_FPS;
+        let lastRenderTime = 0;
+
         function animate(currentTime) {
             requestAnimationFrame(animate); // IMPORTANT: This creates the continuous game loop
 
-            // CRITICAL: ALWAYS render the scene first
-            renderer.render(scene, camera);
+            // PERFORMANCE OPTIMIZATION: Limit rendering to target FPS
+            if (currentTime - lastRenderTime < FRAME_INTERVAL) {
+                return; // Skip this frame to maintain target FPS
+            }
+            lastRenderTime = currentTime;
 
             // Movement is now handled by setInterval timer - no duplicate logic needed here
 
-            // Game state checks AFTER movement processing
+            // Game state checks BEFORE expensive operations
             if (isGameOver || !gameStarted) {
-                return; // Stop other game logic but movement already processed
+                // Still render for visual feedback, but skip game logic
+                renderer.render(scene, camera);
+                return;
             }
+
+            // CRITICAL: Render the scene at controlled rate
+            renderer.render(scene, camera);
 
             // --- Calculate Delta Time ---
             if (lastFrameTime === 0) {
                 lastFrameTime = currentTime;
-                renderer.render(scene, camera);
                 return; // Skip first frame to establish baseline
             }
             
