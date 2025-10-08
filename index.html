@@ -560,34 +560,32 @@
         init(); // Initialize the scene and elements
         setupControls(); // Set up both keyboard and touch controls
         
-        // CRITICAL WEBVIEW FIX: Force movement updates with setInterval
-        // This bypasses requestAnimationFrame throttling in aggressive webviews
+        // CRITICAL WEBVIEW FIX: Reliable fixed-rate movement timer
+        // Bypasses requestAnimationFrame throttling by using setInterval for movement only
+        const FPS = 60;
         setInterval(() => {
-            // HIGHEST PRIORITY: Only core movement logic, NOT renderer
-            if (carModel && (moveLeft || moveRight || window.moveLeft || window.moveRight)) {
-                console.log('⚡ INTERVAL MOVEMENT - moveLeft:', moveLeft, 'moveRight:', moveRight);
+            // 1. Check game state: only process if NOT game over
+            if (!isGameOver && carModel) {
+                // 2. Apply steering: check flags and update carTargetX
+                const moveSpeed = carMoveSpeed; // Base movement speed per frame
                 
-                // Fixed movement speed for consistent interval updates
-                const intervalMoveSpeed = carMoveSpeed * (1/60 * 60); // Normalize to 60fps
-                
-                // Apply movement immediately
-                const isMovingLeft = moveLeft || window.moveLeft;
-                const isMovingRight = moveRight || window.moveRight;
-                
-                if (isMovingLeft) {
-                    carModel.position.x += intervalMoveSpeed;
-                    console.log("⚡ INTERVAL LEFT - Position:", carModel.position.x.toFixed(2));
-                }
-                if (isMovingRight) {
-                    carModel.position.x -= intervalMoveSpeed;
-                    console.log("⚡ INTERVAL RIGHT - Position:", carModel.position.x.toFixed(2));
+                if (moveLeft || window.moveLeft) {
+                    // Move left: increase carTargetX (positive direction)
+                    carTargetX += moveSpeed;
+                } else if (moveRight || window.moveRight) {
+                    // Move right: decrease carTargetX (negative direction)
+                    carTargetX -= moveSpeed;
                 }
                 
-                // Clamp to bounds immediately
+                // 3. Clamp carTargetX to bounds
                 const maxBounds = (roadWidth / 2) - kerbWidth - 1;
-                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
+                carTargetX = Math.max(-maxBounds, Math.min(maxBounds, carTargetX));
+                
+                // 4. Smooth interpolation: update carModel.position.x toward carTargetX
+                const lerpFactor = 0.15; // Smooth interpolation factor
+                carModel.position.x += (carTargetX - carModel.position.x) * lerpFactor;
             }
-        }, 1000 / 60); // Force 60 FPS movement updates
+        }, 1000 / FPS); // Consistent 60 FPS movement updates
         
         // NUCLEAR OPTION: Ultimate document-level touch override
         document.addEventListener('touchstart', (e) => {
@@ -1127,7 +1125,6 @@
                     // Visual feedback
                     leftControlButton.classList.add('pressed');
                     
-                    console.log('🎮 LEFT CONTROL ACTIVATED - moveLeft:', moveLeft);
                 }, { passive: false }); // MANDATORY for webview
                 
                 leftControlButton.addEventListener('pointerup', (e) => {
@@ -1172,7 +1169,6 @@
                     // Visual feedback
                     rightControlButton.classList.add('pressed');
                     
-                    console.log('🎮 RIGHT CONTROL ACTIVATED - moveRight:', moveRight);
                 }, { passive: false }); // MANDATORY for webview
                 
                 rightControlButton.addEventListener('pointerup', (e) => {
@@ -1184,7 +1180,6 @@
                     window.moveRight = false;
                     rightControlButton.classList.remove('pressed');
                     
-                    console.log('🎮 RIGHT CONTROL RELEASED - moveRight:', moveRight);
                 }, { passive: false });
                 
                 rightControlButton.addEventListener('pointercancel', (e) => {
@@ -1196,7 +1191,6 @@
                     window.moveRight = false;
                     rightControlButton.classList.remove('pressed');
                     
-                    console.log('🎮 RIGHT CONTROL CANCELLED');
                 }, { passive: false });
             }
             
@@ -1207,13 +1201,11 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     restartGame();
-                    console.log('🔄 RESTART ACTIVATED');
                 }, { passive: false });
                 
                 restartMessage.addEventListener('click', restartGame);
             }
             
-            console.log('🎮 ABSOLUTE FINAL CONTROL SYSTEM INITIALIZED');
         }
         // --- End Setup Controls ---
 
@@ -1259,31 +1251,7 @@
             // CRITICAL: ALWAYS render the scene first
             renderer.render(scene, camera);
 
-            // CRITICAL MOVEMENT ISOLATION: Process car movement BEFORE any game state checks
-            if (carModel && (moveLeft || moveRight || window.moveLeft || window.moveRight)) {
-                console.log('🚗 CRITICAL MOVEMENT - moveLeft:', moveLeft, 'moveRight:', moveRight);
-                
-                // Calculate movement speed (use fixed deltaTime if currentTime unavailable)
-                const safeDeltaTime = lastFrameTime > 0 ? (currentTime - lastFrameTime) / 1000 : 1/60;
-                const frameAdjustedMoveSpeed = carMoveSpeed * (safeDeltaTime * 60);
-                
-                // Apply movement immediately - HIGHEST PRIORITY
-                const isMovingLeft = moveLeft || window.moveLeft;
-                const isMovingRight = moveRight || window.moveRight;
-                
-                if (isMovingLeft) {
-                    carModel.position.x += frameAdjustedMoveSpeed;
-                    console.log("✅ IMMEDIATE LEFT MOVEMENT - Position:", carModel.position.x.toFixed(2));
-                }
-                if (isMovingRight) {
-                    carModel.position.x -= frameAdjustedMoveSpeed;
-                    console.log("✅ IMMEDIATE RIGHT MOVEMENT - Position:", carModel.position.x.toFixed(2));
-                }
-                
-                // Clamp to bounds immediately
-                const maxBounds = (roadWidth / 2) - kerbWidth - 1;
-                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
-            }
+            // Movement is now handled by setInterval timer - no duplicate logic needed here
 
             // Game state checks AFTER movement processing
             if (isGameOver || !gameStarted) {
