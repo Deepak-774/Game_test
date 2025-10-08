@@ -457,9 +457,8 @@
         const leftControlButton = document.getElementById('control-left');
         const rightControlButton = document.getElementById('control-right');
         
-        // Movement control variables
-        let moveLeft = false;
-        let moveRight = false;
+        // DISCRETE VELOCITY MODEL: Simple Space Invaders-style movement
+        let carVelocityX = 0; // Global velocity variable - initialized to 0
         let gameStarted = true; // Start immediately without permission
 
         let scene, camera, renderer, carModel, enemyCar;
@@ -1070,26 +1069,26 @@
 
         // --- ABSOLUTE FINAL FAIL-SAFE BUTTON LOGIC ---
         function setupControls() {
-            // Desktop keyboard compatibility
+            // Desktop keyboard compatibility - VELOCITY MODEL
             window.addEventListener('keydown', (event) => {
                 if (isGameOver) return;
                 if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
-                    moveLeft = true;
+                    carVelocityX = -0.05; // Fixed velocity left
                     leftControlButton.classList.add('pressed');
                 }
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
-                    moveRight = true;
+                    carVelocityX = 0.05; // Fixed velocity right
                     rightControlButton.classList.add('pressed');
                 }
             });
             
             window.addEventListener('keyup', (event) => {
                 if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
-                    moveLeft = false;
+                    carVelocityX = 0; // Stop movement
                     leftControlButton.classList.remove('pressed');
                 }
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
-                    moveRight = false;
+                    carVelocityX = 0; // Stop movement
                     rightControlButton.classList.remove('pressed');
                 }
             });
@@ -1104,9 +1103,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // Set movement flags with backup
-                    moveLeft = true;
-                    window.moveLeft = true;
+                    // VELOCITY MODEL: Set fixed velocity left
+                    carVelocityX = -0.05;
                     
                     // Visual feedback
                     leftControlButton.classList.add('pressed');
@@ -1118,8 +1116,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    moveLeft = false;
-                    window.moveLeft = false;
+                    // VELOCITY MODEL: Stop movement
+                    carVelocityX = 0;
                     leftControlButton.classList.remove('pressed');
                     
                 }, { passive: false });
@@ -1129,8 +1127,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    moveLeft = false;
-                    window.moveLeft = false;
+                    // VELOCITY MODEL: Stop movement
+                    carVelocityX = 0;
                     leftControlButton.classList.remove('pressed');
                     
                 }, { passive: false });
@@ -1146,9 +1144,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // Set movement flags with backup
-                    moveRight = true;
-                    window.moveRight = true;
+                    // VELOCITY MODEL: Set fixed velocity right
+                    carVelocityX = 0.05;
                     
                     // Visual feedback
                     rightControlButton.classList.add('pressed');
@@ -1160,8 +1157,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    moveRight = false;
-                    window.moveRight = false;
+                    // VELOCITY MODEL: Stop movement
+                    carVelocityX = 0;
                     rightControlButton.classList.remove('pressed');
                     
                 }, { passive: false });
@@ -1171,8 +1168,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    moveRight = false;
-                    window.moveRight = false;
+                    // VELOCITY MODEL: Stop movement
+                    carVelocityX = 0;
                     rightControlButton.classList.remove('pressed');
                     
                 }, { passive: false });
@@ -1232,28 +1229,20 @@
         function animate(currentTime) {
             requestAnimationFrame(animate); // IMPORTANT: This creates the continuous game loop
 
-            // CORE MOVEMENT LOGIC: Process car movement every frame
-            if (carModel && (moveLeft || moveRight || window.moveLeft || window.moveRight)) {
-                // Calculate frame-rate independent movement
-                const deltaTime = lastFrameTime > 0 ? (currentTime - lastFrameTime) / 1000 : 1/60;
-                const frameAdjustedMoveSpeed = carMoveSpeed * (deltaTime * 60); // Normalize to 60fps
+            // DISCRETE VELOCITY MODEL: Direct velocity application (Space Invaders style)
+            if (carModel && !isGameOver) {
+                // Apply velocity directly - no complex interpolation or flags
+                carModel.position.x += carVelocityX;
                 
-                // Check movement flags with dual system
-                const isMovingLeft = moveLeft || window.moveLeft;
-                const isMovingRight = moveRight || window.moveRight;
-                
-                if (isMovingLeft && !isMovingRight) {
-                    // Move left continuously while button is held
-                    carModel.position.x += frameAdjustedMoveSpeed;
-                }
-                if (isMovingRight && !isMovingLeft) {
-                    // Move right continuously while button is held
-                    carModel.position.x -= frameAdjustedMoveSpeed;
-                }
-                
-                // Clamp to bounds
+                // Clamp to road bounds
                 const maxBounds = (roadWidth / 2) - kerbWidth - 1;
                 carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
+                
+                // Update camera to follow car smoothly
+                if (camera) {
+                    const targetCameraX = carModel.position.x * 0.3;
+                    camera.position.x += (targetCameraX - camera.position.x) * 0.1;
+                }
             }
 
             // Game state checks
@@ -1472,11 +1461,8 @@
             
             isGameOver = true;
             
-            // Reset movement flags and hide controls
-            moveLeft = false;
-            moveRight = false;
-            window.moveLeft = false;
-            window.moveRight = false;
+            // VELOCITY MODEL: Stop all movement
+            carVelocityX = 0;
             
             // Hide control container
             controlContainer.classList.add('hidden');
@@ -1511,11 +1497,8 @@
             document.getElementById('game-over-message').style.display = 'none';
             document.getElementById('restart-message').style.display = 'none';
             
-            // Reset movement flags and show controls
-            moveLeft = false;
-            moveRight = false;
-            window.moveLeft = false;
-            window.moveRight = false;
+            // VELOCITY MODEL: Reset movement and show controls
+            carVelocityX = 0; // Ensure velocity is completely reset
             
             // Show control container
             controlContainer.classList.remove('hidden');
