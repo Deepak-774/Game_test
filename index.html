@@ -155,10 +155,6 @@
             letter-spacing: 2px; /* Spacing for tech aesthetic */
         }
 
-        /* Hide control buttons when game over */
-        .control-button.hidden {
-            display: none !important;
-        }
 
         /* Old game over elements - now unused */
         #game-over {
@@ -170,97 +166,52 @@
         }
 
 
-        /* --- Enhanced Mobile Control Buttons --- */
-        .control-button {
+        /* --- Tilt Control Start Button --- */
+        #start-button {
             position: absolute;
-            bottom: 20px;
-            /* Position from bottom */
-            width: 80px;
-            /* Button width */
-            height: 80px;
-            /* Button height */
-            background-color: rgba(255, 255, 255, 0.3);
-            /* Semi-transparent white */
-            border: 2px solid rgba(0, 0, 0, 0.5);
-            /* Darker border */
-            border-radius: 50%;
-            /* Circular buttons */
-            z-index: 60;
-            /* Above canvas, below game over */
-            display: flex;
-            /* For centering arrow inside */
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5em;
-            /* Arrow size */
-            color: rgba(0, 0, 0, 0.7);
-            /* Arrow color */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 15px 30px;
             cursor: pointer;
-            /* Indicate clickable */
-            /* Prevent text selection on tap */
+            text-shadow: 0 0 10px #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            z-index: 200;
             user-select: none;
             -webkit-user-select: none;
-            -ms-user-select: none;
-            -moz-user-select: none;
-            /* Prevent iOS tap highlight */
-            -webkit-tap-highlight-color: transparent;
-            pointer-events: auto;
-            /* Allow interaction */
-            /* Enhanced touch responsiveness */
-            touch-action: manipulation;
-            /* Prevent double-tap zoom */
-            -webkit-touch-callout: none;
-            /* Prevent iOS callout */
-            -webkit-user-drag: none;
-            /* Prevent dragging */
-            -khtml-user-drag: none;
-            -moz-user-drag: none;
-            -o-user-drag: none;
-            user-drag: none;
-            /* Smooth transitions for visual feedback */
-            transition: background-color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
-            /* Add subtle shadow for depth */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
 
-        /* Specific positioning for new button IDs */
-        #steer-left {
-            left: 20px;
-            /* Position left button */
+        #start-button:hover {
+            background-color: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
         }
 
-        #steer-right {
-            right: 20px;
-            /* Position right button */
+        #start-button.hidden {
+            display: none;
         }
 
-        /* Enhanced pressed state with better visual feedback */
-        .control-button:active,
-        .control-button.pressed {
-            background-color: rgba(255, 255, 255, 0.6);
-            transform: scale(0.95);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        /* Tilt indicator */
+        #tilt-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            text-shadow: 0 0 8px #00ffff;
+            z-index: 60;
+            pointer-events: none;
         }
-
-        /* Pressed state specifically for touch controls */
-        .control-button.pressed {
-            background-color: rgba(255, 255, 255, 0.7) !important;
-            border-color: rgba(0, 0, 0, 0.8);
-        }
-
-        /* Hover state for desktop */
-        .control-button:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-        }
-
-        /* Focus state for accessibility */
-        .control-button:focus {
-            outline: 2px solid rgba(255, 255, 255, 0.8);
-            outline-offset: 2px;
-        }
-
-
-        /* --- End Mobile Control Buttons --- */
+        /* --- End Tilt Control Elements --- */
 
         /* Import Google Font for UI */
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -287,8 +238,10 @@
     <div id="game-over-blur"></div>
     <div id="game-over-message">Better luck next time</div>
 
-    <button id="steer-left" class="control-button">◀</button>
-    <button id="steer-right" class="control-button">▶</button>
+    <!-- Tilt Control Elements -->
+    <button id="start-button">Start Tilt Control</button>
+    <div id="tilt-indicator">Tilt: 0.0</div>
+
     <script type="importmap">
         {
             "imports": {
@@ -304,9 +257,14 @@
         import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
         import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'; // For HDRI
 
-        // Virtual control button elements
-        const steerLeftButton = document.getElementById('steer-left');
-        const steerRightButton = document.getElementById('steer-right');
+        // Tilt control elements
+        const startButton = document.getElementById('start-button');
+        const tiltIndicator = document.getElementById('tilt-indicator');
+        
+        // Tilt steering variables
+        let tiltSteering = 0; // Range: -1 to 1
+        let tiltControlEnabled = false;
+        let gameStarted = false;
 
         let scene, camera, renderer, carModel, enemyCar;
         let ambientLight, directionalLight;
@@ -825,133 +783,84 @@
             updateScoreDisplay();
         }
 
-        // --- Function to Set Up Controls (Keyboard & Pointer Events) ---
+        // --- Function to Set Up Controls (Keyboard & Tilt) ---
         function setupControls() {
             // Keyboard Listeners for desktop compatibility
             window.addEventListener('keydown', (event) => {
-                if (isGameOver) return;
-                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = true; }
-                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = true; }
+                if (isGameOver || !gameStarted) return;
+                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
+                    tiltSteering = Math.max(tiltSteering - 0.1, -1);
+                }
+                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
+                    tiltSteering = Math.min(tiltSteering + 0.1, 1);
+                }
             });
             window.addEventListener('keyup', (event) => {
-                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = false; }
-                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = false; }
+                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a' ||
+                    event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
+                    tiltSteering = 0; // Reset to center when key released
+                }
             });
 
-            // Robust Pointer Event Listeners for Virtual Controls
-            // Left Steering Button
-            if (steerLeftButton) {
-                // CRITICAL WEBVIEW FIX: Multiple event types for maximum compatibility
+            // Device Orientation Event Listener for Tilt Control
+            window.addEventListener('deviceorientation', (event) => {
+                if (!tiltControlEnabled || isGameOver || !gameStarted) return;
                 
-                // Pointer down - begin continuous left movement
-                steerLeftButton.addEventListener('pointerdown', (e) => {
-                    if (isGameOver) return;
-                    e.preventDefault(); // CRITICAL: Prevent scrolling/webview interference
-                    e.stopPropagation(); // Prevent event bubbling
-                    e.stopImmediatePropagation(); // AGGRESSIVE: Stop all other handlers
-                    
-                    // FORCE movement flag - multiple assignments for reliability
-                    moveLeft = true;
-                    window.moveLeft = true; // Global backup
-                    
-                    steerLeftButton.classList.add('pressed'); // Visual feedback
-                    console.log('Left steering FORCE activated - moveLeft:', moveLeft); // Enhanced debug
-                    
-                    // Additional webview override
-                    if (e.cancelable) e.preventDefault();
-                }, { passive: false, capture: true });
-
-                // Pointer up - stop left movement
-                steerLeftButton.addEventListener('pointerup', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveLeft = false;
-                    steerLeftButton.classList.remove('pressed');
-                    console.log('Left steering deactivated'); // Debug log
-                }, { passive: false, capture: true });
-
-                // Pointer cancel - stop left movement (safety for interrupted gestures)
-                steerLeftButton.addEventListener('pointercancel', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveLeft = false;
-                    steerLeftButton.classList.remove('pressed');
-                    console.log('Left steering cancelled'); // Debug log
-                }, { passive: false, capture: true });
-
-                // Additional touch events for webview compatibility
-                steerLeftButton.addEventListener('touchstart', (e) => {
-                    if (isGameOver) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveLeft = true;
-                    steerLeftButton.classList.add('pressed');
-                }, { passive: false, capture: true });
-
-                steerLeftButton.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveLeft = false;
-                    steerLeftButton.classList.remove('pressed');
-                }, { passive: false, capture: true });
-            }
-
-            // Right Steering Button
-            if (steerRightButton) {
-                // CRITICAL WEBVIEW FIX: Multiple event types for maximum compatibility
+                // Use gamma (side-to-side tilt) for steering
+                // gamma ranges from -90 to 90 degrees
+                const gamma = event.gamma || 0;
                 
-                // Pointer down - begin continuous right movement
-                steerRightButton.addEventListener('pointerdown', (e) => {
-                    if (isGameOver) return;
-                    e.preventDefault(); // CRITICAL: Prevent scrolling/webview interference
-                    e.stopPropagation(); // Prevent event bubbling
-                    e.stopImmediatePropagation(); // AGGRESSIVE: Stop all other handlers
-                    
-                    // FORCE movement flag - multiple assignments for reliability
-                    moveRight = true;
-                    window.moveRight = true; // Global backup
-                    
-                    steerRightButton.classList.add('pressed'); // Visual feedback
-                    console.log('Right steering FORCE activated - moveRight:', moveRight); // Enhanced debug
-                    
-                    // Additional webview override
-                    if (e.cancelable) e.preventDefault();
-                }, { passive: false, capture: true });
+                // Normalize and clamp gamma to -1 to 1 range
+                // Use a smaller range (±30 degrees) for more sensitive control
+                const maxTilt = 30;
+                tiltSteering = Math.max(-1, Math.min(1, gamma / maxTilt));
+                
+                // Update tilt indicator
+                tiltIndicator.textContent = `Tilt: ${tiltSteering.toFixed(2)}`;
+                
+                console.log('Tilt steering:', tiltSteering.toFixed(2), 'Gamma:', gamma.toFixed(1));
+            });
 
-                // Pointer up - stop right movement
-                steerRightButton.addEventListener('pointerup', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveRight = false;
-                    steerRightButton.classList.remove('pressed');
-                    console.log('Right steering deactivated'); // Debug log
-                }, { passive: false, capture: true });
+            // Start button event listener
+            startButton.addEventListener('click', requestOrientationPermission);
+        }
 
-                // Pointer cancel - stop right movement (safety for interrupted gestures)
-                steerRightButton.addEventListener('pointercancel', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveRight = false;
-                    steerRightButton.classList.remove('pressed');
-                    console.log('Right steering cancelled'); // Debug log
-                }, { passive: false, capture: true });
-
-                // Additional touch events for webview compatibility
-                steerRightButton.addEventListener('touchstart', (e) => {
-                    if (isGameOver) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveRight = true;
-                    steerRightButton.classList.add('pressed');
-                }, { passive: false, capture: true });
-
-                steerRightButton.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveRight = false;
-                    steerRightButton.classList.remove('pressed');
-                }, { passive: false, capture: true });
+        // Permission handling for device orientation
+        async function requestOrientationPermission() {
+            try {
+                // Check if permission is required (iOS 13+)
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        enableTiltControl();
+                    } else {
+                        alert('Device orientation permission denied. Game cannot start.');
+                    }
+                } else {
+                    // Permission not required or already granted
+                    enableTiltControl();
+                }
+            } catch (error) {
+                console.error('Error requesting orientation permission:', error);
+                // Fallback: try to enable anyway
+                enableTiltControl();
             }
+        }
+
+        function enableTiltControl() {
+            tiltControlEnabled = true;
+            gameStarted = true;
+            startButton.classList.add('hidden');
+            console.log('Tilt control enabled');
+            
+            // Test device orientation support
+            window.addEventListener('deviceorientation', (event) => {
+                if (event.gamma !== null) {
+                    console.log('Device orientation working - Gamma:', event.gamma);
+                } else {
+                    console.warn('Device orientation not supported or blocked');
+                }
+            }, { once: true });
         }
         // --- End Setup Controls ---
 
@@ -992,9 +901,9 @@
         function animate(currentTime) {
             requestAnimationFrame(animate); // IMPORTANT: This creates the continuous game loop
 
-            if (isGameOver) {
+            if (isGameOver || !gameStarted) {
                 renderer.render(scene, camera);
-                return; // Stop game logic updates if game over
+                return; // Stop game logic updates if game over or not started
             }
 
             // --- Calculate Delta Time ---
@@ -1152,23 +1061,18 @@
                     // console.warn("Could not get car bounding box size, using default bounds.");
                 }
 
-                // ENHANCED: Frame-rate independent continuous movement
-                // Apply continuous horizontal movement based on input flags
+                // TILT-BASED STEERING: Frame-rate independent continuous movement
+                // Apply continuous horizontal movement based on tilt steering
                 const frameAdjustedMoveSpeed = carMoveSpeed * (deltaTime * 60); // Normalize to 60fps
                 
-                // AGGRESSIVE WEBVIEW FIX: Check both local and global flags for maximum reliability
-                const isMovingLeft = moveLeft || window.moveLeft;
-                const isMovingRight = moveRight || window.moveRight;
+                // Calculate target position based on tilt steering
+                // tiltSteering ranges from -1 (left) to 1 (right)
+                const steeringInput = tiltSteering * frameAdjustedMoveSpeed;
                 
-                if (isMovingLeft) {
-                    // Move left continuously while button is held (increase X in this coordinate system)
-                    carModel.position.x += frameAdjustedMoveSpeed;
-                    console.log("MOVING LEFT - Position:", carModel.position.x.toFixed(2)); // Force debug
-                }
-                if (isMovingRight) {
-                    // Move right continuously while button is held (decrease X in this coordinate system)
-                    carModel.position.x -= frameAdjustedMoveSpeed;
-                    console.log("MOVING RIGHT - Position:", carModel.position.x.toFixed(2)); // Force debug
+                // Apply steering movement
+                if (Math.abs(tiltSteering) > 0.05) { // Dead zone to prevent micro-movements
+                    carModel.position.x -= steeringInput; // Negative because right tilt should move right (decrease X)
+                    console.log("TILT STEERING - Value:", tiltSteering.toFixed(2), "Position:", carModel.position.x.toFixed(2));
                 }
                 
                 // Clamp to bounds
@@ -1240,9 +1144,8 @@
             
             isGameOver = true;
             
-            // Hide control buttons
-            document.getElementById('steer-left').classList.add('hidden');
-            document.getElementById('steer-right').classList.add('hidden');
+            // Reset tilt steering
+            tiltSteering = 0;
             
             // Show blur overlay
             document.getElementById('game-over-blur').style.display = 'block';
@@ -1272,9 +1175,8 @@
             document.getElementById('game-over-blur').style.display = 'none';
             document.getElementById('game-over-message').style.display = 'none';
             
-            // Show control buttons
-            document.getElementById('steer-left').classList.remove('hidden');
-            document.getElementById('steer-right').classList.remove('hidden');
+            // Reset tilt steering
+            tiltSteering = 0;
             
             gameOverElement.style.display = 'none';
 
