@@ -461,6 +461,10 @@
         const CAR_SPEED = 0.5; // Fixed car speed constant
         let carVelocityX = 0; // Global velocity variable - initialized to 0
         let gameStarted = true; // Start immediately without permission
+        
+        // --- Movement Flags for Webview Throttling Bypass ---
+        let moveLeft = false;
+        let moveRight = false;
 
         let scene, camera, renderer, carModel, enemyCar;
         let ambientLight, directionalLight;
@@ -557,6 +561,18 @@
 
         init(); // Initialize the scene and elements
         setupControls(); // Set up both keyboard and touch controls
+        
+        // --- WEBVIEW THROTTLING BYPASS: Force 60 FPS Input Processing ---
+        setInterval(() => {
+            if (moveLeft && !moveRight) {
+                carVelocityX = -CAR_SPEED;
+            } else if (moveRight && !moveLeft) {
+                carVelocityX = CAR_SPEED;
+            } else {
+                // Stop the car if no button is pressed or both are pressed
+                carVelocityX = 0;
+            }
+        }, 1000 / 60); // Runs at a forced 60 FPS
         
         
         // NUCLEAR OPTION: Ultimate document-level touch override
@@ -1068,26 +1084,26 @@
 
         // --- ABSOLUTE FINAL FAIL-SAFE BUTTON LOGIC ---
         function setupControls() {
-            // Desktop keyboard compatibility - ROBUST VELOCITY SYSTEM
+            // Desktop keyboard compatibility - FLAG-BASED SYSTEM
             window.addEventListener('keydown', (event) => {
                 if (isGameOver) return;
                 if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
-                    carVelocityX = -CAR_SPEED; // Use constant speed left
+                    moveLeft = true; // Set flag instead of direct velocity
                     leftControlButton.classList.add('pressed');
                 }
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
-                    carVelocityX = CAR_SPEED; // Use constant speed right
+                    moveRight = true; // Set flag instead of direct velocity
                     rightControlButton.classList.add('pressed');
                 }
             });
             
             window.addEventListener('keyup', (event) => {
                 if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { 
-                    carVelocityX = 0; // Stop movement
+                    moveLeft = false; // Clear flag
                     leftControlButton.classList.remove('pressed');
                 }
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { 
-                    carVelocityX = 0; // Stop movement
+                    moveRight = false; // Clear flag
                     rightControlButton.classList.remove('pressed');
                 }
             });
@@ -1102,8 +1118,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // ROBUST VELOCITY SYSTEM: Set constant speed left
-                    carVelocityX = -CAR_SPEED;
+                    // FLAG-BASED SYSTEM: Set movement flag
+                    moveLeft = true;
                     
                     // Visual feedback
                     leftControlButton.classList.add('pressed');
@@ -1115,8 +1131,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // VELOCITY MODEL: Stop movement
-                    carVelocityX = 0;
+                    // FLAG-BASED SYSTEM: Clear movement flag
+                    moveLeft = false;
                     leftControlButton.classList.remove('pressed');
                     
                 }, { passive: false });
@@ -1126,10 +1142,28 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // VELOCITY MODEL: Stop movement
-                    carVelocityX = 0;
+                    // FLAG-BASED SYSTEM: Clear movement flag
+                    moveLeft = false;
                     leftControlButton.classList.remove('pressed');
                     
+                }, { passive: false });
+                
+                // ADDITIONAL TOUCH LISTENERS for maximum mobile compatibility
+                leftControlButton.addEventListener('touchstart', (e) => {
+                    if (isGameOver) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    moveLeft = true;
+                    leftControlButton.classList.add('pressed');
+                }, { passive: false });
+                
+                leftControlButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    moveLeft = false;
+                    leftControlButton.classList.remove('pressed');
                 }, { passive: false });
             }
 
@@ -1143,8 +1177,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // ROBUST VELOCITY SYSTEM: Set constant speed right
-                    carVelocityX = CAR_SPEED;
+                    // FLAG-BASED SYSTEM: Set movement flag
+                    moveRight = true;
                     
                     // Visual feedback
                     rightControlButton.classList.add('pressed');
@@ -1156,8 +1190,8 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // VELOCITY MODEL: Stop movement
-                    carVelocityX = 0;
+                    // FLAG-BASED SYSTEM: Clear movement flag
+                    moveRight = false;
                     rightControlButton.classList.remove('pressed');
                     
                 }, { passive: false });
@@ -1167,10 +1201,28 @@
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
-                    // VELOCITY MODEL: Stop movement
-                    carVelocityX = 0;
+                    // FLAG-BASED SYSTEM: Clear movement flag
+                    moveRight = false;
                     rightControlButton.classList.remove('pressed');
                     
+                }, { passive: false });
+                
+                // ADDITIONAL TOUCH LISTENERS for maximum mobile compatibility
+                rightControlButton.addEventListener('touchstart', (e) => {
+                    if (isGameOver) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    moveRight = true;
+                    rightControlButton.classList.add('pressed');
+                }, { passive: false });
+                
+                rightControlButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    moveRight = false;
+                    rightControlButton.classList.remove('pressed');
                 }, { passive: false });
             }
             
@@ -1460,7 +1512,9 @@
             
             isGameOver = true;
             
-            // VELOCITY MODEL: Stop all movement
+            // FLAG-BASED SYSTEM: Stop all movement
+            moveLeft = false;
+            moveRight = false;
             carVelocityX = 0;
             
             // Hide control container
@@ -1496,7 +1550,9 @@
             document.getElementById('game-over-message').style.display = 'none';
             document.getElementById('restart-message').style.display = 'none';
             
-            // VELOCITY MODEL: Reset movement and show controls
+            // FLAG-BASED SYSTEM: Reset movement and show controls
+            moveLeft = false;
+            moveRight = false;
             carVelocityX = 0; // Ensure velocity is completely reset
             
             // Show control container
