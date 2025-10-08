@@ -192,6 +192,17 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
+        /* Specific positioning for new button IDs */
+        #steer-left {
+            left: 20px;
+            /* Position left button */
+        }
+
+        #steer-right {
+            right: 20px;
+            /* Position right button */
+        }
+
         /* Enhanced pressed state with better visual feedback */
         .control-button:active,
         .control-button.pressed {
@@ -217,15 +228,6 @@
             outline-offset: 2px;
         }
 
-        #left-button {
-            left: 20px;
-            /* Position left button */
-        }
-
-        #right-button {
-            right: 20px;
-            /* Position right button */
-        }
 
         /* --- End Mobile Control Buttons --- */
 
@@ -254,8 +256,8 @@
     <div id="game-over-blur"></div>
     <div id="game-over-message">Better luck next time</div>
 
-    <div id="left-button" class="control-button">◀</div>
-    <div id="right-button" class="control-button">▶</div>
+    <button id="steer-left" class="control-button">◀</button>
+    <button id="steer-right" class="control-button">▶</button>
     <script type="importmap">
         {
             "imports": {
@@ -272,8 +274,8 @@
         import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'; // For HDRI
 
         // Virtual control button elements
-        const leftButton = document.getElementById('left-button');
-        const rightButton = document.getElementById('right-button');
+        const steerLeftButton = document.getElementById('steer-left');
+        const steerRightButton = document.getElementById('steer-right');
 
         let scene, camera, renderer, carModel, enemyCar;
         let ambientLight, directionalLight;
@@ -749,9 +751,9 @@
             updateScoreDisplay();
         }
 
-        // --- Function to Set Up Controls (Keyboard & Touch) ---
+        // --- Function to Set Up Controls (Keyboard & Pointer Events) ---
         function setupControls() {
-            // Keyboard Listeners
+            // Keyboard Listeners for desktop compatibility
             window.addEventListener('keydown', (event) => {
                 if (isGameOver) return;
                 if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = true; }
@@ -762,82 +764,54 @@
                 else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = false; }
             });
 
-            // Touch Event Handlers for Virtual Controls
-            // Left Button Touch Events
-            if (leftButton) {
-                // Touch start - begin continuous left movement
-                leftButton.addEventListener('touchstart', (e) => {
+            // Robust Pointer Event Listeners for Virtual Controls
+            // Left Steering Button
+            if (steerLeftButton) {
+                // Pointer down - begin continuous left movement
+                steerLeftButton.addEventListener('pointerdown', (e) => {
                     if (isGameOver) return;
-                    e.preventDefault(); // Override webview scrolling behavior
+                    e.preventDefault(); // Prevent scrolling/webview interference
                     moveLeft = true;
-                    leftButton.classList.add('pressed'); // Visual feedback
+                    steerLeftButton.classList.add('pressed'); // Visual feedback
                 }, { passive: false });
 
-                // Touch end - stop left movement
-                leftButton.addEventListener('touchend', (e) => {
+                // Pointer up - stop left movement
+                steerLeftButton.addEventListener('pointerup', (e) => {
                     e.preventDefault();
                     moveLeft = false;
-                    leftButton.classList.remove('pressed');
+                    steerLeftButton.classList.remove('pressed');
                 }, { passive: false });
 
-                // Touch cancel - stop left movement (safety)
-                leftButton.addEventListener('touchcancel', (e) => {
+                // Pointer cancel - stop left movement (safety for interrupted gestures)
+                steerLeftButton.addEventListener('pointercancel', (e) => {
                     e.preventDefault();
                     moveLeft = false;
-                    leftButton.classList.remove('pressed');
-                }, { passive: false });
-
-                // Pointer events for modern browsers
-                leftButton.addEventListener('pointerdown', (e) => {
-                    if (isGameOver) return;
-                    e.preventDefault();
-                    moveLeft = true;
-                    leftButton.classList.add('pressed');
-                }, { passive: false });
-
-                leftButton.addEventListener('pointerup', (e) => {
-                    e.preventDefault();
-                    moveLeft = false;
-                    leftButton.classList.remove('pressed');
+                    steerLeftButton.classList.remove('pressed');
                 }, { passive: false });
             }
 
-            // Right Button Touch Events
-            if (rightButton) {
-                // Touch start - begin continuous right movement
-                rightButton.addEventListener('touchstart', (e) => {
+            // Right Steering Button
+            if (steerRightButton) {
+                // Pointer down - begin continuous right movement
+                steerRightButton.addEventListener('pointerdown', (e) => {
                     if (isGameOver) return;
-                    e.preventDefault(); // Override webview scrolling behavior
+                    e.preventDefault(); // Prevent scrolling/webview interference
                     moveRight = true;
-                    rightButton.classList.add('pressed'); // Visual feedback
+                    steerRightButton.classList.add('pressed'); // Visual feedback
                 }, { passive: false });
 
-                // Touch end - stop right movement
-                rightButton.addEventListener('touchend', (e) => {
+                // Pointer up - stop right movement
+                steerRightButton.addEventListener('pointerup', (e) => {
                     e.preventDefault();
                     moveRight = false;
-                    rightButton.classList.remove('pressed');
+                    steerRightButton.classList.remove('pressed');
                 }, { passive: false });
 
-                // Touch cancel - stop right movement (safety)
-                rightButton.addEventListener('touchcancel', (e) => {
+                // Pointer cancel - stop right movement (safety for interrupted gestures)
+                steerRightButton.addEventListener('pointercancel', (e) => {
                     e.preventDefault();
                     moveRight = false;
-                    rightButton.classList.remove('pressed');
-                }, { passive: false });
-
-                // Pointer events for modern browsers
-                rightButton.addEventListener('pointerdown', (e) => {
-                    if (isGameOver) return;
-                    e.preventDefault();
-                    moveRight = true;
-                    rightButton.classList.add('pressed');
-                }, { passive: false });
-
-                rightButton.addEventListener('pointerup', (e) => {
-                    e.preventDefault();
-                    moveRight = false;
-                    rightButton.classList.remove('pressed');
+                    steerRightButton.classList.remove('pressed');
                 }, { passive: false });
             }
         }
@@ -1127,8 +1101,8 @@
             isGameOver = true;
             
             // Hide control buttons
-            document.getElementById('left-button').classList.add('hidden');
-            document.getElementById('right-button').classList.add('hidden');
+            document.getElementById('steer-left').classList.add('hidden');
+            document.getElementById('steer-right').classList.add('hidden');
             
             // Show blur overlay
             document.getElementById('game-over-blur').style.display = 'block';
@@ -1159,8 +1133,8 @@
             document.getElementById('game-over-message').style.display = 'none';
             
             // Show control buttons
-            document.getElementById('left-button').classList.remove('hidden');
-            document.getElementById('right-button').classList.remove('hidden');
+            document.getElementById('steer-left').classList.remove('hidden');
+            document.getElementById('steer-right').classList.remove('hidden');
             
             gameOverElement.style.display = 'none';
 
