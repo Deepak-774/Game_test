@@ -14,15 +14,33 @@
             /* Light sky blue background */
             font-family: 'Press Start 2P', cursive, sans-serif;
             /* A retro arcade font for style */
-            /* Prevent default touch behaviors like pull-to-refresh or selection */
+            /* CRITICAL WEBVIEW FIX: Prevent default touch behaviors */
             overscroll-behavior: none;
             touch-action: none;
-            /* For pointer events, might help on some devices */
+            -ms-touch-action: none; /* for compatibility */
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            /* Prevent native mobile gestures from interfering */
         }
 
         canvas {
             display: block;
             /* Remove annoying space below canvas */
+            /* CRITICAL WEBVIEW FIX: Prevent canvas touch interference */
+            touch-action: none;
+            -ms-touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #container {
+            /* CRITICAL WEBVIEW FIX: Ensure container doesn't interfere with touch */
+            touch-action: none;
+            -ms-touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         #loading-screen {
@@ -75,16 +93,27 @@
 
         #score {
             margin-bottom: 5px;
+            color: #00ff00; /* Bright neon green for score */
+            font-family: 'Courier New', monospace; /* Consistent with timer */
+            text-shadow: 0 0 8px #00ff00, 2px 2px 4px rgba(0, 0, 0, 0.8); /* Glowing effect */
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
         #timer {
             font-size: 1.2em;
-            color: #ffff00;
-            text-shadow: 2px 2px 4px black;
+            color: #00ffff; /* Bright neon cyan for high-tech look */
+            font-family: 'Courier New', monospace; /* Monospace for tech aesthetic */
+            text-shadow: 0 0 10px #00ffff, 2px 2px 4px rgba(0, 0, 0, 0.8); /* Glowing effect */
+            font-weight: bold;
+            letter-spacing: 1px; /* Spacing for readability */
+            position: relative;
+            z-index: 100; /* Ensure visibility */
         }
 
         #timer.warning {
-            color: #ff4444;
+            color: #ff0040; /* Bright red for warning */
+            text-shadow: 0 0 15px #ff0040, 2px 2px 6px rgba(0, 0, 0, 0.9); /* Enhanced glow for warning */
             animation: pulse 0.5s infinite;
         }
 
@@ -113,15 +142,17 @@
             top: 12%;
             left: 50%;
             transform: translateX(-50%);
-            color: #ffffff;
+            color: #ff0040; /* Bright red for game over */
+            font-family: 'Courier New', monospace; /* Consistent tech font */
             font-size: 2.5em;
             font-weight: bold;
             text-align: center;
-            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
+            text-shadow: 0 0 20px #ff0040, 3px 3px 8px rgba(0, 0, 0, 0.9); /* Enhanced glowing effect */
             display: none;
             z-index: 101;
             pointer-events: none;
             white-space: nowrap;
+            letter-spacing: 2px; /* Spacing for tech aesthetic */
         }
 
         /* Hide control buttons when game over */
@@ -767,52 +798,100 @@
             // Robust Pointer Event Listeners for Virtual Controls
             // Left Steering Button
             if (steerLeftButton) {
+                // CRITICAL WEBVIEW FIX: Multiple event types for maximum compatibility
+                
                 // Pointer down - begin continuous left movement
                 steerLeftButton.addEventListener('pointerdown', (e) => {
                     if (isGameOver) return;
-                    e.preventDefault(); // Prevent scrolling/webview interference
+                    e.preventDefault(); // CRITICAL: Prevent scrolling/webview interference
+                    e.stopPropagation(); // Prevent event bubbling
                     moveLeft = true;
                     steerLeftButton.classList.add('pressed'); // Visual feedback
-                }, { passive: false });
+                    console.log('Left steering activated'); // Debug log
+                }, { passive: false, capture: true });
 
                 // Pointer up - stop left movement
                 steerLeftButton.addEventListener('pointerup', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     moveLeft = false;
                     steerLeftButton.classList.remove('pressed');
-                }, { passive: false });
+                    console.log('Left steering deactivated'); // Debug log
+                }, { passive: false, capture: true });
 
                 // Pointer cancel - stop left movement (safety for interrupted gestures)
                 steerLeftButton.addEventListener('pointercancel', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     moveLeft = false;
                     steerLeftButton.classList.remove('pressed');
-                }, { passive: false });
+                    console.log('Left steering cancelled'); // Debug log
+                }, { passive: false, capture: true });
+
+                // Additional touch events for webview compatibility
+                steerLeftButton.addEventListener('touchstart', (e) => {
+                    if (isGameOver) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    moveLeft = true;
+                    steerLeftButton.classList.add('pressed');
+                }, { passive: false, capture: true });
+
+                steerLeftButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    moveLeft = false;
+                    steerLeftButton.classList.remove('pressed');
+                }, { passive: false, capture: true });
             }
 
             // Right Steering Button
             if (steerRightButton) {
+                // CRITICAL WEBVIEW FIX: Multiple event types for maximum compatibility
+                
                 // Pointer down - begin continuous right movement
                 steerRightButton.addEventListener('pointerdown', (e) => {
                     if (isGameOver) return;
-                    e.preventDefault(); // Prevent scrolling/webview interference
+                    e.preventDefault(); // CRITICAL: Prevent scrolling/webview interference
+                    e.stopPropagation(); // Prevent event bubbling
                     moveRight = true;
                     steerRightButton.classList.add('pressed'); // Visual feedback
-                }, { passive: false });
+                    console.log('Right steering activated'); // Debug log
+                }, { passive: false, capture: true });
 
                 // Pointer up - stop right movement
                 steerRightButton.addEventListener('pointerup', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     moveRight = false;
                     steerRightButton.classList.remove('pressed');
-                }, { passive: false });
+                    console.log('Right steering deactivated'); // Debug log
+                }, { passive: false, capture: true });
 
                 // Pointer cancel - stop right movement (safety for interrupted gestures)
                 steerRightButton.addEventListener('pointercancel', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     moveRight = false;
                     steerRightButton.classList.remove('pressed');
-                }, { passive: false });
+                    console.log('Right steering cancelled'); // Debug log
+                }, { passive: false, capture: true });
+
+                // Additional touch events for webview compatibility
+                steerRightButton.addEventListener('touchstart', (e) => {
+                    if (isGameOver) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    moveRight = true;
+                    steerRightButton.classList.add('pressed');
+                }, { passive: false, capture: true });
+
+                steerRightButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    moveRight = false;
+                    steerRightButton.classList.remove('pressed');
+                }, { passive: false, capture: true });
             }
         }
         // --- End Setup Controls ---
