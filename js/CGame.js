@@ -19,8 +19,8 @@ function CGame(oData){
     // Smooth tilt control variables
     var _iRawTiltValue = 0;
     var _iSmoothedTiltValue = 0;
-    var _iTiltDeadZone = 0.3; // Minimum tilt angle to register movement (reduced from 0.8)
-    var _fSmoothingFactor = 0.25; // How much smoothing to apply (increased from 0.15 for faster response)
+    var _iTiltDeadZone = 0.2; // Minimum tilt angle to register movement
+    var _fSmoothingFactor = 0.4; // How much smoothing to apply (higher = more responsive)
     
     var _oPlayer;
     var _oBonus = null;
@@ -100,33 +100,18 @@ function CGame(oData){
         
         _oInterface = new CInterface();
        
+        // Skip the "click to start" screen and auto-start the game
         _oWaitClickContainer = new createjs.Container();
-        s_oStage.addChild(_oWaitClickContainer);
-        
-        var oSprite = createBitmap(s_oSpriteLibrary.getSprite('help_touch'));
-        oSprite.x = CANVAS_WIDTH/2-30;
-        oSprite.y = CANVAS_HEIGHT/2-70;
-        
-        var oMsgTextStroke = new createjs.Text(TEXT_START_GAME," 40px "+FONT, "#410701");
-        oMsgTextStroke.x = (CANVAS_WIDTH/2)+2;
-        oMsgTextStroke.y = (CANVAS_HEIGHT/2)-140;
-        oMsgTextStroke.textAlign = "center";
-        oMsgTextStroke.textBaseline = "alphabetic";
-        oMsgTextStroke.lineWidth = 500; 
-        
-        var oMsgText = new createjs.Text(TEXT_START_GAME," 40px "+FONT, "#ffb400");
-        oMsgText.x = CANVAS_WIDTH/2;
-        oMsgText.y = (CANVAS_HEIGHT/2)-142;
-        oMsgText.textAlign = "center";
-        oMsgText.textBaseline = "alphabetic";
-        oMsgText.lineWidth = 500;  
-        
-        _oWaitClickContainer.addChild(oSprite, oMsgTextStroke, oMsgText);
+        // Don't add the wait container to stage - skip it entirely
         
         this.startSpeedIncrement();
-        
-        _oGameContainer.on("mousedown", this.setUpdateTrue);
         this._initMouseMove();
+        
+        // Auto-start the game after a brief delay
+        var oParent = this;
+        setTimeout(function(){
+            oParent.setUpdateTrue();
+        }, 500);
     };
     
     this._controlIfAllReady = function(){
@@ -316,9 +301,6 @@ function CGame(oData){
                     // Store raw tilt value
                     _iRawTiltValue = eventData.gamma;
                     
-                    // Debug logging
-                    console.log("Raw Gamma:", _iRawTiltValue);
-                    
                     // Apply dead zone - ignore small movements
                     var processedTilt = _iRawTiltValue;
                     if(Math.abs(processedTilt) < _iTiltDeadZone) {
@@ -340,9 +322,6 @@ function CGame(oData){
                         }
                     }
                     
-                    // Debug logging
-                    console.log("Smoothed:", _iSmoothedTiltValue.toFixed(2), "Force:", _iForceDirection.toFixed(2));
-                    
                     _iPlayerAcceleration = PLAYER_ACCELERATION_GIROSCOPE;
                 }
             }, false);
@@ -354,7 +333,11 @@ function CGame(oData){
         if(_bUpdate || _bIsGameOver){
             return;
         }
-        createjs.Tween.get(_oWaitClickContainer).to({alpha:0 }, 500).call(function() {s_oStage.removeChild(_oWaitClickContainer);});
+        
+        // Only remove wait container if it was added to stage
+        if(_oWaitClickContainer && _oWaitClickContainer.parent) {
+            createjs.Tween.get(_oWaitClickContainer).to({alpha:0 }, 500).call(function() {s_oStage.removeChild(_oWaitClickContainer);});
+        }
         
         _oGameContainer.off("mousedown", this.setUpdateTrue);
         _bPlayerAnimation = true;
