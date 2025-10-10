@@ -23,9 +23,9 @@ var ytOptionLayer = (function () {
 		
 		// UNIVERSAL CLEANUP FUNCTIONS - Equivalent to document.querySelectorAll().forEach()
 		
-		// Universal car cleanup - equivalent to document.querySelectorAll('.car-selection-button').forEach(element => element.classList.remove('selected-item'))
+		// UNFORGIVING CLEANUP - Resets ALL visual properties regardless of how they were applied
 		s.removeAllCarHighlights = function() {
-			console.log("UNIVERSAL CAR CLEANUP: Removing highlights from ALL car buttons");
+			console.log("=== UNFORGIVING CAR CLEANUP: Destroying ALL highlights (default + clicked) ===");
 			if (!s.carOptionLayer) {
 				console.error("Car container not available for cleanup");
 				return;
@@ -35,30 +35,98 @@ var ytOptionLayer = (function () {
 			for (var i = 0; i < totalCars; i++) {
 				var carBtn = s.carOptionLayer.getChildAt(i);
 				if (carBtn) {
-					// Remove highlight (equivalent to element.classList.remove('selected-item'))
-					carBtn.alpha = 0.85;
-					carBtn.filters = [];
+					console.log("UNFORGIVING RESET: Processing car button", i, "- FORCING to dark gray state");
 					
-					// Reset text to normal
+					// STEP 1: NUCLEAR DESTRUCTION of ALL visual properties
+					carBtn.filters = null;
+					carBtn.filters = [];
+					carBtn.alpha = 0.85; // Force normal transparency
+					carBtn.scaleX = 1.0;  // Reset any scaling
+					carBtn.scaleY = 1.0;  // Reset any scaling
+					carBtn.rotation = 0;  // Reset any rotation
+					
+					// STEP 2: FORCE LButton to NORMAL state (handles both default and clicked highlights)
 					try {
-						if (carBtn.getChildAt && carBtn.getChildAt(0) && carBtn.getChildAt(0).getChildAt) {
-							var textField = carBtn.getChildAt(0).getChildAt(1);
-							if (textField && textField.color) {
-								textField.color = "white";
-								textField.filters = [new LDropShadowFilter(null, null, "rgba(255,255,255,0.5)", 8)];
+						var lButton = carBtn.getChildAt(0);
+						if (lButton) {
+							console.log("UNFORGIVING: Forcing LButton", i, "to normal state");
+							
+							// MULTIPLE approaches to force normal state
+							if (typeof lButton.out === 'function') {
+								lButton.out(); // Force to normal state
+							}
+							if (typeof lButton.mouseOut === 'function') {
+								lButton.mouseOut(); // Alternative method
+							}
+							
+							// Force button properties
+							if (lButton.buttonMode !== undefined) {
+								lButton.buttonMode = false;
+							}
+							if (lButton.useHandCursor !== undefined) {
+								lButton.useHandCursor = false;
+							}
+							
+							// Force visual properties on LButton itself
+							lButton.alpha = 0.85;
+							lButton.filters = null;
+							lButton.filters = [];
+						}
+					} catch (ex) {
+						console.log("LButton force reset error for car", i, ":", ex.message);
+					}
+					
+					// STEP 3: UNFORGIVING TEXT RESET - Reset ALL text in ALL layers
+					try {
+						var lButton = carBtn.getChildAt(0);
+						if (lButton && lButton.getChildAt) {
+							console.log("UNFORGIVING TEXT RESET: Car", i, "- resetting ALL text layers");
+							
+							// Reset text in BOTH normal and over layers (covers default + clicked states)
+							for (var layerIndex = 0; layerIndex < 2; layerIndex++) {
+								var buttonLayer = lButton.getChildAt(layerIndex);
+								if (buttonLayer && buttonLayer.getChildAt) {
+									// Check ALL children in the layer for text
+									for (var childIndex = 0; childIndex < buttonLayer.numChildren; childIndex++) {
+										var child = buttonLayer.getChildAt(childIndex);
+										
+										// If this child has text properties, reset them
+										if (child && child.color !== undefined) {
+											console.log("UNFORGIVING: Resetting text at layer", layerIndex, "child", childIndex);
+											child.color = "white";
+											child.filters = null;
+											child.filters = [new LDropShadowFilter(null, null, "rgba(255,255,255,0.5)", 8)];
+										}
+										
+										// If this child is a container, check its children too
+										if (child && child.getChildAt && child.numChildren > 0) {
+											for (var subIndex = 0; subIndex < child.numChildren; subIndex++) {
+												var subChild = child.getChildAt(subIndex);
+												if (subChild && subChild.color !== undefined) {
+													console.log("UNFORGIVING: Resetting nested text at layer", layerIndex, "child", childIndex, "sub", subIndex);
+													subChild.color = "white";
+													subChild.filters = null;
+													subChild.filters = [new LDropShadowFilter(null, null, "rgba(255,255,255,0.5)", 8)];
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 					} catch (ex) {
-						console.log("Text reset error for car", i, ":", ex.message);
+						console.log("Unforgiving text reset error for car", i, ":", ex.message);
 					}
+					
+					console.log("UNFORGIVING RESET COMPLETE: Car", i, "- ALL highlights destroyed, forced to dark gray");
 				}
 			}
-			console.log("Universal car cleanup complete - processed", totalCars, "cars");
+			console.log("=== UNFORGIVING CAR CLEANUP COMPLETE - Default + Clicked highlights destroyed ===");
 		};
 		
-		// Universal road cleanup - equivalent to document.querySelectorAll('.road-selection-button').forEach(element => element.classList.remove('selected-item'))
+		// UNFORGIVING CLEANUP - Resets ALL visual properties regardless of how they were applied
 		s.removeAllRoadHighlights = function() {
-			console.log("UNIVERSAL ROAD CLEANUP: Removing highlights from ALL road buttons");
+			console.log("=== UNFORGIVING ROAD CLEANUP: Destroying ALL highlights (default + clicked) ===");
 			if (!s.placeOptionLayer) {
 				console.error("Road container not available for cleanup");
 				return;
@@ -68,25 +136,93 @@ var ytOptionLayer = (function () {
 			for (var i = 0; i < totalRoads; i++) {
 				var roadBtn = s.placeOptionLayer.getChildAt(i);
 				if (roadBtn) {
-					// Remove highlight (equivalent to element.classList.remove('selected-item'))
-					roadBtn.alpha = 0.85;
-					roadBtn.filters = [];
+					console.log("UNFORGIVING RESET: Processing road button", i, "- FORCING to dark gray state");
 					
-					// Reset text to normal
+					// STEP 1: NUCLEAR DESTRUCTION of ALL visual properties
+					roadBtn.filters = null;
+					roadBtn.filters = [];
+					roadBtn.alpha = 0.85; // Force normal transparency
+					roadBtn.scaleX = 1.0;  // Reset any scaling
+					roadBtn.scaleY = 1.0;  // Reset any scaling
+					roadBtn.rotation = 0;  // Reset any rotation
+					
+					// STEP 2: FORCE LButton to NORMAL state (handles both default and clicked highlights)
 					try {
-						if (roadBtn.getChildAt && roadBtn.getChildAt(0) && roadBtn.getChildAt(0).getChildAt) {
-							var textField = roadBtn.getChildAt(0).getChildAt(1);
-							if (textField && textField.color) {
-								textField.color = "white";
-								textField.filters = [new LDropShadowFilter(null, null, "rgba(255,255,255,0.5)", 8)];
+						var lButton = roadBtn.getChildAt(0);
+						if (lButton) {
+							console.log("UNFORGIVING: Forcing LButton", i, "to normal state");
+							
+							// MULTIPLE approaches to force normal state
+							if (typeof lButton.out === 'function') {
+								lButton.out(); // Force to normal state
+							}
+							if (typeof lButton.mouseOut === 'function') {
+								lButton.mouseOut(); // Alternative method
+							}
+							
+							// Force button properties
+							if (lButton.buttonMode !== undefined) {
+								lButton.buttonMode = false;
+							}
+							if (lButton.useHandCursor !== undefined) {
+								lButton.useHandCursor = false;
+							}
+							
+							// Force visual properties on LButton itself
+							lButton.alpha = 0.85;
+							lButton.filters = null;
+							lButton.filters = [];
+						}
+					} catch (ex) {
+						console.log("LButton force reset error for road", i, ":", ex.message);
+					}
+					
+					// STEP 3: UNFORGIVING TEXT RESET - Reset ALL text in ALL layers
+					try {
+						var lButton = roadBtn.getChildAt(0);
+						if (lButton && lButton.getChildAt) {
+							console.log("UNFORGIVING TEXT RESET: Road", i, "- resetting ALL text layers");
+							
+							// Reset text in BOTH normal and over layers (covers default + clicked states)
+							for (var layerIndex = 0; layerIndex < 2; layerIndex++) {
+								var buttonLayer = lButton.getChildAt(layerIndex);
+								if (buttonLayer && buttonLayer.getChildAt) {
+									// Check ALL children in the layer for text
+									for (var childIndex = 0; childIndex < buttonLayer.numChildren; childIndex++) {
+										var child = buttonLayer.getChildAt(childIndex);
+										
+										// If this child has text properties, reset them
+										if (child && child.color !== undefined) {
+											console.log("UNFORGIVING: Resetting text at layer", layerIndex, "child", childIndex);
+											child.color = "white";
+											child.filters = null;
+											child.filters = [new LDropShadowFilter(null, null, "rgba(255,255,255,0.5)", 8)];
+										}
+										
+										// If this child is a container, check its children too
+										if (child && child.getChildAt && child.numChildren > 0) {
+											for (var subIndex = 0; subIndex < child.numChildren; subIndex++) {
+												var subChild = child.getChildAt(subIndex);
+												if (subChild && subChild.color !== undefined) {
+													console.log("UNFORGIVING: Resetting nested text at layer", layerIndex, "child", childIndex, "sub", subIndex);
+													subChild.color = "white";
+													subChild.filters = null;
+													subChild.filters = [new LDropShadowFilter(null, null, "rgba(255,255,255,0.5)", 8)];
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 					} catch (ex) {
-						console.log("Text reset error for road", i, ":", ex.message);
+						console.log("Unforgiving text reset error for road", i, ":", ex.message);
 					}
+					
+					console.log("UNFORGIVING RESET COMPLETE: Road", i, "- ALL highlights destroyed, forced to dark gray");
 				}
 			}
-			console.log("Universal road cleanup complete - processed", totalRoads, "roads");
+			console.log("=== UNFORGIVING ROAD CLEANUP COMPLETE - Default + Clicked highlights destroyed ===");
 		};
 		s.roadTimer = null;
 		s.carCountdown = 5;
@@ -178,50 +314,85 @@ var ytOptionLayer = (function () {
 				console.log("Clicked Index:", clickedIndex);
 				console.log("Total car buttons:", s.carOptionLayer.numChildren);
 				
-				// STEP 1: Find ALL car buttons and remove the highlight
-				// This is equivalent to: document.querySelectorAll('.car-selection-button').forEach(element => element.classList.remove('selected-item'))
+				// STEP 1: SURGICAL CLEANUP - Destroy ALL gold from other buttons
+				console.log("=== SURGICAL CAR SELECTION: Starting complete cleanup ===");
 				s.removeAllCarHighlights();
 				
-				// STEP 2: Apply the highlight ONLY to the current button
-				// This is equivalent to: this.classList.add('selected-item')
-				console.log("STEP 2: Applying highlight to clicked button", clickedIndex);
+				// STEP 2: SURGICAL GOLD APPLICATION - Force clicked button to gold state
+				console.log("STEP 2: SURGICAL GOLD APPLICATION to car button", clickedIndex);
 				var clickedBtn = e.currentTarget;
 				
-				// Add highlight (equivalent to this.classList.add('selected-item'))
-				clickedBtn.alpha = 1.0;
-				clickedBtn.filters = [
-					new LDropShadowFilter(null, null, "#ffcc00", 20), // Gold glow
-					new LDropShadowFilter(null, null, "#f0a500", 15)  // Inner gold glow
-				];
-				
-				// Force text color to gold
-				try {
-					if (clickedBtn.getChildAt && clickedBtn.getChildAt(0)) {
-						var contentLayer = clickedBtn.getChildAt(0);
-						if (contentLayer && contentLayer.getChildAt && contentLayer.getChildAt(1)) {
-							var textField = contentLayer.getChildAt(1);
-							if (textField && textField.color) {
-								textField.color = "#ffcc00"; // Gold text
-								textField.filters = null; // Clear first
-								textField.filters = [
-									new LDropShadowFilter(null, null, "#ffcc00", 20), // Gold text glow
-									new LDropShadowFilter(null, null, "#f0a500", 10)  // Inner glow
-								];
-							}
-						}
-					}
-				} catch (ex) {
-					console.log("Text highlight error:", ex.message);
-				}
-				
-				console.log("Highlight applied to button", clickedIndex);
-				
-				// STEP 3: Update selection variables
+				// Update the selection variable (to keep the game flow intact)
 				selectedCarIndex = clickedIndex;
 				selectedCarName = carOptions[selectedCarIndex];
 				s.carIndex = clickedIndex;
 				
-				// STEP 4: Set confirmation flag
+				// SURGICAL GOLD STATE APPLICATION
+				try {
+					// STEP 2A: Force LButton to "over" state (this shows the gold background)
+					var lButton = clickedBtn.getChildAt(0);
+					if (lButton) {
+						console.log("SURGICAL GOLD: Forcing LButton to over state");
+						
+						// Force button to show "over" state (gold background)
+						if (typeof lButton.over === 'function') {
+							lButton.over(); // This should show the gold background
+						}
+						
+						// Additional state forcing
+						if (lButton.buttonMode !== undefined) {
+							lButton.buttonMode = true; // Enable button mode
+						}
+						
+						// Force visual update
+						if (typeof lButton.updateContext === 'function') {
+							lButton.updateContext();
+						}
+					}
+					
+					// STEP 2B: Apply additional gold glow filter to container
+					clickedBtn.alpha = 1.0; // Full opacity for selected state
+					clickedBtn.filters = [
+						new LDropShadowFilter(null, null, "#ffcc00", 25), // Strong gold glow
+						new LDropShadowFilter(null, null, "#f0a500", 15)  // Inner gold glow
+					];
+					
+					console.log("SURGICAL GOLD: LButton over state applied + glow filters added");
+					
+				} catch (ex) {
+					console.log("SURGICAL GOLD APPLICATION ERROR:", ex.message);
+				}
+				
+				// STEP 2C: SURGICAL TEXT GOLD APPLICATION
+				try {
+					var lButton = clickedBtn.getChildAt(0);
+					if (lButton && lButton.getChildAt) {
+						// Apply gold text to BOTH normal and over layers for safety
+						for (var layerIndex = 0; layerIndex < 2; layerIndex++) {
+							var buttonLayer = lButton.getChildAt(layerIndex);
+							if (buttonLayer && buttonLayer.getChildAt) {
+								var contentLayer = buttonLayer.getChildAt(1);
+								if (contentLayer && contentLayer.getChildAt) {
+									var textField = contentLayer.getChildAt(1);
+									if (textField && textField.color !== undefined) {
+										console.log("SURGICAL GOLD TEXT: Car", clickedIndex, "layer", layerIndex, "- setting to gold");
+										textField.color = "#FFFF00"; // Bright yellow text
+										textField.filters = [
+											new LDropShadowFilter(null, null, "#ffcc00", 15), // Gold text glow
+											new LDropShadowFilter(null, null, "#f0a500", 8)   // Inner glow
+										];
+									}
+								}
+							}
+						}
+					}
+				} catch (ex) {
+					console.log("SURGICAL GOLD TEXT ERROR:", ex.message);
+				}
+				
+				console.log("Gold highlight applied to button", clickedIndex);
+				
+				// STEP 3: Set confirmation flag
 				selectionConfirmed = true;
 				
 				console.log("Car selected:", selectedCarName, "at index:", selectedCarIndex);
@@ -293,50 +464,85 @@ var ytOptionLayer = (function () {
 				console.log("Clicked Index:", clickedIndex);
 				console.log("Total road buttons:", s.placeOptionLayer.numChildren);
 				
-				// STEP 1: Find ALL road buttons and remove the highlight
-				// This is equivalent to: document.querySelectorAll('.road-selection-button').forEach(element => element.classList.remove('selected-item'))
+				// STEP 1: SURGICAL CLEANUP - Destroy ALL gold from other buttons
+				console.log("=== SURGICAL ROAD SELECTION: Starting complete cleanup ===");
 				s.removeAllRoadHighlights();
 				
-				// STEP 2: Apply the highlight ONLY to the current button
-				// This is equivalent to: this.classList.add('selected-item')
-				console.log("STEP 2: Applying highlight to clicked road button", clickedIndex);
+				// STEP 2: SURGICAL GOLD APPLICATION - Force clicked button to gold state
+				console.log("STEP 2: SURGICAL GOLD APPLICATION to road button", clickedIndex);
 				var clickedBtn = e.currentTarget;
 				
-				// Add highlight (equivalent to this.classList.add('selected-item'))
-				clickedBtn.alpha = 1.0;
-				clickedBtn.filters = [
-					new LDropShadowFilter(null, null, "#ffcc00", 20), // Gold glow
-					new LDropShadowFilter(null, null, "#f0a500", 15)  // Inner gold glow
-				];
-				
-				// Force text color to gold
-				try {
-					if (clickedBtn.getChildAt && clickedBtn.getChildAt(0)) {
-						var contentLayer = clickedBtn.getChildAt(0);
-						if (contentLayer && contentLayer.getChildAt && contentLayer.getChildAt(1)) {
-							var textField = contentLayer.getChildAt(1);
-							if (textField && textField.color) {
-								textField.color = "#ffcc00"; // Gold text
-								textField.filters = null; // Clear first
-								textField.filters = [
-									new LDropShadowFilter(null, null, "#ffcc00", 20), // Gold text glow
-									new LDropShadowFilter(null, null, "#f0a500", 10)  // Inner glow
-								];
-							}
-						}
-					}
-				} catch (ex) {
-					console.log("Text highlight error:", ex.message);
-				}
-				
-				console.log("Highlight applied to road button", clickedIndex);
-				
-				// STEP 3: Update selection variables
+				// Update the selection variable (to keep the game flow intact)
 				selectedRoadIndex = clickedIndex;
 				selectedRoadName = roadOptions[selectedRoadIndex];
 				s.placeIndex = clickedIndex;
 				
-				// STEP 4: Set confirmation flag
+				// SURGICAL GOLD STATE APPLICATION
+				try {
+					// STEP 2A: Force LButton to "over" state (this shows the gold background)
+					var lButton = clickedBtn.getChildAt(0);
+					if (lButton) {
+						console.log("SURGICAL GOLD: Forcing LButton to over state");
+						
+						// Force button to show "over" state (gold background)
+						if (typeof lButton.over === 'function') {
+							lButton.over(); // This should show the gold background
+						}
+						
+						// Additional state forcing
+						if (lButton.buttonMode !== undefined) {
+							lButton.buttonMode = true; // Enable button mode
+						}
+						
+						// Force visual update
+						if (typeof lButton.updateContext === 'function') {
+							lButton.updateContext();
+						}
+					}
+					
+					// STEP 2B: Apply additional gold glow filter to container
+					clickedBtn.alpha = 1.0; // Full opacity for selected state
+					clickedBtn.filters = [
+						new LDropShadowFilter(null, null, "#ffcc00", 25), // Strong gold glow
+						new LDropShadowFilter(null, null, "#f0a500", 15)  // Inner gold glow
+					];
+					
+					console.log("SURGICAL GOLD: LButton over state applied + glow filters added");
+					
+				} catch (ex) {
+					console.log("SURGICAL GOLD APPLICATION ERROR:", ex.message);
+				}
+				
+				// STEP 2C: SURGICAL TEXT GOLD APPLICATION
+				try {
+					var lButton = clickedBtn.getChildAt(0);
+					if (lButton && lButton.getChildAt) {
+						// Apply gold text to BOTH normal and over layers for safety
+						for (var layerIndex = 0; layerIndex < 2; layerIndex++) {
+							var buttonLayer = lButton.getChildAt(layerIndex);
+							if (buttonLayer && buttonLayer.getChildAt) {
+								var contentLayer = buttonLayer.getChildAt(1);
+								if (contentLayer && contentLayer.getChildAt) {
+									var textField = contentLayer.getChildAt(1);
+									if (textField && textField.color !== undefined) {
+										console.log("SURGICAL GOLD TEXT: Road", clickedIndex, "layer", layerIndex, "- setting to gold");
+										textField.color = "#FFFF00"; // Bright yellow text
+										textField.filters = [
+											new LDropShadowFilter(null, null, "#ffcc00", 15), // Gold text glow
+											new LDropShadowFilter(null, null, "#f0a500", 8)   // Inner glow
+										];
+									}
+								}
+							}
+						}
+					}
+				} catch (ex) {
+					console.log("SURGICAL GOLD TEXT ERROR:", ex.message);
+				}
+				
+				console.log("Gold highlight applied to road button", clickedIndex);
+				
+				// STEP 3: Set confirmation flag
 				selectionConfirmed = true;
 				
 				console.log("Road selected:", selectedRoadName, "at index:", selectedRoadIndex);
