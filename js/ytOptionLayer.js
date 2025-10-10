@@ -142,7 +142,7 @@ var ytOptionLayer = (function () {
 			{name : "BMW", data : 0},
 			{name : "FORD", data : 1},
 			{name : "LAMBORGHINI", data : 2},
-			{name : "PAGANI", data : 4}
+			{name : "PAGANI", data : 3}
 		];
 
 		s.placeInfoList = [
@@ -209,7 +209,12 @@ var ytOptionLayer = (function () {
 			
 			// Create car image (main clickable element)
 			var cBmpd = carBmpd.clone();
-			cBmpd.setCoordinate(0, o.data * carBmpd.height);
+			// Special handling for Pagani menu image position
+			var menuImageIndex = o.data;
+			if (o.name === "PAGANI") {
+				menuImageIndex = 4; // Pagani menu image is at position 4
+			}
+			cBmpd.setCoordinate(0, menuImageIndex * carBmpd.height);
 			var carImage = new LBitmap(cBmpd);
 			carImage.scaleX = carImage.scaleY = CAR_IMAGE_SCALE;
 			carImage.x = 0;
@@ -254,16 +259,17 @@ var ytOptionLayer = (function () {
 				// STEP 2: Apply highlight to clicked car image + text
 				s.applyCarHighlight(clickedIndex);
 				
-				// STEP 3: Update selection variables
+				// STEP 3: Update selection variables using the stored car name
 				selectedCarIndex = clickedIndex;
-				selectedCarName = carOptions[selectedCarIndex];
+				selectedCarName = clickedCarName; // Use the name stored in container, not array lookup
 				s.carIndex = clickedIndex;
 				
 				// STEP 4: Set confirmation flag
 				selectionConfirmed = true;
 				
 				console.log("Car selected:", selectedCarName, "at index:", selectedCarIndex);
-				console.log("VERIFICATION: carOptions[", clickedIndex, "] =", carOptions[clickedIndex]);
+				console.log("VERIFICATION: Container stored name:", clickedCarName);
+				console.log("VERIFICATION: Array lookup:", carOptions[clickedIndex]);
 				console.log("=== CAR SELECTION COMPLETE ===");
 			});
 		}
@@ -360,16 +366,17 @@ var ytOptionLayer = (function () {
 				// STEP 2: Apply highlight to clicked road image + text
 				s.applyRoadHighlight(clickedIndex);
 				
-				// STEP 3: Update selection variables
+				// STEP 3: Update selection variables using the stored road name
 				selectedRoadIndex = clickedIndex;
-				selectedRoadName = roadOptions[selectedRoadIndex];
+				selectedRoadName = clickedRoadName; // Use the name stored in container, not array lookup
 				s.placeIndex = clickedIndex;
 				
 				// STEP 4: Set confirmation flag
 				selectionConfirmed = true;
 				
 				console.log("Road selected:", selectedRoadName, "at index:", selectedRoadIndex);
-				console.log("VERIFICATION: roadOptions[", clickedIndex, "] =", roadOptions[clickedIndex]);
+				console.log("VERIFICATION: Container stored name:", clickedRoadName);
+				console.log("VERIFICATION: Array lookup:", roadOptions[clickedIndex]);
 				console.log("=== ROAD SELECTION COMPLETE ===");
 			});
 		}
@@ -760,6 +767,11 @@ var ytOptionLayer = (function () {
 		console.log("Selection interface removed");
 		
 		// 7. CRITICAL: Start the game with confirmed variables
+		console.log("=== FINAL GAME START VERIFICATION ===");
+		console.log("Final selectedCarName:", selectedCarName);
+		console.log("Final selectedRoadName:", selectedRoadName);
+		console.log("Converted carIndex:", carIndex);
+		console.log("Converted roadData:", roadData);
 		console.log("Calling addGameInterface with:", carIndex, roadData);
 		addGameInterface(carIndex, roadData);
 		
