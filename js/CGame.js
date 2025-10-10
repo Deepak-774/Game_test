@@ -16,6 +16,12 @@ function CGame(oData){
     var _iForceDirection = 0;
     var _iPlayerAcceleration = 0;
     
+    // Smooth tilt control variables
+    var _iRawTiltValue = 0;
+    var _iSmoothedTiltValue = 0;
+    var _iTiltDeadZone = 0.8; // Minimum tilt angle to register movement
+    var _fSmoothingFactor = 0.15; // How much smoothing to apply (0.1 = heavy smoothing, 0.3 = light smoothing)
+    
     var _oPlayer;
     var _oBonus = null;
     var _aCoin = new Array();
@@ -297,14 +303,30 @@ function CGame(oData){
             });
         }else{
             window.addEventListener('deviceorientation', function(eventData) {
-                if(eventData.gamma < GAMMA_RANGE_ACCEPTED && eventData.gamma > -GAMMA_RANGE_ACCEPTED){
-                    _iForceDirection = eventData.gamma / GAMMA_RANGE_ACCEPTED;
-                }else{
-                    if(eventData.gamma < 0){
-                        _iForceDirection = -1;
-                    }else{
-                        _iForceDirection = 1;
+                if(eventData.gamma !== null && eventData.gamma !== undefined) {
+                    // Store raw tilt value
+                    _iRawTiltValue = eventData.gamma;
+                    
+                    // Apply dead zone - ignore small movements
+                    if(Math.abs(_iRawTiltValue) < _iTiltDeadZone) {
+                        _iRawTiltValue = 0;
                     }
+                    
+                    // Apply exponential smoothing to reduce jitter
+                    _iSmoothedTiltValue = _iSmoothedTiltValue + _fSmoothingFactor * (_iRawTiltValue - _iSmoothedTiltValue);
+                    
+                    // Calculate force direction with improved range handling
+                    if(Math.abs(_iSmoothedTiltValue) < GAMMA_RANGE_ACCEPTED){
+                        _iForceDirection = _iSmoothedTiltValue / GAMMA_RANGE_ACCEPTED;
+                    }else{
+                        // Clamp to maximum values but maintain smooth transition
+                        if(_iSmoothedTiltValue < 0){
+                            _iForceDirection = -1;
+                        }else{
+                            _iForceDirection = 1;
+                        }
+                    }
+                    
                     _iPlayerAcceleration = PLAYER_ACCELERATION_GIROSCOPE;
                 }
             }, false);
