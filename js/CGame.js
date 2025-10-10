@@ -22,17 +22,6 @@ function CGame(oData){
     var _iTiltDeadZone = 0.2; // Minimum tilt angle to register movement
     var _fSmoothingFactor = 0.4; // How much smoothing to apply (higher = more responsive)
     
-    // Game juice variables
-    var _iComboCount = 0;
-    var _iComboTimer = 0;
-    var _iLastPlatformHit = 0;
-    var _bScreenShake = false;
-    var _iShakeIntensity = 0;
-    var _iShakeTimer = 0;
-    var _aFloatingTexts = [];
-    var _iSpeedMultiplier = 1;
-    var _oSpeedOverlay = null;
-    
     var _oPlayer;
     var _oBonus = null;
     var _aCoin = new Array();
@@ -110,12 +99,6 @@ function CGame(oData){
         _oPlayer = new CPlayer(_oPlayerContainer);
         
         _oInterface = new CInterface();
-        
-        // Create speed overlay for visual effects
-        _oSpeedOverlay = new createjs.Shape();
-        _oSpeedOverlay.graphics.beginFill("rgba(255,0,0,0)").drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        _oSpeedOverlay.alpha = 0;
-        s_oStage.addChild(_oSpeedOverlay);
        
         // Skip the "click to start" screen and auto-start the game
         _oWaitClickContainer = new createjs.Container();
@@ -487,46 +470,14 @@ function CGame(oData){
             case PLATFORM:
                 var iValue = Math.floor(Math.random()*2)+1;
                 playSound("voice_jump_"+iValue,1,0);
-                
-                // Add combo system
-                _iComboCount++;
-                _iComboTimer = 180; // 3 seconds at 60fps
-                
-                // Add screen shake for impact
-                this.startScreenShake(5, 8);
-                
-                // Bonus points for combos
-                var bonusPoints = _iComboCount > 1 ? (_iComboCount - 1) * 10 * _iSpeedMultiplier : 0;
-                if(bonusPoints > 0){
-                    _iScore += bonusPoints;
-                    // Bigger shake for combos
-                    this.startScreenShake(8 + _iComboCount, 12);
-                    
-                    // Show floating bonus text
-                    this.createFloatingText("+" + bonusPoints, _oPlayer.getX(), _oPlayer.getY() - 50, "#ffff00", 30);
-                }
-                
-                // Update combo display
-                _oInterface.showCombo(_iComboCount);
-                
-                // Update speed multiplier
-                this.updateSpeedMultiplier();
-                _oInterface.updateMultiplier(_iSpeedMultiplier);
-                
                 _iPlayerSpeedAdder = 0;
                 _bControlCollision = false;
                 break;
             case SPRING:
-                // Dramatic spring effect
-                this.startScreenShake(15, 25);
-                this.createFloatingText("MEGA JUMP!", _oPlayer.getX(), _oPlayer.getY() - 50, "#00ffff", 40);
                 _iPlayerSpeedAdder += 30;
                 _bControlCollision = false;
                 break;   
             case WINGS:
-                // Epic wings effect
-                this.startScreenShake(20, 30);
-                this.createFloatingText("SUPER SPEED!", _oPlayer.getX(), _oPlayer.getY() - 50, "#ff00ff", 45);
                 _iPlayerSpeedAdder += 50;
                 _bControlCollision = false;
                 _bPlayerIsAGod = true;
@@ -710,96 +661,17 @@ function CGame(oData){
             if(_bIncrement){
                 this.incrementSpeedObject();
             }
+            if(_bDecrement){
+                this.decrementSpeedObject();
+            }
             
             this.moveObject();
             
-            // Update screen shake
-            this.updateScreenShake();
-            
-            // Update combo timer
-            this.updateComboSystem();
+            _iPosition = _aPlatformInGame[_aPlatformInGame.length-1].getY();
             
             if(!_bIsGameOver && (_iScore + _iVelocityBg) >0){
                 _iScore += Math.floor(_iVelocityBg);
                 _oInterface.refreshScore(_iScore);
-            }
-        }
-    };
-    
-    this.updateScreenShake = function(){
-        if(_bScreenShake){
-            _iShakeTimer--;
-            if(_iShakeTimer <= 0){
-                _bScreenShake = false;
-                _oGameContainer.x = 0;
-                _oGameContainer.y = 0;
-            } else {
-                var shakeX = (Math.random() - 0.5) * _iShakeIntensity;
-                var shakeY = (Math.random() - 0.5) * _iShakeIntensity;
-                _oGameContainer.x = shakeX;
-                _oGameContainer.y = shakeY;
-            }
-        }
-    };
-    
-    this.startScreenShake = function(intensity, duration){
-        _bScreenShake = true;
-        _iShakeIntensity = intensity || 10;
-        _iShakeTimer = duration || 15;
-    };
-    
-    this.updateComboSystem = function(){
-        if(_iComboTimer > 0){
-            _iComboTimer--;
-            if(_iComboTimer <= 0){
-                _iComboCount = 0;
-                _oInterface.showCombo(_iComboCount); // Hide combo display
-            }
-        }
-    };
-    
-    this.createFloatingText = function(text, x, y, color, size){
-        var floatingText = new createjs.Text(text, size + "px " + FONT, color);
-        floatingText.x = x;
-        floatingText.y = y;
-        floatingText.textAlign = "center";
-        floatingText.textBaseline = "middle";
-        floatingText.alpha = 1;
-        
-        s_oStage.addChild(floatingText);
-        _aFloatingTexts.push(floatingText);
-        
-        // Animate floating text
-        createjs.Tween.get(floatingText)
-            .to({y: y - 100, alpha: 0, scaleX: 1.5, scaleY: 1.5}, 1500, createjs.Ease.quartOut)
-            .call(function(){
-                s_oStage.removeChild(floatingText);
-                var index = _aFloatingTexts.indexOf(floatingText);
-                if(index > -1) _aFloatingTexts.splice(index, 1);
-            });
-    };
-    
-    this.updateSpeedMultiplier = function(){
-        // Increase multiplier based on game speed
-        var speedFactor = Math.floor(_iVelocityBg / 3);
-        _iSpeedMultiplier = Math.max(1, Math.min(5, 1 + speedFactor * 0.5));
-        
-        // Update speed overlay for visual effect
-        this.updateSpeedOverlay();
-    };
-    
-    this.updateSpeedOverlay = function(){
-        if(_oSpeedOverlay){
-            var intensity = Math.min(0.3, (_iSpeedMultiplier - 1) * 0.1);
-            _oSpeedOverlay.alpha = intensity;
-            
-            // Change color based on speed
-            if(_iSpeedMultiplier >= 3){
-                _oSpeedOverlay.graphics.clear().beginFill("rgba(255,0,0," + intensity + ")").drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            } else if(_iSpeedMultiplier >= 2){
-                _oSpeedOverlay.graphics.clear().beginFill("rgba(255,100,0," + intensity + ")").drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            } else {
-                _oSpeedOverlay.alpha = 0;
             }
         }
     };

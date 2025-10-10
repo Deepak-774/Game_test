@@ -75,32 +75,11 @@ function CBonus(iX,iY, iType, oContainer){
                 oParent.changeStatusOff();
             });
             playSound("money",1,0);
-            
-            // Add screen shake for coin collection
-            s_oGame.startScreenShake(3, 6);
-            
-            // Scale effect for coin
-            createjs.Tween.get( _oBonus ).to({scaleX: 1.5, scaleY: 1.5}, 200, createjs.Ease.elasticOut).to({scaleX: 1, scaleY: 1}, 200);
-            
-            // Show floating coin value text
-            var coinValue = 50; // Base coin value
-            s_oGame.createFloatingText("+" + coinValue, _oBonus.x, _oBonus.y, "#ffff00", 25);
-            
             _bCanBeHitten = false;
             return true;
         }
         if(_oRectangle.intersection ( oPlayerRectangle ) !== null && _bCanBeHitten  && _iType === WINGS){
             playSound("power_up",1,0);
-            
-            // Big screen shake for power-up
-            s_oGame.startScreenShake(12, 20);
-            
-            // Dramatic scale effect
-            createjs.Tween.get( _oBonus ).to({scaleX: 2, scaleY: 2}, 300, createjs.Ease.elasticOut);
-            
-            // Show floating power-up text
-            s_oGame.createFloatingText("POWER UP!", _oBonus.x, _oBonus.y, "#ff6600", 35);
-            
             createjs.Tween.get( _oBonus ).to({x: oPlayerRectangle.x, y: oPlayerRectangle.y-50 }, (400)).call(function() {
                 this.alpha = 0;
                 s_oGame.beGod();
