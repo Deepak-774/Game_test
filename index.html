@@ -153,6 +153,44 @@
                     window.addEventListener('load', function() {
                         setTimeout(sizeHandler, 100);
                     });
+                    
+                    // Handle visibility change (phone lock/unlock, app switch)
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.hidden) {
+                            // Page is hidden (phone locked or app switched)
+                            console.log("App hidden - pausing sound");
+                            if(s_oMain) {
+                                s_oMain.stopUpdate();
+                            }
+                            if(s_oSoundtrack) {
+                                s_oSoundtrack.paused = true;
+                            }
+                        } else {
+                            // Page is visible again
+                            console.log("App visible - resuming");
+                            if(s_oMain) {
+                                s_oMain.startUpdate();
+                            }
+                            if(s_oSoundtrack && s_bAudioActive) {
+                                s_oSoundtrack.paused = false;
+                            }
+                        }
+                    });
+                    
+                    // Handle page focus/blur events as backup
+                    window.addEventListener('blur', function() {
+                        console.log("Window blur - pausing");
+                        if(s_oSoundtrack) {
+                            s_oSoundtrack.paused = true;
+                        }
+                    });
+                    
+                    window.addEventListener('focus', function() {
+                        console.log("Window focus - resuming");
+                        if(s_oSoundtrack && s_bAudioActive) {
+                            s_oSoundtrack.paused = false;
+                        }
+                    });
            });
 
         </script>

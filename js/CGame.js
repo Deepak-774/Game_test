@@ -19,8 +19,8 @@ function CGame(oData){
     // Smooth tilt control variables
     var _iRawTiltValue = 0;
     var _iSmoothedTiltValue = 0;
-    var _iTiltDeadZone = 0.8; // Minimum tilt angle to register movement
-    var _fSmoothingFactor = 0.15; // How much smoothing to apply (0.1 = heavy smoothing, 0.3 = light smoothing)
+    var _iTiltDeadZone = 0.3; // Minimum tilt angle to register movement (reduced from 0.8)
+    var _fSmoothingFactor = 0.25; // How much smoothing to apply (increased from 0.15 for faster response)
     
     var _oPlayer;
     var _oBonus = null;
@@ -290,6 +290,15 @@ function CGame(oData){
     
     //DETECTIONG MOUSE MOVE
     this._initMouseMove = function(){
+        // Force check for device orientation capability
+        if(s_bMobile && (window.DeviceOrientationEvent || window.DeviceMotionEvent)) {
+            s_bCanOrientate = true;
+            console.log("Mobile device detected - forcing tilt controls");
+        } else {
+            s_bCanOrientate = false;
+            console.log("Desktop or no orientation - using mouse controls");
+        }
+        
         if(!s_bCanOrientate){
             s_oStage.on("stagemousemove", function(evt) {
                 _iForceDirection = (evt.stageX-(CANVAS_HALF_WIDTH)) / (CANVAS_HALF_WIDTH-CANVAS_WIDTH_RANGE_ACCEPTED);
@@ -307,13 +316,17 @@ function CGame(oData){
                     // Store raw tilt value
                     _iRawTiltValue = eventData.gamma;
                     
+                    // Debug logging
+                    console.log("Raw Gamma:", _iRawTiltValue);
+                    
                     // Apply dead zone - ignore small movements
-                    if(Math.abs(_iRawTiltValue) < _iTiltDeadZone) {
-                        _iRawTiltValue = 0;
+                    var processedTilt = _iRawTiltValue;
+                    if(Math.abs(processedTilt) < _iTiltDeadZone) {
+                        processedTilt = 0;
                     }
                     
                     // Apply exponential smoothing to reduce jitter
-                    _iSmoothedTiltValue = _iSmoothedTiltValue + _fSmoothingFactor * (_iRawTiltValue - _iSmoothedTiltValue);
+                    _iSmoothedTiltValue = _iSmoothedTiltValue + _fSmoothingFactor * (processedTilt - _iSmoothedTiltValue);
                     
                     // Calculate force direction with improved range handling
                     if(Math.abs(_iSmoothedTiltValue) < GAMMA_RANGE_ACCEPTED){
@@ -326,6 +339,9 @@ function CGame(oData){
                             _iForceDirection = 1;
                         }
                     }
+                    
+                    // Debug logging
+                    console.log("Smoothed:", _iSmoothedTiltValue.toFixed(2), "Force:", _iForceDirection.toFixed(2));
                     
                     _iPlayerAcceleration = PLAYER_ACCELERATION_GIROSCOPE;
                 }
