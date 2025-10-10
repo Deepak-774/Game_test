@@ -1,39 +1,111 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Crazy Racing</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-		}
-		
-		html, body {
-			height: 100vh;
-			width: 100vw;
-			overflow: hidden;
-			background-color: black;
-		}
-		
-		#mylegend {
-			width: 100vw;
-			height: 100vh;
-			display: block;
-		}
-		
-		canvas {
-			width: 100vw !important;
-			height: 100vh !important;
-			display: block;
-		}
-	</style>
-	<script type="text/javascript" src="./lib/lufylegend-1.9.7.simple.min.js"></script>
-	<script type="text/javascript" src="./js/ytMain.js"></script>
-</head>
-<body>
-	<div id="mylegend">Loading……</div>
-</body>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Expires" content="-1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<meta name="mobile-web-app-capable" content="yes">
+
+		<title>DUMB RACE</title>
+		<style type="text/css">
+			body {
+				background-color: #000000;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				width: 100%;
+				height: 100%;
+				position: fixed;
+
+				-webkit-user-select: none; 
+				-khtml-user-select: none; 
+				-moz-user-select: none;
+				-o-user-select: none; 
+				user-select: none;
+				
+				/* Prevent zoom on touch devices */
+				touch-action: manipulation;
+				-ms-touch-action: manipulation;
+			}
+
+			#myCanvas {
+				padding-left: 0;
+				padding-right: 0;
+				width: 480px;
+				height: 320px;
+				display: block;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				image-rendering: -webkit-optimize-contrast;
+				image-rendering: crisp-edges;
+			}
+
+			@font-face {
+				font-family: gameFont;
+				src: url(fonts/gumball.ttf) format('truetype');
+			}
+			.font-loader {
+				visibility: hidden;
+				position: absolute;
+			}
+
+			.font-loader .gameFont {
+				font-family: gameFont;
+			}
+		</style>
+		<script src="js/localeen.js" language="JavaScript"></script>
+		<script src="js/createjs-2013.12.12.min.js" language="JavaScript"></script>
+		<script src="js/sounds.js" language="JavaScript"></script>
+		<script src="js/ces.js" language="JavaScript"></script>
+		<script src="js/vec2.js" language="JavaScript"></script>
+		<script src="js/components.js" language="JavaScript"></script>
+		<script src="js/systems.js" language="JavaScript"></script>
+		<script src="js/game.js" language="JavaScript"></script>
+		<script language="JavaScript" type="text/javascript">
+			function reziseCanvas() {
+				var canvas = document.querySelector('canvas');
+				if (!canvas) return;
+
+				var baseWidth = 480;
+				var baseHeight = 320;
+				var ratio = baseWidth / baseHeight;
+
+				var height = window.innerHeight;
+				var width = height * ratio;
+
+				if (width > window.innerWidth) {
+					width = window.innerWidth;
+					height = width / ratio;
+				}
+
+				canvas.style.width = width + 'px';
+				canvas.style.height = height + 'px';
+				
+				// Center using transform instead of margins for better iframe compatibility
+				canvas.style.transform = 'translate(-50%, -50%)';
+			}
+
+			window.addEventListener('resize', reziseCanvas, false);
+			window.addEventListener('orientationchange', reziseCanvas, false);
+		</script>
+
+	</head>
+	<body onload="reziseCanvas(); initialize();">
+		<span class="font-loader">
+			<span class="gameFont"><!-- / --></span>
+		</span>
+		<canvas id="myCanvas" width="480" height="320">
+		</canvas>
+
+		<script language="JavaScript" type="text/javascript">
+			<!--
+			if(navigator.appVersion.indexOf('MSIE')>=0)document.write(unescape('%3C')+'\!-'+'-')
+			//-->
+		</script>
+	</body>
 </html>
