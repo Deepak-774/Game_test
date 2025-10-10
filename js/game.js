@@ -111,10 +111,10 @@ function createMainMenu() {
 		var mainMenu = stage.getChildByName("mainMenu");
 		mainMenu.getChildByName("loadingLabel").visible = false;
 
-		var playBtn = createButton(spriteSheets["ui"], localization.play, createTutorial);
-		playBtn.x = 240;
-		playBtn.y = 290;
-		mainMenu.addChild(playBtn);
+		// AUTO-ADVANCE: Skip play button and go directly to tutorial
+		setTimeout(function() {
+			createGame(null); // Skip tutorial and go directly to game
+		}, 500); // Small delay to show loading completion
 	}, 250);
 }
 
@@ -179,6 +179,9 @@ function createGame(event) {
 		if (gameContainer) {
 			gameContainer.filters = [new createjs.BlurFilter(8, 8, 1)];
 			gameContainer.cache(0, 0, stage.canvas.width, stage.canvas.height);
+			
+			// Send game over message immediately after blur effect is applied
+			window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
 		}
 		
 		guiLayer.getChildByName("gameOverContainer").visible = true;
@@ -190,8 +193,6 @@ function createGame(event) {
 			}, 500, createjs.Ease.backOut)
 			.call(function() {
 				ces.stop();
-				// Send game over message to parent window
-				window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
 			});
 	};
 
