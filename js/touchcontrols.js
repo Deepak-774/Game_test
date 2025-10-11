@@ -457,12 +457,17 @@ function setupDocumentEventBlocking() {
     
     // Complete document gesture isolation
     document.addEventListener('touchstart', function(e) {
-        // Allow only specific interactive elements
+        // Allow only specific interactive elements and game canvas for EaselJS/CreateJS buttons
         var target = e.target || e.srcElement;
-        var allowedElements = ['btnLeft', 'btnRight', 'btnJump'];
+        var allowedElements = ['btnLeft', 'btnRight', 'btnJump', 'gameCanvas'];
         var isAllowed = allowedElements.some(function(id) {
             return target.id === id || target.closest('#' + id);
         });
+        
+        // Also allow if target is the game canvas (for EaselJS buttons like btnStart)
+        if (!isAllowed && target.tagName === 'CANVAS') {
+            isAllowed = true;
+        }
         
         if (!isAllowed) {
             e.preventDefault();
@@ -480,10 +485,15 @@ function setupDocumentEventBlocking() {
     
     document.addEventListener('touchend', function(e) {
         var target = e.target || e.srcElement;
-        var allowedElements = ['btnLeft', 'btnRight', 'btnJump'];
+        var allowedElements = ['btnLeft', 'btnRight', 'btnJump', 'gameCanvas'];
         var isAllowed = allowedElements.some(function(id) {
             return target.id === id || target.closest('#' + id);
         });
+        
+        // Also allow if target is the game canvas (for EaselJS buttons like btnStart)
+        if (!isAllowed && target.tagName === 'CANVAS') {
+            isAllowed = true;
+        }
         
         if (!isAllowed) {
             e.preventDefault();
@@ -495,10 +505,15 @@ function setupDocumentEventBlocking() {
     // Same for pointer events
     document.addEventListener('pointerdown', function(e) {
         var target = e.target || e.srcElement;
-        var allowedElements = ['btnLeft', 'btnRight', 'btnJump'];
+        var allowedElements = ['btnLeft', 'btnRight', 'btnJump', 'gameCanvas'];
         var isAllowed = allowedElements.some(function(id) {
             return target.id === id || target.closest('#' + id);
         });
+        
+        // Also allow if target is the game canvas (for EaselJS buttons like btnStart)
+        if (!isAllowed && target.tagName === 'CANVAS') {
+            isAllowed = true;
+        }
         
         if (!isAllowed) {
             e.preventDefault();
@@ -515,10 +530,15 @@ function setupDocumentEventBlocking() {
     
     document.addEventListener('pointerup', function(e) {
         var target = e.target || e.srcElement;
-        var allowedElements = ['btnLeft', 'btnRight', 'btnJump'];
+        var allowedElements = ['btnLeft', 'btnRight', 'btnJump', 'gameCanvas'];
         var isAllowed = allowedElements.some(function(id) {
             return target.id === id || target.closest('#' + id);
         });
+        
+        // Also allow if target is the game canvas (for EaselJS buttons like btnStart)
+        if (!isAllowed && target.tagName === 'CANVAS') {
+            isAllowed = true;
+        }
         
         if (!isAllowed) {
             e.preventDefault();
@@ -550,42 +570,17 @@ function setupCanvasEventBlocking() {
         gameCanvas.style.webkitTouchCallout = 'none';
         gameCanvas.style.webkitTapHighlightColor = 'transparent';
         
-        // Complete event blocking with capture
-        gameCanvas.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, { passive: false, capture: true });
-        
+        // Allow canvas events for EaselJS/CreateJS buttons (btnStart, etc.)
+        // Only prevent scrolling/panning gestures, not button clicks
         gameCanvas.addEventListener('touchmove', function(e) {
+            // Prevent scrolling but allow button interactions
             e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, { passive: false, capture: true });
-        
-        gameCanvas.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, { passive: false, capture: true });
-        
-        gameCanvas.addEventListener('pointerdown', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, { passive: false, capture: true });
+        }, { passive: false });
         
         gameCanvas.addEventListener('pointermove', function(e) {
+            // Prevent scrolling but allow button interactions  
             e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, { passive: false, capture: true });
-        
-        gameCanvas.addEventListener('pointerup', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-        }, { passive: false, capture: true });
+        }, { passive: false });
     }
     
     if (box2dCanvas) {
