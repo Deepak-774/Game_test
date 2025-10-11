@@ -71,7 +71,7 @@ resize:vertical;
 
 html{-webkit-tap-highlight-color: rgba(0,0,0,0);-webkit-user-select: none;user-select: none;-webkit-touch-callout:none; background:#0A1529;}
 
-/* WEBVIEW NUCLEAR OPTION - Maximum Override */
+/* NUCLEAR OPTION - Maximum Override for Webview */
 body {
     overscroll-behavior: none !important;
     touch-action: none !important;
@@ -154,7 +154,7 @@ body {
     align-items: center;
 }
 
-/* Pixel Art Retro Style D-Pad Buttons - WEBVIEW ENHANCED */
+/* Pixel Art Retro Style D-Pad Buttons - SPACE INVADER APPROACH */
 .dpad-btn {
     width: 70px;
     height: 70px;
@@ -172,22 +172,16 @@ body {
     align-items: center;
     justify-content: center;
     transition: none;
-    -webkit-tap-highlight-color: transparent !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -ms-user-select: none !important;
-    -moz-user-select: none !important;
-    touch-action: manipulation !important;
-    -webkit-touch-action: manipulation !important;
-    -ms-touch-action: manipulation !important;
-    -webkit-touch-callout: none !important;
-    -webkit-appearance: none !important;
-    appearance: none !important;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
     box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.6);
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
-    pointer-events: auto !important;
+    pointer-events: auto;
 }
 
 .dpad-btn:active,
