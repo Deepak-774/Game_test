@@ -190,14 +190,15 @@ body {
     pointer-events: auto !important;
 }
 
-.dpad-btn:active {
-    background: #1A252F;
-    border-top: 6px solid #1A252F;
-    border-left: 6px solid #1A252F;
-    border-bottom: 4px solid #34495E;
-    border-right: 4px solid #34495E;
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.6);
+.dpad-btn:active,
+.dpad-btn.active {
+    background: #1A252F !important;
+    border-top: 6px solid #1A252F !important;
+    border-left: 6px solid #1A252F !important;
+    border-bottom: 4px solid #34495E !important;
+    border-right: 4px solid #34495E !important;
+    transform: translate(2px, 2px) !important;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.6) !important;
 }
 
 .dpad-btn span {
@@ -243,14 +244,15 @@ body {
     letter-spacing: 2px;
 }
 
-.jump-btn:active {
-    background: #1E8449;
-    border-top: 6px solid #1E8449;
-    border-left: 6px solid #1E8449;
-    border-bottom: 4px solid #2ECC71;
-    border-right: 4px solid #2ECC71;
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.6);
+.jump-btn:active,
+.jump-btn.active {
+    background: #1E8449 !important;
+    border-top: 6px solid #1E8449 !important;
+    border-left: 6px solid #1E8449 !important;
+    border-bottom: 4px solid #2ECC71 !important;
+    border-right: 4px solid #2ECC71 !important;
+    transform: translate(2px, 2px) !important;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.6) !important;
 }
 
 .jump-btn span {
