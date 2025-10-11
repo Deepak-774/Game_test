@@ -13,8 +13,11 @@ var leftPressed = false;
 var rightPressed = false;
 var moveSpeed = 8; // Speed of horizontal movement
 
-// WEBVIEW NUCLEAR OPTION - Multi-touch support
-var activePointers = new Map(); // Track multiple simultaneous touches
+// SPACE INVADER APPROACH - Touch ID tracking system
+var leftTouchID = null;
+var rightTouchID = null;
+var jumpTouchID = null;
+var activeTouches = new Map(); // Track active touches by ID
 var globalSafetyHandlers = false; // Flag to prevent duplicate handlers
 
 /*!
@@ -26,22 +29,10 @@ function initTouchControls() {
     // Initialize touch controls (hidden by default via CSS)
     touchControlsActive = true;
     
-    // WEBVIEW NUCLEAR OPTION - Global safety handlers
-    setupGlobalSafetyHandlers();
+    // SPACE INVADER APPROACH - Simple document-level touch handling
+    setupSpaceInvaderTouchControls();
     
-    // WEBVIEW NUCLEAR OPTION - Document-level event isolation
-    setupDocumentEventBlocking();
-    
-    // WEBVIEW NUCLEAR OPTION - Canvas-level event blocking
-    setupCanvasEventBlocking();
-    
-    // Setup event listeners for D-Pad buttons
-    setupDPadControls();
-    
-    // Setup event listener for Jump button
-    setupJumpControl();
-    
-    console.log('✅ Touch controls initialized with WEBVIEW NUCLEAR OPTION - Hold buttons for continuous movement');
+    console.log('✅ Touch controls initialized with SPACE INVADER APPROACH - Hold buttons for continuous movement');
 }
 
 /*!
@@ -436,15 +427,28 @@ function showTouchControls() {
 
 /*!
  * 
- * RESET TOUCH CONTROLS - Reset button states
+ * RESET TOUCH CONTROLS - Reset button states (Space Invader approach)
  * 
  */
 function resetTouchControls() {
     leftPressed = false;
     rightPressed = false;
-    // Reset global flags too
-    window.leftPressed = false;
-    window.rightPressed = false;
+    
+    // Reset touch IDs
+    leftTouchID = null;
+    rightTouchID = null;
+    jumpTouchID = null;
+    
+    // Clear active touches
+    activeTouches.clear();
+    
+    // Remove active classes
+    var btnLeft = document.getElementById('btnLeft');
+    var btnRight = document.getElementById('btnRight');
+    var btnJump = document.getElementById('btnJump');
+    if (btnLeft) btnLeft.classList.remove('active');
+    if (btnRight) btnRight.classList.remove('active');
+    if (btnJump) btnJump.classList.remove('active');
 }
 
 /*!
@@ -668,4 +672,153 @@ function setupGlobalSafetyHandlers() {
     document.addEventListener('pointercancel', function(e) {
         activePointers.delete(e.pointerId);
     }, { passive: true, capture: true });
+}
+
+/*!
+ * 
+ * SPACE INVADER APPROACH - Simple and effective touch controls
+ * Based on the working Space Invader game implementation
+ */
+function setupSpaceInvaderTouchControls() {
+    console.log('🚀 Setting up SPACE INVADER APPROACH for webview compatibility');
+    
+    // Get button elements
+    var btnLeft = document.getElementById('btnLeft');
+    var btnRight = document.getElementById('btnRight');
+    var btnJump = document.getElementById('btnJump');
+    
+    if (!btnLeft || !btnRight || !btnJump) {
+        console.error('❌ Control buttons not found!');
+        return;
+    }
+    
+    // Individual button touch handlers (like Space Invader joystick)
+    btnLeft.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (e.touches.length > 0) {
+            leftTouchID = e.touches[0].identifier;
+            leftPressed = true;
+            rightPressed = false; // Prevent simultaneous
+            activeTouches.set(leftTouchID, 'left');
+            btnLeft.classList.add('active');
+            console.log('🔥 LEFT TOUCH START - Space Invader style');
+        }
+    }, { passive: false });
+    
+    btnRight.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (e.touches.length > 0) {
+            rightTouchID = e.touches[0].identifier;
+            rightPressed = true;
+            leftPressed = false; // Prevent simultaneous
+            activeTouches.set(rightTouchID, 'right');
+            btnRight.classList.add('active');
+            console.log('🔥 RIGHT TOUCH START - Space Invader style');
+        }
+    }, { passive: false });
+    
+    btnJump.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (e.touches.length > 0) {
+            jumpTouchID = e.touches[0].identifier;
+            activeTouches.set(jumpTouchID, 'jump');
+            btnJump.classList.add('active');
+            handleJump();
+            console.log('🔥 JUMP TOUCH START - Space Invader style');
+        }
+    }, { passive: false });
+    
+    // Document-level touch handling (like Space Invader)
+    document.addEventListener('touchmove', function(e) {
+        // Prevent scrolling but don't interfere with button tracking
+        e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('touchend', function(e) {
+        // Handle touch end for any tracked touches
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            const touchType = activeTouches.get(touch.identifier);
+            
+            if (touch.identifier === leftTouchID) {
+                leftTouchID = null;
+                leftPressed = false;
+                btnLeft.classList.remove('active');
+                activeTouches.delete(touch.identifier);
+                console.log('🔥 LEFT TOUCH END - Space Invader style');
+            } else if (touch.identifier === rightTouchID) {
+                rightTouchID = null;
+                rightPressed = false;
+                btnRight.classList.remove('active');
+                activeTouches.delete(touch.identifier);
+                console.log('🔥 RIGHT TOUCH END - Space Invader style');
+            } else if (touch.identifier === jumpTouchID) {
+                jumpTouchID = null;
+                btnJump.classList.remove('active');
+                activeTouches.delete(touch.identifier);
+                console.log('🔥 JUMP TOUCH END - Space Invader style');
+            }
+        }
+    });
+    
+    // Safety cleanup on touch cancel
+    document.addEventListener('touchcancel', function(e) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            
+            if (touch.identifier === leftTouchID) {
+                leftTouchID = null;
+                leftPressed = false;
+                btnLeft.classList.remove('active');
+                activeTouches.delete(touch.identifier);
+            } else if (touch.identifier === rightTouchID) {
+                rightTouchID = null;
+                rightPressed = false;
+                btnRight.classList.remove('active');
+                activeTouches.delete(touch.identifier);
+            } else if (touch.identifier === jumpTouchID) {
+                jumpTouchID = null;
+                btnJump.classList.remove('active');
+                activeTouches.delete(touch.identifier);
+            }
+        }
+    });
+    
+    // Desktop mouse support (simplified)
+    btnLeft.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        leftPressed = true;
+        rightPressed = false;
+        btnLeft.classList.add('active');
+    });
+    
+    btnLeft.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+        leftPressed = false;
+        btnLeft.classList.remove('active');
+    });
+    
+    btnRight.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        rightPressed = true;
+        leftPressed = false;
+        btnRight.classList.add('active');
+    });
+    
+    btnRight.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+        rightPressed = false;
+        btnRight.classList.remove('active');
+    });
+    
+    btnJump.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        btnJump.classList.add('active');
+        handleJump();
+    });
+    
+    btnJump.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+        btnJump.classList.remove('active');
+    });
 }
