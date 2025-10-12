@@ -24,8 +24,8 @@ const wallW = 9; // Wall width (reduced from 10)
 const ballSize = 9; // Width and height of the ball (reduced from 10)
 const holeSize = 17; // Hole size (reduced from 18)
 const endSize = 60; // End target size (reduced from 65)
-const mazeWidth = 350;
-const mazeHeight = 315;
+const mazeWidth = 320;
+const mazeHeight = 290;
 
 Math.minmax = (value, limit) => {  
     return Math.max(Math.min(value, limit), -limit);  
@@ -130,20 +130,22 @@ const initializeGame = () => {
    const stopTimer = () => {
        if (timerInterval) {
            clearInterval(timerInterval);
-           timerInterval = null;
        }
    };
 
    // Score functions
    const updateScore = (points) => {
-       gameScore += points;
-       scoreElement.textContent = gameScore;
-       
-       // Check for game over in Hard Mode if score drops below 0
-       if (hardMode && gameScore < 0 && gameInProgress) {
-           endGame("Game Over! Score dropped below 0!");
-       }
-   };
+      gameScore += points;
+      
+      // Check for game over in Hard Mode if score drops below 0
+      if (hardMode && gameScore < 0 && gameInProgress) {
+          endGame("Game Over! Score dropped below 0!");
+      }
+      
+      // Display score as 0 minimum, but keep actual gameScore for game logic
+      const displayScore = Math.max(0, gameScore);
+      scoreElement.textContent = displayScore;
+  };
 
    const resetScore = () => {
        gameScore = 0;
@@ -844,15 +846,15 @@ const initializeGame = () => {
      // Ball center detection and individual respawn
      const centerX = mazeWidth / 2;
      const centerY = mazeHeight / 2;
-     const centerRadius = endSize / 2;
+     const centerRadius = (endSize / 2) + 5; // Slightly larger radius for easier scoring
      const originalPositions = [
-         { column: 0, row: 0 },
-         { column: 9, row: 0 },
-         { column: 0, row: 8 },
-         { column: 9, row: 8 }
-     ];
-     
-     // Check how many balls are simultaneously in the center (using ball center position)
+        { column: 0, row: 0 },
+        { column: 9, row: 0 },
+        { column: 0, row: 8 },
+        { column: 9, row: 8 }
+    ];
+    
+    // Check how many balls are simultaneously in the center (using ball center position)
      let ballsCurrentlyInCenter = 0;
      let ballsToRespawn = [];
      
@@ -864,44 +866,48 @@ const initializeGame = () => {
          
          // Check if ball center is within target radius
          if (distanceToCenter <= centerRadius) {
+             console.log(`Ball ${index} reached center! Distance: ${distanceToCenter.toFixed(2)}, Radius: ${centerRadius}`);
              ballsCurrentlyInCenter++;
              ballsToRespawn.push(index);
          }
      });
      
-     // Award points based on simultaneous balls in center (exclusive scoring - only once per state change)
-     if (ballsCurrentlyInCenter > 0 && ballsCurrentlyInCenter !== lastScoringState) {
-         let points = 0;
-         if (ballsCurrentlyInCenter === 1) points = 10;
-         else if (ballsCurrentlyInCenter === 2) points = 20;
-         else if (ballsCurrentlyInCenter === 3) points = 50;
-         else if (ballsCurrentlyInCenter === 4) points = 100;
-         
-         // Award points immediately (exclusive scoring per achievement)
-         updateScore(points);
-         
-         // Update last scoring state to prevent duplicate scoring
-         lastScoringState = ballsCurrentlyInCenter;
-         
-         // Instantly vanish and respawn all balls that reached the center
-         ballsToRespawn.forEach(index => {
-             if (index < originalPositions.length) {
-                 const pos = originalPositions[index];
-                 // Instant teleport to starting position
-                 balls[index].x = pos.column * (wallW + pathW) + (wallW / 2 + pathW / 2);
-                 balls[index].y = pos.row * (wallW + pathW) + (wallW / 2 + pathW / 2);
-                 // Reset velocity for clean respawn
-                 balls[index].velocityX = 0;
-                 balls[index].velocityY = 0;
-             }
-         });
-         
-         // Reset counter after scoring
-         ballsInCenter = 0;
-     } else if (ballsCurrentlyInCenter === 0) {
-         // Reset scoring state when no balls are in center
-         lastScoringState = 0;
-     }
+     // Award points based on total balls that have reached center (cumulative scoring)
+    if (ballsCurrentlyInCenter > 0) {
+        // Increment the total count of balls that have reached center
+        ballsInCenter += ballsCurrentlyInCenter;
+        
+        // Calculate incremental points based on total balls reached
+        let points = 0;
+        if (ballsInCenter === 1) points = 10;
+        else if (ballsInCenter === 2) points = 20; // +20 more (total becomes 30)
+        else if (ballsInCenter === 3) points = 50; // +50 more (total becomes 80)
+        else if (ballsInCenter >= 4) points = 100; // +100 more (total becomes 180)
+        
+        // Award incremental points for this achievement
+        updateScore(points);
+        console.log(`Balls in center: ${ballsInCenter}, Points awarded: ${points}, Total score: ${gameScore + points}`);
+        
+        // Instantly vanish and respawn all balls that reached the center
+        ballsToRespawn.forEach(index => {
+            if (index < originalPositions.length) {
+                const pos = originalPositions[index];
+                // Instant teleport to starting position
+                balls[index].x = pos.column * (wallW + pathW) + (wallW / 2 + pathW / 2);
+                balls[index].y = pos.row * (wallW + pathW) + (wallW / 2 + pathW / 2);
+                // Reset velocity for clean respawn
+                balls[index].velocityX = 0;
+                balls[index].velocityY = 0;
+            }
+        });
+        
+        // Check if all 4 balls have reached center for game completion
+        if (ballsInCenter >= 4) {
+            console.log("All balls reached center! Game complete!");
+            // Reset for next round or end game
+            ballsInCenter = 0;
+        }
+    }
      
      // Continue game loop
      previousTimestamp = timestamp;
