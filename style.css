@@ -642,13 +642,13 @@ a:visited {
     
     #joystick {
         bottom: 100px;
-        width: 58px;
-        height: 58px;
+        width: 68px;
+        height: 68px;
     }
     
     #joystick-head {
-        width: 26px;
-        height: 26px;
+        width: 32px;
+        height: 32px;
     }
     
     #note {
@@ -714,13 +714,13 @@ a:visited {
     
     #joystick {
         bottom: 80px;
-        width: 55px;
-        height: 55px;
+        width: 65px;
+        height: 65px;
     }
     
     #joystick-head {
-        width: 24px;
-        height: 24px;
+        width: 30px;
+        height: 30px;
     }
     
     #note {
