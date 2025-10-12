@@ -7,6 +7,8 @@ let ballsInCenter = 0;
 let lastScoringState = 0; // Track the last scoring state to prevent duplicate scoring
 let modeSelected = false;
 let hardMode = false;
+let modeSelectionTimer = null;
+let countdownSeconds = 5;
 
 // Responsive scaling variables
 let scaleFactor = 1;
@@ -926,24 +928,62 @@ const initializeGame = () => {
            el.classList.remove('show');
        });
        modeSelected = false;
+       
+       // Start countdown timer
+       countdownSeconds = 5;
+       updateCountdownDisplay();
+       startModeSelectionCountdown();
    };
 
    const hideModeSelection = () => {
-       document.getElementById('mode-selection').classList.add('hide');
-       document.querySelectorAll('.game-element').forEach(el => {
-           el.style.display = 'block';
-           el.classList.add('show');
-       });
-       modeSelected = true;
-   };
+      // Clear countdown timer when hiding
+      if (modeSelectionTimer) {
+          clearInterval(modeSelectionTimer);
+          modeSelectionTimer = null;
+      }
+      
+      document.getElementById('mode-selection').classList.add('hide');
+      document.querySelectorAll('.game-element').forEach(el => {
+          el.style.display = 'block';
+          el.classList.add('show');
+      });
+      modeSelected = true;
+  };
+
+  const updateCountdownDisplay = () => {
+      const countdownElement = document.getElementById('countdown-timer');
+      if (countdownElement) {
+          countdownElement.textContent = `Auto-start Easy Mode in: ${countdownSeconds}s`;
+      }
+  };
+
+  const startModeSelectionCountdown = () => {
+      if (modeSelectionTimer) {
+          clearInterval(modeSelectionTimer);
+      }
+      
+      modeSelectionTimer = setInterval(() => {
+          countdownSeconds--;
+          updateCountdownDisplay();
+          
+          if (countdownSeconds <= 0) {
+              clearInterval(modeSelectionTimer);
+              modeSelectionTimer = null;
+              // Auto-start Easy Mode
+              startGameMode(false);
+          }
+      }, 1000);
+  };
 
    const startGameMode = (isHardMode) => {
-       hardMode = isHardMode;
-       hideModeSelection();
-       resetGame();
-   };
+      hardMode = isHardMode;
+      hideModeSelection();
+      resetGame();
+      // Start game loop
+      window.requestAnimationFrame(main);
+  };
 
-   // Mode selection event listeners
+  // Mode selection event listeners
    document.addEventListener('DOMContentLoaded', () => {
        const easyModeBtn = document.getElementById('easy-mode-btn');
        const hardModeBtn = document.getElementById('hard-mode-btn');
