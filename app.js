@@ -37,18 +37,12 @@ const distance2D = (p1, p2) => {
 
 // Simple initialization function
 const initializeGame = () => {
-    // Ensure maze has correct dimensions
+    // Let CSS handle all dimensions - don't override with JavaScript
     const mazeElement = document.getElementById("maze");
-    if (mazeElement) {
-        mazeElement.style.width = `${mazeWidth}px`;
-        mazeElement.style.height = `${mazeHeight}px`;
-    }
-    
-    // Ensure end element has correct size
     const endElement = document.getElementById("end");
+    
+    // Only set properties that CSS can't handle
     if (endElement) {
-        endElement.style.width = `${endSize}px`;
-        endElement.style.height = `${endSize}px`;
         endElement.style.border = `5px dashed var(--end-color)`;
     }
 };  
@@ -176,7 +170,7 @@ const initializeGame = () => {
        joystickHeadElement.style.opacity = "0.5";
        
        // Reset maze rotation and disable physics
-       mazeElement.style.cssText = `transform: rotateY(0deg) rotateX(0deg)`;
+       mazeElement.style.cssText = `transform: translate(-50%, -50%) rotateY(0deg) rotateX(0deg)`;
        
        // Show game over message (keep unblurred for readability)
        noteElement.innerHTML = `${message}<br>Final Score: ${gameScore}<br><p>Game Over!</p>`;
@@ -377,7 +371,7 @@ const initializeGame = () => {
            const rotationX = mouseDeltaY * 1.0;
            
            mazeElement.style.cssText = `
-               transform: rotateY(${rotationY}deg) rotateX(${-rotationX}deg)
+               transform: translate(-50%, -50%) rotateY(${rotationY}deg) rotateX(${-rotationX}deg)
            `;
            
            const gravity = 6.0; // Significantly increased for ultra-fast response
@@ -463,7 +457,7 @@ const initializeGame = () => {
     }
     
     mazeElement.style.cssText = `  
-      transform: rotateY(0deg) rotateX(0deg)  
+      transform: translate(-50%, -50%) rotateY(0deg) rotateX(0deg)  
      `;  
     joystickHeadElement.style.cssText = `  
       left: 0;  

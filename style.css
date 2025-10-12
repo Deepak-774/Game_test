@@ -257,6 +257,7 @@ body {
     align-items: center;  
     justify-content: center;  
     height: 100vh;
+    height: 100dvh;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -267,7 +268,12 @@ body {
     bottom: 0;
     background: transparent;
     width: 100%;
+    width: 100vw;
     z-index: 1;
+    overflow: hidden;
+    /* Mobile-first optimization */
+    -webkit-overflow-scrolling: touch;
+    touch-action: none;
 }
 
 #game {  
@@ -284,9 +290,12 @@ body {
 }
 
 #maze {  
-    position: relative;  
-    width: 320px;  
-    height: 290px;  
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px !important;  
+    height: 290px !important;  
     display: flex;  
     justify-content: center;  
     align-items: center;
@@ -303,6 +312,13 @@ body {
     contain: layout style paint;
     overflow: hidden;
     z-index: 10;
+    flex-shrink: 0;
+    min-width: 320px;
+    min-height: 290px;
+    /* Mobile touch optimization */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 #maze::before {
@@ -347,11 +363,14 @@ body {
 }
 
 #joystick {  
-    position: relative;  
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
     background: linear-gradient(135deg, var(--joystick-color), #1a202c);  
     border-radius: 50%;  
-    width: 64px;  
-    height: 64px;  
+    width: 60px;  
+    height: 60px;  
     display: flex;  
     align-items: center;  
     justify-content: center;  
@@ -361,14 +380,17 @@ body {
         inset 0 2px 10px rgba(255, 255, 255, 0.1),
         inset 0 -2px 8px rgba(0, 0, 0, 0.3);
     z-index: 10;
+    /* Mobile touch optimization */
+    touch-action: manipulation;
+    cursor: pointer;
 }
 
 #joystick-head {  
     position: relative;  
     background: radial-gradient(circle at 30% 30%, #ff9500, var(--joystick-head-color));  
     border-radius: 50%;  
-    width: 30px;  
-    height: 30px;  
+    width: 28px;  
+    height: 28px;  
     cursor: grab;  
     animation-name: modernGlow;  
     animation-duration: 2s;  
@@ -380,6 +402,8 @@ body {
         inset 0 2px 8px rgba(255, 255, 255, 0.4),
         inset 0 -1px 4px rgba(0, 0, 0, 0.2);
     border: 2px solid rgba(255, 255, 255, 0.3);
+    /* Mobile touch optimization */
+    touch-action: none;
 }
 
 #joystick-head:active {
@@ -453,21 +477,28 @@ body {
 
 #note {  
     text-align: center;  
-    font-size: min(2.5vw, 16px);  
+    font-size: min(3.5vw, 16px);  
     color: var(--text-color);  
     transition: opacity 0.5s ease;
-    line-height: 1.4;
-    position: relative;
+    line-height: 1.3;
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 10;
     background: var(--card-background);
-    padding: 16px 20px;
+    padding: 12px 24px;
     border-radius: 16px;
     box-shadow: var(--shadow-medium);
     border: 1px solid rgba(44, 62, 80, 0.1);
     backdrop-filter: blur(10px);
     font-weight: 500;
     margin: 0;
-    max-width: 300px;
+    width: min(85vw, 360px);
+    max-width: 360px;
+    min-width: 300px;
+    /* Mobile optimization */
+    font-size: 15px;
 }
 
 a:visited {  
@@ -601,25 +632,33 @@ a:visited {
     }
     
     #maze {
-        width: 320px;
-        height: 290px;
+        width: 320px !important;
+        height: 290px !important;
         transform-origin: center center;
-        transform: scale(0.9);
+        transform: translate(-50%, -50%);
+        min-width: 320px;
+        min-height: 290px;
     }
     
     #joystick {
-        margin: 0;
+        bottom: 100px;
+        width: 58px;
+        height: 58px;
+    }
+    
+    #joystick-head {
+        width: 26px;
+        height: 26px;
     }
     
     #note {
-        text-align: center;
         font-size: 14px;
-        margin: 0;
-        background: var(--card-background);
-        box-shadow: var(--shadow-light);
-        border: 1px solid rgba(44, 62, 80, 0.1);
-        backdrop-filter: blur(10px);
-        max-width: 280px;
+        top: 70px;
+        width: min(90vw, 340px);
+        max-width: 340px;
+        min-width: 280px;
+        padding: 10px 20px;
+        line-height: 1.2;
     }
 }
 
@@ -639,10 +678,12 @@ a:visited {
     }
     
     #maze {
-        width: 320px;
-        height: 290px;
+        width: 320px !important;
+        height: 290px !important;
         transform-origin: center center;
-        transform: scale(0.75);
+        transform: translate(-50%, -50%);
+        min-width: 320px;
+        min-height: 290px;
     }
     
     #header {
@@ -664,15 +705,32 @@ a:visited {
     }
     
     #maze {
-        width: 320px;
-        height: 290px;
-        transform: scale(0.8);
+        width: 320px !important;
+        height: 290px !important;
+        transform: translate(-50%, -50%);
+        min-width: 320px;
+        min-height: 290px;
+    }
+    
+    #joystick {
+        bottom: 80px;
+        width: 55px;
+        height: 55px;
+    }
+    
+    #joystick-head {
+        width: 24px;
+        height: 24px;
     }
     
     #note {
-        font-size: 12px;
-        padding: 12px 16px;
-        max-width: 250px;
+        font-size: 13px;
+        top: 60px;
+        width: min(95vw, 320px);
+        max-width: 320px;
+        min-width: 260px;
+        padding: 8px 18px;
+        line-height: 1.2;
     }
 }
 
