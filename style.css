@@ -224,16 +224,27 @@ h2 {
     inset 0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* Hammer Styles */
+/* Toy Hammer Styles */
 .hammer {
   position: absolute;
   font-size: 6rem; /* Made bigger for easier targeting */
   z-index: 10;
-  pointer-events: none;
+  pointer-events: auto; /* Allow interaction with hammer */
   transform: translate(-50%, -50%) rotate(-20deg);
   transition: transform 0.15s ease-out;
   display: none;
   filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+  cursor: grab;
+  /* Toy hammer styling */
+  background: linear-gradient(45deg, #FF6B47, #FFB347);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 2px 2px 4px rgba(255, 107, 71, 0.3);
+}
+
+.hammer:active {
+  cursor: grabbing;
 }
 
 .hammer.active {

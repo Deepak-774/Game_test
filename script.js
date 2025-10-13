@@ -89,9 +89,33 @@ function bonk(e) {
   }, 600);
 }
 
-// Hammer movement functions
-function moveHammer(x, y, isSwipe = false) {
-  if (!isGameActive) return;
+// Hammer drag mechanics
+let isDraggingHammer = false;
+let hammerStartX = 0;
+let hammerStartY = 0;
+
+function startHammerDrag(x, y) {
+  if (!isGameActive) return false;
+  
+  const hammerRect = hammer.getBoundingClientRect();
+  const hammerCenterX = hammerRect.left + hammerRect.width / 2;
+  const hammerCenterY = hammerRect.top + hammerRect.height / 2;
+  
+  // Check if click/touch is near the hammer (within 60px radius)
+  const distance = Math.sqrt(Math.pow(x - hammerCenterX, 2) + Math.pow(y - hammerCenterY, 2));
+  
+  if (distance <= 60) {
+    isDraggingHammer = true;
+    hammerStartX = x;
+    hammerStartY = y;
+    return true;
+  }
+  
+  return false;
+}
+
+function moveHammer(x, y) {
+  if (!isGameActive || !isDraggingHammer) return;
   
   const gameRect = gameArea.getBoundingClientRect();
   const relativeX = x - gameRect.left;
@@ -103,10 +127,15 @@ function moveHammer(x, y, isSwipe = false) {
   // Check if hammer is over a mole
   const hitMole = checkHammerOverMole(relativeX, relativeY);
   
-  // If swiping and over a mole, trigger hit
-  if (isSwipe && hitMole && !hitMole.classList.contains("hit")) {
+  // If dragging over a mole, trigger hit
+  if (hitMole && !hitMole.classList.contains("hit")) {
     handleSwipeHit(hitMole);
+    stopHammerDrag(); // Stop dragging after hit
   }
+}
+
+function stopHammerDrag() {
+  isDraggingHammer = false;
 }
 
 // Handle swipe hit on mole
@@ -219,46 +248,42 @@ function handleMiss(x, y) {
   }, 300);
 }
 
-// Mouse events
-let isMouseDown = false;
-
+// Mouse events for hammer dragging
 gameArea.addEventListener("mousemove", (e) => {
-  moveHammer(e.clientX, e.clientY, isMouseDown); // Pass isMouseDown as swipe indicator
+  moveHammer(e.clientX, e.clientY);
 });
 
 gameArea.addEventListener("mousedown", (e) => {
-  isMouseDown = true;
-  // Check if clicking on empty space (not on a mole)
-  if (!e.target.classList.contains("mole")) {
+  const hammerGrabbed = startHammerDrag(e.clientX, e.clientY);
+  
+  // If hammer wasn't grabbed and not clicking on a mole, show miss animation
+  if (!hammerGrabbed && !e.target.classList.contains("mole")) {
     handleMiss(e.clientX, e.clientY);
   }
 });
 
 gameArea.addEventListener("mouseup", (e) => {
-  isMouseDown = false;
+  stopHammerDrag();
 });
 
 // NUCLEAR OPTION - Touch events for mobile with maximum override
-let isTouching = false;
-
 gameArea.addEventListener("touchmove", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
   const touch = e.touches[0];
-  moveHammer(touch.clientX, touch.clientY, isTouching); // Pass isTouching as swipe indicator
+  moveHammer(touch.clientX, touch.clientY);
 }, { passive: false, capture: true });
 
 gameArea.addEventListener("touchstart", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  isTouching = true;
   const touch = e.touches[0];
-  moveHammer(touch.clientX, touch.clientY, true); // Initial touch counts as swipe
+  const hammerGrabbed = startHammerDrag(touch.clientX, touch.clientY);
   
-  // Check if touching empty space (not on a mole)
-  if (!e.target.classList.contains("mole")) {
+  // If hammer wasn't grabbed and not touching a mole, show miss animation
+  if (!hammerGrabbed && !e.target.classList.contains("mole")) {
     handleMiss(touch.clientX, touch.clientY);
   }
 }, { passive: false, capture: true });
@@ -267,28 +292,25 @@ gameArea.addEventListener("touchend", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  isTouching = false;
+  stopHammerDrag();
 }, { passive: false, capture: true });
 
 // Pointer events for additional compatibility
-let isPointerDown = false;
-
 gameArea.addEventListener("pointermove", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  moveHammer(e.clientX, e.clientY, isPointerDown); // Pass isPointerDown as swipe indicator
+  moveHammer(e.clientX, e.clientY);
 }, { passive: false, capture: true });
 
 gameArea.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  isPointerDown = true;
-  moveHammer(e.clientX, e.clientY, true); // Initial pointer down counts as swipe
+  const hammerGrabbed = startHammerDrag(e.clientX, e.clientY);
   
-  // Check if clicking empty space (not on a mole)
-  if (!e.target.classList.contains("mole")) {
+  // If hammer wasn't grabbed and not clicking on a mole, show miss animation
+  if (!hammerGrabbed && !e.target.classList.contains("mole")) {
     handleMiss(e.clientX, e.clientY);
   }
 }, { passive: false, capture: true });
@@ -297,7 +319,7 @@ gameArea.addEventListener("pointerup", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  isPointerDown = false;
+  stopHammerDrag();
 }, { passive: false, capture: true });
 
 // Prevent context menu on long press
