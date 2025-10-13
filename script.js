@@ -18,10 +18,8 @@ var arrows = document.querySelector(".arrows");
 var scoreElement = document.getElementById("score");
 var timerElement = document.getElementById("timer");
 var gameOverlay = document.getElementById("game-overlay");
-var startScreen = document.getElementById("start-screen");
 var gameOverScreen = document.getElementById("game-over-screen");
 var finalScoreElement = document.getElementById("final-score");
-var startButton = document.getElementById("start-button");
 var restartButton = document.getElementById("restart-button");
 var instructionsElement = document.getElementById("instructions");
 
@@ -60,24 +58,9 @@ function initializeGame() {
     console.log("Initializing game...");
     console.log("Timer element:", timerElement);
     console.log("Score element:", scoreElement);
-    console.log("Start button:", startButton);
     console.log("Restart button:", restartButton);
     
-    // NUCLEAR OPTION - Button event listeners with maximum override
-    startButton.addEventListener('click', startGame);
-    startButton.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        startGame();
-    }, { passive: false, capture: true });
-    startButton.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        startGame();
-    }, { passive: false, capture: true });
-    
+    // NUCLEAR OPTION - Restart button event listeners with maximum override
     restartButton.addEventListener('click', restartGame);
     restartButton.addEventListener('touchstart', function(e) {
         e.preventDefault();
@@ -95,8 +78,8 @@ function initializeGame() {
     // Set up touch and mouse controls
     setupControls();
     
-    // Show start screen
-    showStartScreen();
+    // Start game directly
+    startGame();
     
     // Initial aim position
     aim({
@@ -226,8 +209,8 @@ function setupControls() {
 // Simplified event handlers
 
 function startDraw(e) {
-    if (!gameState.isPlaying) {
-        console.log("startDraw called but game not playing");
+    if (!gameState.isPlaying || document.body.classList.contains('game-blur')) {
+        console.log("startDraw called but game not playing or game over");
         return;
     }
     
@@ -243,12 +226,12 @@ function startDraw(e) {
 }
 
 function handleMove(e) {
-    if (!gameState.isPlaying || !isDragging) return;
+    if (!gameState.isPlaying || !isDragging || document.body.classList.contains('game-blur')) return;
     aim(e);
 }
 
 function endDraw() {
-    if (!gameState.isPlaying || !isDragging) return;
+    if (!gameState.isPlaying || !isDragging || document.body.classList.contains('game-blur')) return;
     
     console.log("Ending draw - shooting arrow");
     isDragging = false;
@@ -258,12 +241,16 @@ function endDraw() {
 
 
 // Game State Management
+
 function startGame() {
     console.log("Starting game");
     gameState.isPlaying = true;
     gameState.score = 0;
     gameState.timeLeft = 120;
     gameState.arrowsShot = 0;
+    
+    // Remove blur effect if present
+    document.body.classList.remove('game-blur');
     
     // Reset target to original position
     resetTarget();
@@ -295,11 +282,12 @@ function startGame() {
 function restartGame() {
     console.log("Restarting game");
     
-    // Clear any existing timer
+    // Clear any existing timers
     if (gameState.gameTimer) {
         clearInterval(gameState.gameTimer);
         gameState.gameTimer = null;
     }
+    
     
     // Clear all arrows
     arrows.innerHTML = '';
@@ -313,6 +301,7 @@ function restartGame() {
     gameState.isPlaying = false;
     isDragging = false;
     
+    // Start new game directly
     startGame();
 }
 
@@ -327,20 +316,24 @@ function endGame() {
         gameState.gameTimer = null;
     }
     
+    
     hideInstructions();
-    showGameOverScreen();
-}
-
-function showStartScreen() {
-    gameOverlay.classList.remove('hidden');
-    startScreen.classList.remove('hidden');
-    gameOverScreen.classList.add('hidden');
+    
+    // Apply blur effect immediately
+    document.body.classList.add('game-blur');
+    
+    // Send game over message to parent window
+    setTimeout(function() {
+        window.parent.postMessage({ 
+            type: "GAME_OVER", 
+            score: gameState.score 
+        }, "*");
+    }, 500); // Small delay to ensure blur effect is visible
 }
 
 function showGameOverScreen() {
     finalScoreElement.textContent = gameState.score;
     gameOverlay.classList.remove('hidden');
-    startScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
 }
 

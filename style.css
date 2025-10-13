@@ -156,6 +156,32 @@ svg {
     display: none !important;
 }
 
+/* Countdown Display */
+#countdown-display {
+    margin-top: 30px;
+}
+
+#countdown-display h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #ffffff;
+    text-shadow: 0 0 15px #00ffff;
+}
+
+#countdown-number {
+    font-size: 4em;
+    font-weight: bold;
+    color: #00ffff;
+    text-shadow: 0 0 30px #00ffff;
+    animation: pulse 1s infinite;
+}
+
+/* Blur effect for game over */
+.game-blur {
+    filter: blur(10px);
+    transition: filter 0.5s ease;
+}
+
 /* Instructions */
 #instructions {
     position: fixed;
