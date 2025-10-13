@@ -49,10 +49,10 @@ function startGame() {
   button.style.visibility = "hidden";
   hammer.classList.add("active");
   
-  // Position hammer below the game area border (absolute positioning)
+  // Position hammer below the game area border
   const gameRect = gameArea.getBoundingClientRect();
-  const centerX = gameRect.left + (gameRect.width / 2);
-  const centerY = gameRect.bottom + 60; // 60px below the game area
+  const centerX = gameRect.width / 2;
+  const centerY = gameRect.height + 40; // 40px below the game area
   
   hammer.style.left = centerX + "px";
   hammer.style.top = centerY + "px";
@@ -93,14 +93,12 @@ function bonk(e) {
 function moveHammer(x, y, isSwipe = false) {
   if (!isGameActive) return;
   
-  // Position hammer at absolute coordinates (following mouse/touch)
-  hammer.style.left = x + "px";
-  hammer.style.top = y + "px";
-  
-  // Calculate relative position for hit detection
   const gameRect = gameArea.getBoundingClientRect();
   const relativeX = x - gameRect.left;
   const relativeY = y - gameRect.top;
+  
+  hammer.style.left = relativeX + "px";
+  hammer.style.top = relativeY + "px";
   
   // Check if hammer is over a mole
   const hitMole = checkHammerOverMole(relativeX, relativeY);
