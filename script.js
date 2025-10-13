@@ -27,10 +27,12 @@ var randomAngle = 0;
 var isDragging = false;
 var currentTouch = null;
 
-// Target and collision detection
+// Target and collision detection with moving functionality
 var target = {
     x: 900,
-    y: 249.5
+    y: 249.5,
+    originalX: 900,
+    originalY: 249.5
 };
 
 var lineSegment = {
@@ -41,7 +43,7 @@ var lineSegment = {
 };
 
 var pivot = {
-    x: 100,
+    x: 150, // Moved bow 50px to the right
     y: 250
 };
 
@@ -88,7 +90,7 @@ function initializeGame() {
     
     // Initial aim position
     aim({
-        clientX: 320,
+        clientX: 370,
         clientY: 300
     });
 }
@@ -253,6 +255,9 @@ function startGame() {
     gameState.timeLeft = 120;
     gameState.arrowsShot = 0;
     
+    // Reset target to original position
+    resetTarget();
+    
     updateScore();
     updateTimer();
     hideOverlay();
@@ -376,6 +381,56 @@ function showScorePopup(points) {
     });
 }
 
+function moveTarget() {
+    // Generate new random position for target
+    var minX = 700; // Keep target in right area
+    var maxX = 950;
+    var minY = 150;
+    var maxY = 350;
+    
+    var newX = minX + Math.random() * (maxX - minX);
+    var newY = minY + Math.random() * (maxY - minY);
+    
+    // Update target position
+    target.x = newX;
+    target.y = newY;
+    
+    // Update collision line segment to match new target position
+    var offset = 25; // Half the target size
+    lineSegment.x1 = newX - offset;
+    lineSegment.y1 = newY + offset;
+    lineSegment.x2 = newX + offset;
+    lineSegment.y2 = newY - offset;
+    
+    // Animate target to new position
+    TweenMax.to("#target", 0.8, {
+        x: newX - target.originalX,
+        y: newY - target.originalY,
+        ease: Power2.easeOut
+    });
+    
+    console.log("Target moved to:", newX, newY);
+}
+
+function resetTarget() {
+    // Reset target to original position
+    target.x = target.originalX;
+    target.y = target.originalY;
+    
+    // Reset collision line segment
+    lineSegment.x1 = 875;
+    lineSegment.y1 = 280;
+    lineSegment.x2 = 925;
+    lineSegment.y2 = 220;
+    
+    // Animate target back to original position
+    TweenMax.to("#target", 0.5, {
+        x: 0,
+        y: 0,
+        ease: Power2.easeOut
+    });
+}
+
 function aim(e) {
     // get mouse/touch position in relation to svg position and scale
     var point = getMouseSVG(e);
@@ -398,7 +453,7 @@ function aim(e) {
     var arrowX = Math.min(pivot.x - ((1 / scale) * distance), 88);
     TweenMax.to(".arrow-angle", 0.3, {
         rotation: bowAngle + "rad",
-        svgOrigin: "100 250"
+        svgOrigin: "150 250"
     });
     
     TweenMax.to(".arrow-angle use", 0.3, {
@@ -407,7 +462,7 @@ function aim(e) {
     
     TweenMax.to("#bow polyline", 0.3, {
         attr: {
-            points: "88,200 " + Math.min(pivot.x - ((1 / scale) * distance), 88) + ",250 88,300"
+            points: "138,200 " + Math.min(pivot.x - ((1 / scale) * distance), 138) + ",250 138,300"
         }
     });
 
@@ -420,7 +475,7 @@ function aim(e) {
 
     TweenMax.to("#arc", 0.3, {
         attr: {
-            d: "M100,250c" + offset.x + "," + offset.y + "," + (arcWidth - offset.x) + "," + (offset.y + 50) + "," + arcWidth + ",50"
+            d: "M150,250c" + offset.x + "," + offset.y + "," + (arcWidth - offset.x) + "," + (offset.y + 50) + "," + arcWidth + ",50"
         },
         autoAlpha: distance/60
     });
@@ -440,7 +495,7 @@ function loose() {
     
     TweenMax.to("#bow polyline", 0.4, {
         attr: {
-            points: "88,200 88,250 88,300"
+            points: "138,200 138,250 138,300"
         },
         ease: Elastic.easeOut
     });
@@ -507,6 +562,9 @@ function hitTest(tween) {
         // Add score
         addScore(points);
         showMessage(selector);
+        
+        // Move target after hit to increase difficulty
+        moveTarget();
     }
 }
 
