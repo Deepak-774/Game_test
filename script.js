@@ -219,6 +219,7 @@ function bonk(e) {
 let isDraggingHammer = false;
 let hammerStartX = 0;
 let hammerStartY = 0;
+let justHitMole = false; // Track if we just hit a mole
 
 function startHammerDrag(x, y) {
   if (!isGameActive) return false;
@@ -256,7 +257,8 @@ function moveHammer(x, y) {
   // If dragging over a mole, trigger hit
   if (hitMole && !hitMole.classList.contains("hit")) {
     handleSwipeHit(hitMole);
-    stopHammerDrag(); // Stop dragging after hit
+    justHitMole = true; // Mark that we just hit a mole
+    // Keep hammer grabbed after hit - don't stop dragging
   }
 }
 
@@ -389,7 +391,15 @@ gameArea.addEventListener("mousedown", (e) => {
 });
 
 gameArea.addEventListener("mouseup", (e) => {
-  stopHammerDrag();
+  // Reset the hit flag after a short delay to allow continuous hitting
+  setTimeout(() => {
+    justHitMole = false;
+  }, 100);
+  
+  // Only stop dragging if we didn't just hit a mole
+  if (!justHitMole) {
+    stopHammerDrag();
+  }
 });
 
 // NUCLEAR OPTION - Touch events for mobile with maximum override
@@ -418,7 +428,16 @@ gameArea.addEventListener("touchend", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  stopHammerDrag();
+  
+  // Reset the hit flag after a short delay to allow continuous hitting
+  setTimeout(() => {
+    justHitMole = false;
+  }, 100);
+  
+  // Only stop dragging if we didn't just hit a mole
+  if (!justHitMole) {
+    stopHammerDrag();
+  }
 }, { passive: false, capture: true });
 
 // Pointer events for additional compatibility
@@ -445,7 +464,16 @@ gameArea.addEventListener("pointerup", (e) => {
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  stopHammerDrag();
+  
+  // Reset the hit flag after a short delay to allow continuous hitting
+  setTimeout(() => {
+    justHitMole = false;
+  }, 100);
+  
+  // Only stop dragging if we didn't just hit a mole
+  if (!justHitMole) {
+    stopHammerDrag();
+  }
 }, { passive: false, capture: true });
 
 // Prevent context menu on long press
