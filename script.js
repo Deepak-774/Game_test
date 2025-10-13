@@ -5,7 +5,10 @@ var gameState = {
     score: 0,
     timeLeft: 120, // 2 minutes in seconds
     gameTimer: null,
-    arrowsShot: 0
+    arrowsShot: 0,
+    maxVisibleArrows: 4,
+    arrowElements: [],
+    stuckArrows: [] // Arrows that hit the target and stick to it
 };
 
 // DOM Elements
@@ -53,6 +56,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeGame() {
+    // Debug: Check if all elements are found
+    console.log("Initializing game...");
+    console.log("Timer element:", timerElement);
+    console.log("Score element:", scoreElement);
+    console.log("Start button:", startButton);
+    console.log("Restart button:", restartButton);
+    
     // NUCLEAR OPTION - Button event listeners with maximum override
     startButton.addEventListener('click', startGame);
     startButton.addEventListener('touchstart', function(e) {
@@ -263,26 +273,45 @@ function startGame() {
     hideOverlay();
     showInstructions();
     
+    // Clear any existing timer first
+    if (gameState.gameTimer) {
+        clearInterval(gameState.gameTimer);
+        gameState.gameTimer = null;
+    }
+    
     // Start game timer
     gameState.gameTimer = setInterval(function() {
-        gameState.timeLeft--;
-        updateTimer();
-        
-        if (gameState.timeLeft <= 0) {
-            endGame();
+        if (gameState.isPlaying) {
+            gameState.timeLeft--;
+            updateTimer();
+            
+            if (gameState.timeLeft <= 0) {
+                endGame();
+            }
         }
     }, 1000);
 }
 
 function restartGame() {
     console.log("Restarting game");
-    clearInterval(gameState.gameTimer);
+    
+    // Clear any existing timer
+    if (gameState.gameTimer) {
+        clearInterval(gameState.gameTimer);
+        gameState.gameTimer = null;
+    }
     
     // Clear all arrows
     arrows.innerHTML = '';
+    gameState.arrowElements = [];
+    gameState.stuckArrows = [];
     
     // Reset arrow visibility
     TweenMax.set(".arrow-angle use", { opacity: 0 });
+    
+    // Reset game state
+    gameState.isPlaying = false;
+    isDragging = false;
     
     startGame();
 }
@@ -291,7 +320,12 @@ function endGame() {
     console.log("Ending game");
     gameState.isPlaying = false;
     isDragging = false;
-    clearInterval(gameState.gameTimer);
+    
+    // Clear timer
+    if (gameState.gameTimer) {
+        clearInterval(gameState.gameTimer);
+        gameState.gameTimer = null;
+    }
     
     hideInstructions();
     showGameOverScreen();
@@ -330,13 +364,18 @@ function updateTimer() {
     var minutes = Math.floor(gameState.timeLeft / 60);
     var seconds = gameState.timeLeft % 60;
     var timeString = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
-    timerElement.textContent = timeString;
     
-    // Add warning class when time is low
-    if (gameState.timeLeft <= 30) {
-        timerElement.classList.add('warning');
+    if (timerElement) {
+        timerElement.textContent = timeString;
+        
+        // Add warning class when time is low
+        if (gameState.timeLeft <= 30) {
+            timerElement.classList.add('warning');
+        } else {
+            timerElement.classList.remove('warning');
+        }
     } else {
-        timerElement.classList.remove('warning');
+        console.error("Timer element not found!");
     }
 }
 
@@ -385,8 +424,8 @@ function moveTarget() {
     // Generate new random position for target
     var minX = 700; // Keep target in right area
     var maxX = 950;
-    var minY = 150;
-    var maxY = 350;
+    var minY = 120; // Higher up
+    var maxY = 240; // Don't go below bow level (250)
     
     var newX = minX + Math.random() * (maxX - minX);
     var newY = minY + Math.random() * (maxY - minY);
@@ -409,7 +448,22 @@ function moveTarget() {
         ease: Power2.easeOut
     });
     
-    console.log("Target moved to:", newX, newY);
+    // Move all stuck arrows with the target
+    gameState.stuckArrows.forEach(function(arrowData) {
+        if (arrowData.element && arrowData.element.parentNode) {
+            var newArrowX = newX + arrowData.relativeX;
+            var newArrowY = newY + arrowData.relativeY;
+            
+            TweenMax.to(arrowData.element, 0.8, {
+                x: newArrowX,
+                y: newArrowY,
+                rotation: arrowData.rotation + "deg",
+                ease: Power2.easeOut
+            });
+        }
+    });
+    
+    console.log("Target moved to:", newX, newY, "with", gameState.stuckArrows.length, "stuck arrows");
 }
 
 function resetTarget() {
@@ -423,12 +477,64 @@ function resetTarget() {
     lineSegment.x2 = 925;
     lineSegment.y2 = 220;
     
+    // Clear stuck arrows
+    gameState.stuckArrows.forEach(function(arrowData) {
+        if (arrowData.element && arrowData.element.parentNode) {
+            arrowData.element.parentNode.removeChild(arrowData.element);
+        }
+    });
+    gameState.stuckArrows = [];
+    
     // Animate target back to original position
     TweenMax.to("#target", 0.5, {
         x: 0,
         y: 0,
         ease: Power2.easeOut
     });
+}
+
+function manageArrows(newArrow) {
+    // Add new arrow to tracking array
+    gameState.arrowElements.push(newArrow);
+    
+    // Check total visible arrows (flying + stuck)
+    var totalVisibleArrows = gameState.arrowElements.length + gameState.stuckArrows.length;
+    
+    // If we have more than max arrows, remove the oldest arrows
+    while (totalVisibleArrows > gameState.maxVisibleArrows) {
+        // First try to remove flying arrows
+        if (gameState.arrowElements.length > 1) { // Keep at least the current arrow
+            var oldestArrow = gameState.arrowElements.shift();
+            if (oldestArrow && oldestArrow.parentNode) {
+                TweenMax.to(oldestArrow, 0.5, {
+                    opacity: 0,
+                    onComplete: function() {
+                        if (oldestArrow.parentNode) {
+                            oldestArrow.parentNode.removeChild(oldestArrow);
+                        }
+                    }
+                });
+            }
+        } 
+        // If no flying arrows to remove, remove oldest stuck arrow
+        else if (gameState.stuckArrows.length > 0) {
+            var oldestStuckArrow = gameState.stuckArrows.shift();
+            if (oldestStuckArrow.element && oldestStuckArrow.element.parentNode) {
+                TweenMax.to(oldestStuckArrow.element, 0.5, {
+                    opacity: 0,
+                    onComplete: function() {
+                        if (oldestStuckArrow.element.parentNode) {
+                            oldestStuckArrow.element.parentNode.removeChild(oldestStuckArrow.element);
+                        }
+                    }
+                });
+            }
+        } else {
+            break; // Safety break
+        }
+        
+        totalVisibleArrows = gameState.arrowElements.length + gameState.stuckArrows.length;
+    }
 }
 
 function aim(e) {
@@ -504,6 +610,9 @@ function loose() {
     var newArrow = document.createElementNS("http://www.w3.org/2000/svg", "use");
     newArrow.setAttributeNS('http://www.w3.org/1999/xlink', 'href', "#arrow");
     arrows.appendChild(newArrow);
+    
+    // Manage arrow count (limit to 4 visible)
+    manageArrows(newArrow);
 
     // animate arrow along path
     var path = MorphSVGPlugin.pathDataToBezier("#arc");
@@ -562,6 +671,27 @@ function hitTest(tween) {
         // Add score
         addScore(points);
         showMessage(selector);
+        
+        // Make the arrow stick to the target
+        var hitArrow = tween.target[0];
+        if (hitArrow && hitArrow.parentNode) {
+            // Remove from flying arrows array
+            var index = gameState.arrowElements.indexOf(hitArrow);
+            if (index > -1) {
+                gameState.arrowElements.splice(index, 1);
+            }
+            
+            // Add to stuck arrows array with relative position to target
+            var arrowData = {
+                element: hitArrow,
+                relativeX: intersection.x - target.x,
+                relativeY: intersection.y - target.y,
+                rotation: hitArrow._gsTransform ? hitArrow._gsTransform.rotation : 0
+            };
+            gameState.stuckArrows.push(arrowData);
+            
+            console.log("Arrow stuck to target at relative position:", arrowData.relativeX, arrowData.relativeY);
+        }
         
         // Move target after hit to increase difficulty
         moveTarget();
