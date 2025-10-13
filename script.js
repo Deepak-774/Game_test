@@ -1,13 +1,17 @@
 const holes = document.querySelectorAll(".hole");
 const scoreBoard = document.querySelector(".score");
+const timerDisplay = document.querySelector(".timer");
 const moles = document.querySelectorAll(".mole");
-const button = document.querySelector("#start");
 const hammer = document.querySelector("#hammer");
 const gameArea = document.querySelector(".game");
+const gameOverOverlay = document.querySelector("#game-over-overlay");
+const finalScoreDisplay = document.querySelector("#final-score");
 let lastHole;
 let timeUp = false;
 let score = 0;
 let isGameActive = false;
+let gameTimer = 120; // 2 minutes in seconds
+let timerInterval;
 
 function randomTime(min, max) {
   return Math.round(Math.random() * (max - min) + min);
@@ -41,12 +45,41 @@ function peep() {
   }, time);
 }
 
+// Timer functions
+function updateTimer() {
+  const minutes = Math.floor(gameTimer / 60);
+  const seconds = gameTimer % 60;
+  timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  
+  if (gameTimer <= 0) {
+    endGame();
+    return;
+  }
+  
+  gameTimer--;
+}
+
+function endGame() {
+  timeUp = true;
+  isGameActive = false;
+  clearInterval(timerInterval);
+  hammer.classList.remove("active");
+  
+  // Show game over overlay with blur
+  finalScoreDisplay.textContent = score;
+  gameOverOverlay.classList.remove("hidden");
+  
+  // Send message to parent window
+  window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
+}
+
 function startGame() {
   scoreBoard.textContent = 0;
+  timerDisplay.textContent = "2:00";
   timeUp = false;
   score = 0;
+  gameTimer = 120;
   isGameActive = true;
-  button.style.visibility = "hidden";
   hammer.classList.add("active");
   
   // Position hammer below the game area border
@@ -57,15 +90,16 @@ function startGame() {
   hammer.style.left = centerX + "px";
   hammer.style.top = centerY + "px";
   
+  // Start timer
+  timerInterval = setInterval(updateTimer, 1000);
+  
   peep();
-  setTimeout(() => {
-    timeUp = true;
-    isGameActive = false;
-    hammer.classList.remove("active");
-    button.innerHTML = "Try again?";
-    button.style.visibility = "visible";
-  }, 10000);
 }
+
+// Auto-start the game when page loads
+window.addEventListener('load', () => {
+  startGame();
+});
 
 function bonk(e) {
   if (!e.isTrusted || !isGameActive) return;
