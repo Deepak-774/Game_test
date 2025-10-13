@@ -227,7 +227,8 @@ h2 {
 /* Toy Hammer Styles */
 .hammer {
   position: absolute;
-  font-size: 6rem; /* Made bigger for easier targeting */
+  width: 80px;
+  height: 120px;
   z-index: 10;
   pointer-events: auto; /* Allow interaction with hammer */
   transform: translate(-50%, -50%) rotate(-20deg);
@@ -235,16 +236,62 @@ h2 {
   display: none;
   filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
   cursor: grab;
-  /* Toy hammer styling */
-  background: linear-gradient(45deg, #FF6B47, #FFB347);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 2px 2px 4px rgba(255, 107, 71, 0.3);
 }
 
 .hammer:active {
   cursor: grabbing;
+}
+
+/* Hammer Head - Red/Pink like in image */
+.hammer-head {
+  width: 60px;
+  height: 40px;
+  background: linear-gradient(135deg, 
+    #FF6B6B 0%,     /* Light red */
+    #FF5252 30%,    /* Red */
+    #E53935 70%,    /* Darker red */
+    #C62828 100%    /* Dark red */
+  );
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+  /* Add ridged texture like the toy hammer */
+  background-image: 
+    repeating-linear-gradient(90deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(255, 255, 255, 0.1) 3px,
+      rgba(255, 255, 255, 0.1) 4px,
+      transparent 4px,
+      transparent 7px
+    );
+}
+
+/* Hammer Handle - Yellow like in image */
+.hammer-handle {
+  width: 12px;
+  height: 85px;
+  background: linear-gradient(180deg,
+    #FFD54F 0%,     /* Light yellow */
+    #FFCA28 30%,    /* Yellow */
+    #FFC107 70%,    /* Amber */
+    #FF8F00 100%    /* Dark amber */
+  );
+  border-radius: 6px;
+  position: absolute;
+  top: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 
+    inset 2px 0 0 rgba(255, 255, 255, 0.3),
+    inset -2px 0 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .hammer.active {
@@ -464,7 +511,19 @@ h2 {
   }
   
   .hammer {
-    font-size: 5rem;
+    width: 70px;
+    height: 105px;
+  }
+  
+  .hammer-head {
+    width: 50px;
+    height: 35px;
+  }
+  
+  .hammer-handle {
+    width: 10px;
+    height: 75px;
+    top: 30px;
   }
   
   #start {
@@ -515,7 +574,19 @@ body::after {
   }
   
   .hammer {
-    font-size: 4.5rem;
+    width: 60px;
+    height: 90px;
+  }
+  
+  .hammer-head {
+    width: 45px;
+    height: 30px;
+  }
+  
+  .hammer-handle {
+    width: 8px;
+    height: 65px;
+    top: 25px;
   }
   
   body::before,
