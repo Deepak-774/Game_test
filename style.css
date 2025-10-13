@@ -266,7 +266,7 @@ h2 {
   z-index: 10;
   pointer-events: auto; /* Allow interaction with hammer */
   transform: translate(-50%, -50%) rotate(-20deg);
-  transition: transform 0.15s ease-out;
+  /* No transition for instant movement */
   display: none;
   filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.7));
   cursor: grab;
@@ -275,6 +275,13 @@ h2 {
 
 .hammer:active {
   cursor: grabbing;
+}
+
+/* Add transition only for animations, not movement */
+.hammer.hit,
+.hammer.miss,
+.hammer.preparing {
+  transition: transform 0.15s ease-out;
 }
 
 /* Hammer Head (3D Cylindrical Red) */

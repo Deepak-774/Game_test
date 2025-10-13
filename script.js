@@ -179,8 +179,8 @@ function startGame() {
   const centerX = gameRect.width / 2;
   const centerY = gameRect.height + 40; // 40px below the game area
   
-  hammer.style.left = centerX + "px";
-  hammer.style.top = centerY + "px";
+  // Use transform for consistent positioning
+  hammer.style.transform = `translate(${centerX - 25}px, ${centerY - 37.5}px) rotate(-20deg)`;
   
   // Start timer
   timerInterval = setInterval(updateTimer, 1000);
@@ -235,6 +235,8 @@ function startHammerDrag(x, y) {
     isDraggingHammer = true;
     hammerStartX = x;
     hammerStartY = y;
+    // Add grabbing cursor immediately
+    hammer.style.cursor = 'grabbing';
     return true;
   }
   
@@ -248,8 +250,8 @@ function moveHammer(x, y) {
   const relativeX = x - gameRect.left;
   const relativeY = y - gameRect.top;
   
-  hammer.style.left = relativeX + "px";
-  hammer.style.top = relativeY + "px";
+  // Use transform for instant movement (better performance)
+  hammer.style.transform = `translate(${relativeX - 25}px, ${relativeY - 37.5}px) rotate(-20deg)`;
   
   // Check if hammer is over a mole
   const hitMole = checkHammerOverMole(relativeX, relativeY);
@@ -264,6 +266,8 @@ function moveHammer(x, y) {
 
 function stopHammerDrag() {
   isDraggingHammer = false;
+  // Reset cursor
+  hammer.style.cursor = 'grab';
 }
 
 // Handle swipe hit on mole
