@@ -319,16 +319,14 @@ function endGame() {
     
     hideInstructions();
     
-    // Apply blur effect immediately
+    // Apply blur effect and send message immediately
     document.body.classList.add('game-blur');
     
-    // Send game over message to parent window
-    setTimeout(function() {
-        window.parent.postMessage({ 
-            type: "GAME_OVER", 
-            score: gameState.score 
-        }, "*");
-    }, 500); // Small delay to ensure blur effect is visible
+    // Send game over message to parent window immediately
+    window.parent.postMessage({ 
+        type: "GAME_OVER", 
+        score: gameState.score 
+    }, "*");
 }
 
 function showGameOverScreen() {
