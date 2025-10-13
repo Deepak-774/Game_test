@@ -1,38 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <title>Talha - Breakout Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Talha - Tetris Game</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg" />
+
     <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
     <!-- Also uploaded the demo of this code in a gif : https://c.tenor.com/x8v1oNUOmg4AAAAd/tenor.gif-->
     <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
 
     <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
-    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha --> 
+    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha -->
     <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
-
-    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg">
   </head>
   <body>
-    <h1>Brick Breaker</h1>
-    
-    <div class="game-info">
-      <div>Score: <span id="score-display">0</span></div>
-      <div>Time: <span id="timer-display">2:00</span></div>
+    <div id="tetris">
+      <div id="info">
+        <div id="next_shape"></div>
+        <p id="level">Level: <span></span></p>
+        <p id="lines">Lines: <span></span></p>
+        <p id="score">Score: <span></span></p>
+        <p id="time">Time: <span></span></p>
+        <p class="red">Press Esc to pause / Use touch controls below<span></span></p>
+      </div>
+      <div id="canvas"></div>
     </div>
     
-    
-    <!-- Game Canvas -->
-    <canvas id="canvas"></canvas>
-    
-    <!-- Simple Control Buttons -->
-    <div class="control-buttons">
-      <button id="left-button" class="control-btn">LEFT</button>
-      <button id="right-button" class="control-btn">RIGHT</button>
+    <!-- Mobile Touch Controls -->
+    <div class="mobile-controls">
+      <button class="control-btn" id="move-left">◀</button>
+      <button class="control-btn" id="move-down">▼</button>
+      <button class="control-btn" id="rotate">↻</button>
+      <button class="control-btn" id="move-right">▶</button>
     </div>
     
-    <script src="script.js"></script>
+    <script type="text/javascript" src="script.js"></script>
   </body>
 </html>
