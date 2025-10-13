@@ -41,6 +41,11 @@ body {
     radial-gradient(circle at 70% 90%, rgba(101, 67, 33, 0.2) 0%, transparent 40%);
   min-height: 100vh;
   text-align: center;
+  /* Perfect centering */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   /* NUCLEAR OPTION - Maximum mobile webview optimization */
   overscroll-behavior: none !important;
   touch-action: none !important;
@@ -55,10 +60,21 @@ body {
   overflow-x: hidden;
 }
 
+/* Game Container for perfect centering */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 100%;
+}
+
 h1 {
   font-size: 4.5rem;
   line-height: 1;
-  margin: 2rem 0 0 0;
+  margin: 0;
   color: #FFD700;
   font-weight: 900;
   text-transform: uppercase;
@@ -78,8 +94,10 @@ h1 {
 .game-info {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 3rem;
-  margin: 1rem 0;
+  margin: 0;
+  flex-wrap: wrap;
 }
 
 h2 {
@@ -118,7 +136,7 @@ h2 {
   display: -webkit-flex;
   display: flex;
   flex-wrap: wrap;
-  margin: 0 auto;
+  margin: 0;
   position: relative;
   /* Wooden arcade machine border */
   background: linear-gradient(145deg, 
@@ -575,14 +593,22 @@ h2 {
     font-size: 8px;
   }
   
+  .game-container {
+    padding: 1.5rem;
+    gap: 1.2rem;
+  }
+  
   h1 {
-    font-size: 3.5rem;
-    margin: 1rem 0 0 0;
+    font-size: 4rem;
+  }
+  
+  .game-info {
+    gap: 2rem;
   }
   
   h2 {
-    font-size: 2.5rem;
-    margin: 1rem;
+    font-size: 2rem;
+    padding: 0.4rem 1rem;
   }
   
   .game {
@@ -595,20 +621,11 @@ h2 {
     width: 45px;
     height: 65px;
   }
-  
-  .game-info {
-    gap: 2rem;
-  }
-  
-  h2 {
-    font-size: 2rem;
-  }
 }
 
 /* Carnival decorative elements */
 body::before {
   content: "🎪🎠🎡";
-  position: fixed;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
@@ -633,6 +650,11 @@ body::after {
     font-size: 7px;
   }
   
+  .game-container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
   h1 {
     font-size: 3rem;
   }
@@ -643,11 +665,13 @@ body::after {
   
   h2 {
     font-size: 1.8rem;
+    padding: 0.3rem 0.8rem;
   }
   
   .game {
     height: 45vh;
     min-height: 200px;
+    width: 98vw;
   }
   
   .hammer {
