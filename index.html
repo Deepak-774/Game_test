@@ -2,53 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Talha - Whack-a-mole Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
-    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg" />
-
+    <title>Talha - Breakout Game</title>
     <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
     <!-- Also uploaded the demo of this code in a gif : https://c.tenor.com/x8v1oNUOmg4AAAAd/tenor.gif-->
     <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
 
     <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
-    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha -->
+    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha --> 
     <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
+
+    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg">
   </head>
   <body>
-    <div class="game-container">
-      <h1>Whack-a-mole!</h1>
-      <div class="game-info">
-        <h2>Score: <span class="score">0</span></h2>
-        <h2>Time: <span class="timer">2:00</span></h2>
-        <h2 class="difficulty">Mode: <span class="difficulty-level">EASY</span></h2>
-      </div>
-    <div class="game">
-      <div class="hole hole1">
-        <div class="mole"></div>
-      </div>
-      <div class="hole hole2">
-        <div class="mole"></div>
-      </div>
-      <div class="hole hole3">
-        <div class="mole"></div>
-      </div>
-      <div class="hole hole4">
-        <div class="mole"></div>
-      </div>
-      <div class="hole hole5">
-        <div class="mole"></div>
-      </div>
-      <div class="hole hole6">
-        <div class="mole"></div>
-      </div>
-      <div class="hammer" id="hammer">
-        <div class="hammer-head"></div>
-        <div class="hammer-connector"></div>
-        <div class="hammer-handle"></div>
-      </div>
+    <h1>Brick Breaker</h1>
+    
+    <div class="game-info">
+      <div>Score: <span id="score-display">0</span></div>
+      <div>Time: <span id="timer-display">2:00</span></div>
     </div>
+    
+    
+    <!-- Game Canvas -->
+    <canvas id="canvas"></canvas>
+    
+    <!-- Simple Control Buttons -->
+    <div class="control-buttons">
+      <button id="left-button" class="control-btn">LEFT</button>
+      <button id="right-button" class="control-btn">RIGHT</button>
     </div>
     
     <script src="script.js"></script>

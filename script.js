@@ -1,531 +1,731 @@
-// SCROLL PREVENTION - Nuclear Option for Mobile/Desktop
-function preventScrolling() {
-  // Prevent all scroll events
-  document.addEventListener('scroll', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.scrollTo(0, 0);
-  }, { passive: false, capture: true });
+// DOM Elements
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const scoreDisplay = document.getElementById("score-display");
+const timerDisplay = document.getElementById("timer-display");
+const leftButton = document.getElementById("left-button");
+const rightButton = document.getElementById("right-button");
+const controlButtons = document.querySelector(".control-buttons");
 
-  // Prevent touch scroll events
-  document.addEventListener('touchstart', (e) => {
-    // Allow game interactions but prevent scrolling
-    if (!e.target.closest('.game, .mole, .hole')) {
-      e.preventDefault();
-    }
-  }, { passive: false, capture: true });
+// Game Colors
+const color = getComputedStyle(document.documentElement).getPropertyValue("--button-color");
+const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue("--sidebar-color");
+const brickColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
 
-  document.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, { passive: false, capture: true });
-
-  // Prevent wheel scroll
-  document.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, { passive: false, capture: true });
-
-  // Prevent keyboard scroll (arrow keys, page up/down, space)
-  document.addEventListener('keydown', (e) => {
-    const scrollKeys = [32, 33, 34, 35, 36, 37, 38, 39, 40];
-    if (scrollKeys.includes(e.keyCode)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, { passive: false, capture: true });
-
-  // Force scroll position to top
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-}
-
-// Initialize scroll prevention immediately
-preventScrolling();
-
-// Game variables
-const holes = document.querySelectorAll(".hole");
-const scoreBoard = document.querySelector(".score");
-const timerDisplay = document.querySelector(".timer");
-const difficultyDisplay = document.querySelector(".difficulty-level");
-const moles = document.querySelectorAll(".mole");
-const hammer = document.querySelector("#hammer");
-const gameArea = document.querySelector(".game");
-let lastHole;
-let timeUp = false;
+// Game State
 let score = 0;
-let isGameActive = false;
-let gameTimer = 120; // 2 minutes in seconds
-let timerInterval;
+let level = 1;
+let gameRunning = true;
+let gameTime = 120; // 2 minutes in seconds
+let gameTimer = null;
+const brickRowCount = 9;
+const brickColumnCount = 5;
 
-function randomTime(min, max) {
-  return Math.round(Math.random() * (max - min) + min);
+// Set responsive canvas dimensions based on screen size
+const isMobile = window.innerWidth <= 768;
+ctx.canvas.width = isMobile ? 380 : 600;
+ctx.canvas.height = isMobile ? 300 : 450;
+
+// Game Elements - Responsive sizes
+const ballSize = isMobile ? 6 : 8;
+const paddleWidth = isMobile ? 60 : 80;
+const paddleHeight = isMobile ? 8 : 10;
+const paddleSpeed = isMobile ? 6 : 8;
+
+const ball = {
+  x: canvas.width / 2,
+  y: canvas.height - 35, // Start from paddle position
+  size: ballSize,
+  baseSpeed: isMobile ? 2.5 : 3, // Better starting speed for level 1
+  dx: isMobile ? 2.5 : 3,
+  dy: isMobile ? -2.5 : -3,
+  trail: [], // For ball trail effect
+  lastCollisionTime: 0 // Collision cooldown
+};
+
+// Speed calculation function based on level
+function getBallSpeed(level) {
+  const baseSpeed = isMobile ? 2.5 : 3;
+  const speedIncrease = isMobile ? 0.4 : 0.5;
+  return baseSpeed + (level - 1) * speedIncrease;
 }
 
-function randomHole(holes) {
-  const idx = Math.floor(Math.random() * holes.length);
-  const hole = holes[idx];
+// Speed limits based on level
+function getSpeedLimits(level) {
+  const currentSpeed = getBallSpeed(level);
+  return {
+    minSpeed: Math.max(currentSpeed * 0.8, isMobile ? 2 : 2.5),
+    maxSpeed: currentSpeed * 1.4
+  };
+}
 
-  if (hole === lastHole) {
-    console.log("Same one");
-    return randomHole(holes);
+const paddle = {
+  x: canvas.width / 2 - paddleWidth / 2,
+  y: canvas.height - 25,
+  w: paddleWidth,
+  h: paddleHeight,
+  speed: paddleSpeed,
+  dx: 0,
+};
+
+// Calculate responsive brick dimensions
+const canvasWidth = ctx.canvas.width;
+const canvasHeight = ctx.canvas.height;
+const totalBrickWidth = canvasWidth - 60; // Leave margins
+const brickWidth = Math.floor(totalBrickWidth / brickRowCount) - 4;
+const brickHeight = isMobile ? 12 : 16;
+
+const brickInfo = {
+  w: brickWidth,
+  h: brickHeight,
+  padding: 4,
+  offsetX: Math.floor((canvasWidth - (brickRowCount * (brickWidth + 4))) / 2),
+  offsetY: canvasHeight * 0.18, // Move bricks lower to avoid level text overlap
+  visible: true,
+};
+
+// Initialize Bricks with Colors
+const bricks = [];
+for (let i = 0; i < brickRowCount; i++) {
+  bricks[i] = [];
+  for (let j = 0; j < brickColumnCount; j++) {
+    const x = i * (brickInfo.w + brickInfo.padding) + brickInfo.offsetX;
+    const y = j * (brickInfo.h + brickInfo.padding) + brickInfo.offsetY;
+    const colorIndex = j % brickColors.length;
+    bricks[i][j] = { 
+      x, 
+      y, 
+      ...brickInfo, 
+      color: brickColors[colorIndex],
+      hits: 0,
+      maxHits: 1
+    };
   }
-
-  lastHole = hole;
-  return hole;
 }
 
-function peep() {
-  // Progressive difficulty based on remaining time
-  const elapsedTime = 120 - gameTimer; // How much time has passed
-  let moleUpTime, nextMoleDelay;
+// Enhanced Drawing Functions
+function drawBall() {
+  // Draw ball trail
+  ball.trail.forEach((pos, index) => {
+    const alpha = (index + 1) / ball.trail.length * 0.3;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, ball.size * 0.7, 0, Math.PI * 2);
+    ctx.fillStyle = '#4ECDC4';
+    ctx.fill();
+  });
   
-  if (elapsedTime < 30) {
-    // Easy mode (0-30 seconds): Slow moles
-    moleUpTime = randomTime(1800, 3000);
-    nextMoleDelay = randomTime(800, 1200);
-  } else if (elapsedTime < 60) {
-    // Normal mode (30-60 seconds): Medium speed
-    moleUpTime = randomTime(1200, 2500);
-    nextMoleDelay = randomTime(500, 900);
-  } else if (elapsedTime < 90) {
-    // Hard mode (60-90 seconds): Fast moles
-    moleUpTime = randomTime(800, 1800);
-    nextMoleDelay = randomTime(300, 600);
+  // Reset alpha and draw main ball
+  ctx.globalAlpha = 1;
+  
+  // Ball gradient
+  const gradient = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 0, ball.x, ball.y, ball.size);
+  gradient.addColorStop(0, '#FFFFFF');
+  gradient.addColorStop(0.3, '#4ECDC4');
+  gradient.addColorStop(1, '#45B7D1');
+  
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // Ball highlight
+  ctx.beginPath();
+  ctx.arc(ball.x - 3, ball.y - 3, ball.size * 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawPaddle() {
+  // Paddle gradient
+  const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.h);
+  gradient.addColorStop(0, '#FFFFFF');
+  gradient.addColorStop(0.3, color);
+  gradient.addColorStop(1, '#45B7D1');
+  
+  // Paddle shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetY = 3;
+  
+  ctx.beginPath();
+  ctx.rect(paddle.x, paddle.y, paddle.w, paddle.h);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // Reset shadow
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  
+  ctx.closePath();
+}
+
+function drawScore() {
+  // Update HTML score display
+  scoreDisplay.textContent = score;
+  
+  // Update timer display
+  updateTimerDisplay();
+  
+  // Level text removed - no longer displayed on canvas
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(gameTime / 60);
+  const seconds = gameTime % 60;
+  const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  timerDisplay.textContent = timeString;
+  
+  // Add warning class when time is low
+  if (gameTime <= 30) {
+    timerDisplay.classList.add('warning');
   } else {
-    // Insane mode (90-120 seconds): Very fast moles
-    moleUpTime = randomTime(500, 1200);
-    nextMoleDelay = randomTime(200, 400);
-  }
-  
-  const hole = randomHole(holes);
-  hole.classList.add("up");
-  
-  setTimeout(() => {
-    hole.classList.remove("up");
-    if (!timeUp) {
-      // Add delay before next mole appears with progressive difficulty
-      setTimeout(() => {
-        peep();
-      }, nextMoleDelay);
-    }
-  }, moleUpTime);
-}
-
-// Update difficulty display based on elapsed time
-function updateDifficultyDisplay() {
-  const elapsedTime = 120 - gameTimer;
-  let difficultyText, difficultyColor;
-  
-  if (elapsedTime < 30) {
-    difficultyText = "EASY";
-    difficultyColor = "#00FF00"; // Green
-  } else if (elapsedTime < 60) {
-    difficultyText = "NORMAL";
-    difficultyColor = "#FFD700"; // Gold
-  } else if (elapsedTime < 90) {
-    difficultyText = "HARD";
-    difficultyColor = "#FF8C00"; // Orange
-  } else {
-    difficultyText = "INSANE";
-    difficultyColor = "#FF0000"; // Red
-  }
-  
-  difficultyDisplay.textContent = difficultyText;
-  difficultyDisplay.style.color = difficultyColor;
-}
-
-// Timer functions
-function updateTimer() {
-  const minutes = Math.floor(gameTimer / 60);
-  const seconds = gameTimer % 60;
-  timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  
-  // Update difficulty display
-  updateDifficultyDisplay();
-  
-  if (gameTimer <= 0) {
-    endGame();
-    return;
-  }
-  
-  gameTimer--;
-}
-
-function endGame() {
-  timeUp = true;
-  isGameActive = false;
-  clearInterval(timerInterval);
-  hammer.classList.remove("active");
-  
-  // Send message to parent window
-  window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
-}
-
-function startGame() {
-  scoreBoard.textContent = 0;
-  timerDisplay.textContent = "2:00";
-  difficultyDisplay.textContent = "EASY";
-  difficultyDisplay.style.color = "#00FF00";
-  timeUp = false;
-  score = 0;
-  gameTimer = 120;
-  isGameActive = true;
-  hammer.classList.add("active");
-  
-  // Position hammer below the game area border
-  const gameRect = gameArea.getBoundingClientRect();
-  const centerX = gameRect.width / 2;
-  const centerY = gameRect.height + 40; // 40px below the game area
-  
-  // Use transform for consistent positioning
-  hammer.style.transform = `translate(${centerX - 25}px, ${centerY - 37.5}px) rotate(-20deg)`;
-  
-  // Start timer
-  timerInterval = setInterval(updateTimer, 1000);
-  
-  peep();
-}
-
-// Auto-start the game when page loads
-window.addEventListener('load', () => {
-  startGame();
-});
-
-function bonk(e) {
-  if (!e.isTrusted || !isGameActive) return;
-  score++;
-  this.classList.remove("up");
-  this.classList.add("hit");
-  scoreBoard.textContent = score;
-  
-  // Add explosion effect and score popup
-  createExplosionEffect(this);
-  createScorePopup(this, 1);
-  
-  // Trigger realistic hammer swing animation
-  hammer.classList.remove("preparing", "miss");
-  hammer.classList.add("hit");
-  
-  // Remove animations after completion
-  setTimeout(() => {
-    hammer.classList.remove("hit");
-    this.classList.remove("hit");
-  }, 600);
-}
-
-// Hammer drag mechanics
-let isDraggingHammer = false;
-let hammerStartX = 0;
-let hammerStartY = 0;
-let justHitMole = false; // Track if we just hit a mole
-
-function startHammerDrag(x, y) {
-  if (!isGameActive) return false;
-  
-  const hammerRect = hammer.getBoundingClientRect();
-  const hammerCenterX = hammerRect.left + hammerRect.width / 2;
-  const hammerCenterY = hammerRect.top + hammerRect.height / 2;
-  
-  // Check if click/touch is near the hammer (within 60px radius)
-  const distance = Math.sqrt(Math.pow(x - hammerCenterX, 2) + Math.pow(y - hammerCenterY, 2));
-  
-  if (distance <= 60) {
-    isDraggingHammer = true;
-    hammerStartX = x;
-    hammerStartY = y;
-    // Add grabbing cursor immediately
-    hammer.style.cursor = 'grabbing';
-    return true;
-  }
-  
-  return false;
-}
-
-function moveHammer(x, y) {
-  if (!isGameActive || !isDraggingHammer) return;
-  
-  const gameRect = gameArea.getBoundingClientRect();
-  const relativeX = x - gameRect.left;
-  const relativeY = y - gameRect.top;
-  
-  // Use transform for instant movement (better performance)
-  hammer.style.transform = `translate(${relativeX - 25}px, ${relativeY - 37.5}px) rotate(-20deg)`;
-  
-  // Check if hammer is over a mole
-  const hitMole = checkHammerOverMole(relativeX, relativeY);
-  
-  // If dragging over a mole, trigger hit
-  if (hitMole && !hitMole.classList.contains("hit")) {
-    handleSwipeHit(hitMole);
-    justHitMole = true; // Mark that we just hit a mole
-    // Keep hammer grabbed after hit - don't stop dragging
+    timerDisplay.classList.remove('warning');
   }
 }
 
-function stopHammerDrag() {
-  isDraggingHammer = false;
-  // Reset cursor
-  hammer.style.cursor = 'grab';
-}
-
-// Handle swipe hit on mole
-function handleSwipeHit(moleHole) {
-  if (!isGameActive) return;
+function startGameTimer() {
+  if (gameTimer) {
+    clearInterval(gameTimer);
+  }
   
-  const mole = moleHole.querySelector('.mole');
-  if (!mole) return;
-  
-  // Increase score
-  score++;
-  scoreBoard.textContent = score;
-  
-  // Remove mole and add hit animation
-  moleHole.classList.remove("up");
-  moleHole.classList.add("hit");
-  
-  // Add explosion effect and score popup
-  createExplosionEffect(moleHole);
-  createScorePopup(moleHole, 1);
-  
-  // Trigger hammer swing animation
-  hammer.classList.remove("preparing", "miss");
-  hammer.classList.add("hit");
-  
-  // Remove animations after completion
-  setTimeout(() => {
-    hammer.classList.remove("hit");
-    moleHole.classList.remove("hit");
-  }, 600);
-  
-  console.log("Swipe hit! Score:", score);
-}
-
-// Create explosion effect
-function createExplosionEffect(moleHole) {
-  // The explosion is handled by CSS ::before pseudo-element
-  // Add screen shake for extra impact
-  gameArea.classList.add('shake');
-  setTimeout(() => {
-    gameArea.classList.remove('shake');
-  }, 300);
-}
-
-// Create score popup
-function createScorePopup(moleHole, points) {
-  const popup = document.createElement('div');
-  popup.className = 'score-popup';
-  popup.textContent = '+' + points;
-  
-  // Position popup at the center of the hole
-  const holeRect = moleHole.getBoundingClientRect();
-  const gameRect = gameArea.getBoundingClientRect();
-  
-  popup.style.left = (holeRect.left - gameRect.left + holeRect.width / 2) + 'px';
-  popup.style.top = (holeRect.top - gameRect.top + holeRect.height / 2) + 'px';
-  
-  gameArea.appendChild(popup);
-  
-  // Remove popup after animation
-  setTimeout(() => {
-    if (popup.parentNode) {
-      popup.parentNode.removeChild(popup);
+  gameTimer = setInterval(() => {
+    if (gameRunning && gameTime > 0) {
+      gameTime--;
+      updateTimerDisplay();
+      
+      if (gameTime <= 0) {
+        gameOver();
+      }
     }
   }, 1000);
 }
 
-// Check if hammer is hovering over an active mole
-function checkHammerOverMole(x, y) {
-  let isOverMole = false;
-  let hitMole = null;
+function drawBricks() {
+  bricks.forEach((column) => {
+    column.forEach((brick) => {
+      if (brick.visible) {
+        // Brick gradient based on hits
+        const alpha = 1 - (brick.hits / brick.maxHits) * 0.5;
+        const gradient = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.h);
+        gradient.addColorStop(0, brick.color);
+        gradient.addColorStop(1, adjustBrightness(brick.color, -20));
+        
+        // Brick shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetY = 2;
+        
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.rect(brick.x, brick.y, brick.w, brick.h);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Brick highlight
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.rect(brick.x + 2, brick.y + 2, brick.w - 4, brick.h / 3);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        
+        // Reset
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        
+        ctx.closePath();
+      }
+    });
+  });
+}
+
+// Utility Functions
+function adjustBrightness(color, amount) {
+  const usePound = color[0] === '#';
+  const col = usePound ? color.slice(1) : color;
+  const num = parseInt(col, 16);
+  let r = (num >> 16) + amount;
+  let g = (num >> 8 & 0x00FF) + amount;
+  let b = (num & 0x0000FF) + amount;
+  r = r > 255 ? 255 : r < 0 ? 0 : r;
+  g = g > 255 ? 255 : g < 0 ? 0 : g;
+  b = b > 255 ? 255 : b < 0 ? 0 : b;
+  return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
+}
+
+function createParticles(x, y, color) {
+  // Disabled particle creation to prevent layout interference
+  // for (let i = 0; i < 8; i++) {
+  //   const particle = document.createElement('div');
+  //   particle.className = 'particle';
+  //   particle.style.left = x + 'px';
+  //   particle.style.top = y + 'px';
+  //   particle.style.background = color;
+  //   particle.style.width = '6px';
+  //   particle.style.height = '6px';
+  //   particle.style.transform = `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`;
+  //   document.body.appendChild(particle);
+  //   
+  //   setTimeout(() => {
+  //     if (particle.parentNode) {
+  //       particle.parentNode.removeChild(particle);
+  //     }
+  //   }, 1000);
+  // }
+}
+
+function draw() {
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  holes.forEach(hole => {
-    if (hole.classList.contains("up")) {
-      const holeRect = hole.getBoundingClientRect();
-      const gameRect = gameArea.getBoundingClientRect();
-      
-      const holeX = holeRect.left - gameRect.left + holeRect.width / 2;
-      const holeY = holeRect.top - gameRect.top + holeRect.height / 2;
-      
-      const distance = Math.sqrt(Math.pow(x - holeX, 2) + Math.pow(y - holeY, 2));
-      
-      if (distance < 60) { // Within striking distance
-        isOverMole = true;
-        hitMole = hole;
+  // Update ball trail
+  ball.trail.push({ x: ball.x, y: ball.y });
+  if (ball.trail.length > 5) {
+    ball.trail.shift();
+  }
+  
+  // Draw all elements
+  drawBall();
+  drawPaddle();
+  drawScore();
+  drawBricks();
+}
+
+// Animate Elements
+function movePaddle() {
+  paddle.x += paddle.dx;
+  if (paddle.x + paddle.w > canvas.width) paddle.x = canvas.width - paddle.w;
+  if (paddle.x < 0) paddle.x = 0;
+}
+
+function moveBall() {
+  if (!gameRunning) return;
+  
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+  
+  // Wall collision (left and right)
+  if (ball.x + ball.size > canvas.width || ball.x - ball.size < 0) {
+    ball.dx *= -1;
+  }
+  
+  // Top wall collision
+  if (ball.y - ball.size < 0) {
+    ball.dy *= -1;
+  }
+  
+  // Paddle collision with angle calculation
+  if (
+    ball.x > paddle.x &&
+    ball.x < paddle.x + paddle.w &&
+    ball.y + ball.size > paddle.y &&
+    ball.y < paddle.y + paddle.h
+  ) {
+    // Calculate hit position on paddle (0 to 1)
+    const hitPos = (ball.x - paddle.x) / paddle.w;
+    // Adjust angle based on hit position
+    const angle = (hitPos - 0.5) * Math.PI / 3; // Max 60 degrees
+    const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+    ball.dx = speed * Math.sin(angle);
+    ball.dy = -Math.abs(speed * Math.cos(angle));
+  }
+  
+  // Improved brick collision with realistic physics
+  const currentTime = Date.now();
+  const collisionCooldown = 50; // Reduced cooldown for more responsive gameplay
+  
+  if (currentTime - ball.lastCollisionTime > collisionCooldown) {
+    let brickHit = false;
+    
+    for (let i = 0; i < bricks.length && !brickHit; i++) {
+      for (let j = 0; j < bricks[i].length && !brickHit; j++) {
+        const brick = bricks[i][j];
+        
+        if (brick.visible) {
+          // More precise collision detection
+          const ballLeft = ball.x - ball.size;
+          const ballRight = ball.x + ball.size;
+          const ballTop = ball.y - ball.size;
+          const ballBottom = ball.y + ball.size;
+          
+          if (ballRight > brick.x && ballLeft < brick.x + brick.w &&
+              ballBottom > brick.y && ballTop < brick.y + brick.h) {
+            
+            // Calculate overlap distances
+            const overlapLeft = ballRight - brick.x;
+            const overlapRight = (brick.x + brick.w) - ballLeft;
+            const overlapTop = ballBottom - brick.y;
+            const overlapBottom = (brick.y + brick.h) - ballTop;
+            
+            // Find minimum overlap to determine collision side
+            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+            
+            // Apply realistic physics based on collision side
+            if (minOverlap === overlapLeft || minOverlap === overlapRight) {
+              // Side collision
+              ball.dx *= -1;
+              // Add slight randomness for more interesting gameplay
+              ball.dy += (Math.random() - 0.5) * 0.5;
+              
+              // Position ball outside brick
+              if (minOverlap === overlapLeft) {
+                ball.x = brick.x - ball.size - 1;
+              } else {
+                ball.x = brick.x + brick.w + ball.size + 1;
+              }
+            } else {
+              // Top/bottom collision
+              ball.dy *= -1;
+              // Add slight randomness
+              ball.dx += (Math.random() - 0.5) * 0.5;
+              
+              // Position ball outside brick
+              if (minOverlap === overlapTop) {
+                ball.y = brick.y - ball.size - 1;
+              } else {
+                ball.y = brick.y + brick.h + ball.size + 1;
+              }
+            }
+            
+            // Maintain speed limits for realistic physics based on current level
+            const speedLimits = getSpeedLimits(level);
+            const currentSpeed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+            
+            if (currentSpeed < speedLimits.minSpeed) {
+              const speedMultiplier = speedLimits.minSpeed / currentSpeed;
+              ball.dx *= speedMultiplier;
+              ball.dy *= speedMultiplier;
+            } else if (currentSpeed > speedLimits.maxSpeed) {
+              const speedMultiplier = speedLimits.maxSpeed / currentSpeed;
+              ball.dx *= speedMultiplier;
+              ball.dy *= speedMultiplier;
+            }
+            
+            // Break brick and set cooldown
+            brick.visible = false;
+            increaseScore();
+            brickHit = true;
+            ball.lastCollisionTime = currentTime;
+            
+            // Create particle effect
+            const rect = canvas.getBoundingClientRect();
+            createParticles(
+              rect.left + brick.x + brick.w / 2,
+              rect.top + brick.y + brick.h / 2,
+              brick.color
+            );
+          }
+        }
       }
     }
+  }
+  
+  // Game over condition
+  if (ball.y + ball.size > canvas.height) {
+    gameOver();
+  }
+}
+
+function increaseScore() {
+  score += 10 * level;
+  
+  // Check if all bricks are destroyed
+  const allDestroyed = bricks.every(column => 
+    column.every(brick => !brick.visible)
+  );
+  
+  if (allDestroyed) {
+    nextLevel();
+  }
+}
+
+function nextLevel() {
+  level++;
+  showAllBricks();
+  resetBall(); // This will now use the new level's speed
+  
+  // Show level up message in UI instead of alert
+  showLevelUpMessage();
+}
+
+function gameOver() {
+  gameRunning = false;
+  
+  // Clear timer
+  if (gameTimer) {
+    clearInterval(gameTimer);
+    gameTimer = null;
+  }
+  
+  // Create and show blur overlay
+  createBlurOverlay();
+  
+  // Send game over message to parent window immediately after blur
+  setTimeout(() => {
+    window.parent.postMessage({ 
+      type: "GAME_OVER", 
+      score: score 
+    }, "*");
+  }, 100); // Brief delay to ensure blur is visible
+}
+
+function restartGame() {
+  // Remove blur overlay if it exists
+  removeBlurOverlay();
+  
+  score = 0;
+  level = 1; // Reset to level 1
+  gameRunning = true;
+  gameTime = 120; // Reset to 2 minutes
+  showAllBricks();
+  resetBall(); // This will use level 1 speed
+  startGameTimer();
+}
+
+function resetBall() {
+  ball.x = canvas.width / 2;
+  ball.y = canvas.height - 35; // Start from paddle position
+  
+  // Set speed based on current level
+  const levelSpeed = getBallSpeed(level);
+  ball.dx = levelSpeed;
+  ball.dy = -levelSpeed;
+  
+  ball.trail = [];
+  ball.lastCollisionTime = 0; // Reset collision cooldown
+}
+
+function showAllBricks() {
+  bricks.forEach((column) => {
+    column.forEach((brick) => {
+      brick.visible = true;
+      brick.hits = 0;
+    });
+  });
+}
+
+// Handle Key Events
+function keyDown(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") paddle.dx = paddle.speed;
+  else if (e.key === "Left" || e.key === "ArrowLeft") paddle.dx = -paddle.speed;
+}
+
+function keyUp(e) {
+  if (
+    e.key === "Right" ||
+    e.key === "ArrowRight" ||
+    e.key === "Left" ||
+    e.key === "ArrowLeft"
+  ) {
+    paddle.dx = 0;
+  }
+}
+
+// Update Canvas
+function update() {
+  // update
+  movePaddle();
+  moveBall();
+  // draw
+  draw();
+  requestAnimationFrame(update);
+}
+
+// Simple Control Buttons Setup
+function setupControlButtons() {
+  console.log('Setting up control buttons...');
+  
+  if (!leftButton || !rightButton) {
+    console.error('Control buttons not found!');
+    return;
+  }
+
+  // LEFT BUTTON
+  leftButton.addEventListener('mousedown', () => {
+    paddle.dx = -paddle.speed;
   });
   
-  // Add preparation animation when over mole
-  if (isOverMole && !hammer.classList.contains("hit") && !hammer.classList.contains("preparing")) {
-    hammer.classList.add("preparing");
-    setTimeout(() => {
-      hammer.classList.remove("preparing");
-    }, 300);
-  }
+  leftButton.addEventListener('mouseup', () => {
+    paddle.dx = 0;
+  });
   
-  return hitMole;
+  leftButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    paddle.dx = -paddle.speed;
+  });
+  
+  leftButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    paddle.dx = 0;
+  });
+
+  // RIGHT BUTTON
+  rightButton.addEventListener('mousedown', () => {
+    paddle.dx = paddle.speed;
+  });
+  
+  rightButton.addEventListener('mouseup', () => {
+    paddle.dx = 0;
+  });
+  
+  rightButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    paddle.dx = paddle.speed;
+  });
+  
+  rightButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    paddle.dx = 0;
+  });
+
+  console.log('Control buttons setup complete');
 }
 
-// Add miss animation when clicking empty space
-function handleMiss(x, y) {
-  if (!isGameActive) return;
+// Nuclear option canvas setup
+function setupCanvasNuclearOption() {
+  // Force disable all touch behaviors on canvas
+  canvas.style.touchAction = 'none';
+  canvas.style.webkitTouchAction = 'none';
+  canvas.style.msTouchAction = 'none';
+  canvas.style.userSelect = 'none';
+  canvas.style.webkitUserSelect = 'none';
+  canvas.style.msUserSelect = 'none';
+  canvas.style.mozUserSelect = 'none';
+  canvas.style.webkitTouchCallout = 'none';
+  canvas.style.webkitTapHighlightColor = 'transparent';
+  canvas.style.pointerEvents = 'auto';
   
-  hammer.classList.remove("preparing");
-  hammer.classList.add("miss");
-  
-  setTimeout(() => {
-    hammer.classList.remove("miss");
-  }, 300);
+  // Prevent context menu
+  canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    return false;
+  });
 }
 
-// Mouse events for hammer dragging
-gameArea.addEventListener("mousemove", (e) => {
-  moveHammer(e.clientX, e.clientY);
-});
-
-gameArea.addEventListener("mousedown", (e) => {
-  const hammerGrabbed = startHammerDrag(e.clientX, e.clientY);
-  
-  // If hammer wasn't grabbed and not clicking on a mole, show miss animation
-  if (!hammerGrabbed && !e.target.classList.contains("mole")) {
-    handleMiss(e.clientX, e.clientY);
-  }
-});
-
-gameArea.addEventListener("mouseup", (e) => {
-  // Reset the hit flag after a short delay to allow continuous hitting
-  setTimeout(() => {
-    justHitMole = false;
-  }, 100);
-  
-  // Only stop dragging if we didn't just hit a mole
-  if (!justHitMole) {
-    stopHammerDrag();
-  }
-});
-
-// NUCLEAR OPTION - Touch events for mobile with maximum override
-gameArea.addEventListener("touchmove", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  const touch = e.touches[0];
-  moveHammer(touch.clientX, touch.clientY);
-}, { passive: false, capture: true });
-
-gameArea.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  const touch = e.touches[0];
-  const hammerGrabbed = startHammerDrag(touch.clientX, touch.clientY);
-  
-  // If hammer wasn't grabbed and not touching a mole, show miss animation
-  if (!hammerGrabbed && !e.target.classList.contains("mole")) {
-    handleMiss(touch.clientX, touch.clientY);
-  }
-}, { passive: false, capture: true });
-
-gameArea.addEventListener("touchend", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  
-  // Reset the hit flag after a short delay to allow continuous hitting
-  setTimeout(() => {
-    justHitMole = false;
-  }, 100);
-  
-  // Only stop dragging if we didn't just hit a mole
-  if (!justHitMole) {
-    stopHammerDrag();
-  }
-}, { passive: false, capture: true });
-
-// Pointer events for additional compatibility
-gameArea.addEventListener("pointermove", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  moveHammer(e.clientX, e.clientY);
-}, { passive: false, capture: true });
-
-gameArea.addEventListener("pointerdown", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  const hammerGrabbed = startHammerDrag(e.clientX, e.clientY);
-  
-  // If hammer wasn't grabbed and not clicking on a mole, show miss animation
-  if (!hammerGrabbed && !e.target.classList.contains("mole")) {
-    handleMiss(e.clientX, e.clientY);
-  }
-}, { passive: false, capture: true });
-
-gameArea.addEventListener("pointerup", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  
-  // Reset the hit flag after a short delay to allow continuous hitting
-  setTimeout(() => {
-    justHitMole = false;
-  }, 100);
-  
-  // Only stop dragging if we didn't just hit a mole
-  if (!justHitMole) {
-    stopHammerDrag();
-  }
-}, { passive: false, capture: true });
-
-// Prevent context menu on long press
-gameArea.addEventListener("contextmenu", (e) => {
-  e.preventDefault();
-});
-
-// Add click and touch events to moles with nuclear option
-moles.forEach((mole) => {
-  mole.addEventListener("click", bonk);
-  mole.addEventListener("touchstart", (e) => {
+// Prevent scrolling on mobile
+function preventScrolling() {
+  // Document-level touch prevention with selective allowance
+  document.addEventListener('touchstart', (e) => {
+    // Allow control buttons and UI buttons
+    if (e.target.id === 'left-button' || 
+        e.target.id === 'right-button' || 
+        e.target.id === 'rules-btn' || 
+        e.target.id === 'close-btn' ||
+        e.target.classList.contains('control-btn') ||
+        e.target.classList.contains('btn')) {
+      return; // Allow these elements to receive touches
+    }
+    
     e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    bonk.call(mole, e);
-  }, { passive: false, capture: true });
-  mole.addEventListener("pointerdown", (e) => {
+  }, { passive: false });
+  
+  // Prevent touchmove to stop scrolling
+  document.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    bonk.call(mole, e);
-  }, { passive: false, capture: true });
-});
+  }, { passive: false });
+}
 
-// Apply nuclear option styles to game area
-gameArea.style.touchAction = 'none';
-gameArea.style.webkitTouchAction = 'none';
-gameArea.style.msTouchAction = 'none';
-gameArea.style.pointerEvents = 'auto';
+// Event Listeners
+document.addEventListener("keydown", keyDown);
+document.addEventListener("keyup", keyUp);
 
-// Continuous scroll position lock
-setInterval(() => {
-  if (window.scrollY !== 0 || window.scrollX !== 0) {
-    window.scrollTo(0, 0);
+// Initialize controls and prevent scrolling
+setupCanvasNuclearOption();
+setupControlButtons();
+preventScrolling();
+
+// UI Message Functions (replacing alerts)
+function showLevelUpMessage() {
+  const messageDiv = document.createElement('div');
+  messageDiv.id = 'level-up-message';
+  messageDiv.innerHTML = `
+    <div style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 15px;
+      font-family: 'Balsamiq Sans', cursive;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 1000;
+      animation: levelUpPulse 2s ease-in-out;
+    ">
+      🎉 Level ${level}! 🎉<br>
+      <span style="font-size: 18px;">Speed increased!</span>
+    </div>
+  `;
+  
+  // Add animation keyframes if not already added
+  if (!document.getElementById('level-up-styles')) {
+    const style = document.createElement('style');
+    style.id = 'level-up-styles';
+    style.textContent = `
+      @keyframes levelUpPulse {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        40% { transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
   }
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-}, 16); // 60fps monitoring
-
-// Additional safety measures for mobile browsers
-window.addEventListener('resize', () => {
+  
+  document.body.appendChild(messageDiv);
+  
+  // Remove message after 3 seconds
   setTimeout(() => {
-    window.scrollTo(0, 0);
-  }, 100);
-});
+    if (messageDiv.parentNode) {
+      messageDiv.parentNode.removeChild(messageDiv);
+    }
+  }, 3000);
+}
 
-window.addEventListener('orientationchange', () => {
+
+function hideGameMessages() {
+  const levelUpMsg = document.getElementById('level-up-message');
+  
+  if (levelUpMsg && levelUpMsg.parentNode) {
+    levelUpMsg.parentNode.removeChild(levelUpMsg);
+  }
+}
+
+function createBlurOverlay() {
+  // Remove existing blur overlay if any
+  removeBlurOverlay();
+  
+  // Create blur overlay element
+  const blurOverlay = document.createElement('div');
+  blurOverlay.id = 'game-over-blur';
+  blurOverlay.className = 'game-over-blur';
+  
+  // Add to body
+  document.body.appendChild(blurOverlay);
+  
+  // Trigger animation
   setTimeout(() => {
-    window.scrollTo(0, 0);
-  }, 500);
-});
+    blurOverlay.classList.add('active');
+  }, 10);
+}
+
+function removeBlurOverlay() {
+  const blurOverlay = document.getElementById('game-over-blur');
+  if (blurOverlay && blurOverlay.parentNode) {
+    blurOverlay.parentNode.removeChild(blurOverlay);
+  }
+}
+
+console.log('Game initialized with simple control buttons');
+
+// Start the game and timer
+startGameTimer();
+update();
