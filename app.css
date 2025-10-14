@@ -251,6 +251,44 @@ canvas#tetris {
 	}
 }
 
+/* Game Over Blur Screen */
+.game-over-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	z-index: 2000;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+}
+
+.game-over-content {
+	text-align: center;
+	color: var(--white);
+	font-size: 3rem;
+	text-transform: uppercase;
+	text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+	animation: gameOverPulse 2s ease-in-out infinite;
+}
+
+.final-score {
+	font-size: 2rem;
+	margin-top: 2rem;
+	color: #00ff88;
+	text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+}
+
+@keyframes gameOverPulse {
+	0%, 100% { opacity: 0.8; transform: scale(1); }
+	50% { opacity: 1; transform: scale(1.05); }
+}
+
 /* Mobile Touch Controls */
 .mobile-controls {
 	display: none;

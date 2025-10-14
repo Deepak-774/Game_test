@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	let isDownPressed = false;
 	let downInterval = null;
 	
+	// Game state
+	let gameOver = false;
+	
 	// Audio helper functions
 	const initAudio = () => {
 		Object.values(sounds).forEach(sound => {
@@ -238,6 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	};
 	
 	const play = (timestamp = 0) => {
+		if (gameOver) return; // Stop game loop when game is over
+		
 		const elapsed = timestamp - lastTimestamp;
 		lastTimestamp = timestamp;
 		dropCounter += elapsed;
@@ -380,13 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		nextPiece.pos = nextPiecePos();
 		
 		if (collide(arena, player) === true) {
-			playSound('end');
-			arena.forEach(row => row.fill(0));
-			player.score = 0;
-			player.level = 1;
-			player.lines = 0;
-			dropInterval = 1000; // Reset speed
-			updateScore();
+			triggerGameOver();
 		}
 	};
 	
@@ -430,7 +429,29 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	};
 	
+	const triggerGameOver = () => {
+		gameOver = true;
+		playSound('end');
+		
+		// Stop any continuous movement
+		stopDownMovement();
+		
+		// Show blur overlay with final score
+		const overlay = document.getElementById('game-over-overlay');
+		const finalScore = document.getElementById('final-score');
+		
+		finalScore.textContent = `Score: ${player.score}`;
+		overlay.style.display = 'flex';
+		
+		// Send message to parent window immediately after showing overlay
+		setTimeout(() => {
+			console.log('Sending GAME_OVER message to parent:', { type: "GAME_OVER", score: player.score });
+			window.parent.postMessage({ type: "GAME_OVER", score: player.score }, "*");
+		}, 100); // Small delay to ensure overlay is visible
+	};
+	
 	const onKeyDown = evt => {
+		if (gameOver) return; // Prevent controls when game is over
 		evt.preventDefault();
 		switch (evt.key) {
 			case controls.ArrowRight:
@@ -509,8 +530,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			button.addEventListener('mousedown', handleAction, { passive: false });
 		};
 		
-		setupButton(moveLeftBtn, () => playerMove(-1));
-		setupButton(moveRightBtn, () => playerMove(1));
+		setupButton(moveLeftBtn, () => {
+			if (!gameOver) playerMove(-1);
+		});
+		setupButton(moveRightBtn, () => {
+			if (!gameOver) playerMove(1);
+		});
 		
 		// Special setup for down button with hold functionality
 		if (moveDownBtn) {
@@ -520,8 +545,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			const startDown = (e) => {
 				e.preventDefault();
 				e.stopPropagation();
-				console.log('Down button pressed - starting movement');
-				startDownMovement();
+				if (!gameOver) {
+					console.log('Down button pressed - starting movement');
+					startDownMovement();
+				}
 			};
 			
 			const stopDown = (e) => {
@@ -544,14 +571,18 @@ document.addEventListener('DOMContentLoaded', () => {
 		
 		// Left rotation button - exact functionality of Q key
 		setupButton(rotateLeftBtn, () => {
-			console.log('Left rotation button pressed - calling playerRotate(-1)');
-			playerRotate(-1);
+			if (!gameOver) {
+				console.log('Left rotation button pressed - calling playerRotate(-1)');
+				playerRotate(-1);
+			}
 		});
 		
 		// Right rotation button - exact functionality of E key
 		setupButton(rotateRightBtn, () => {
-			console.log('Right rotation button pressed - calling playerRotate(1)');
-			playerRotate(1);
+			if (!gameOver) {
+				console.log('Right rotation button pressed - calling playerRotate(1)');
+				playerRotate(1);
+			}
 		});
 	};
 	
