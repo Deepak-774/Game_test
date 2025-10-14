@@ -1,41 +1,54 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Talha - Tetris Game</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
-    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg" />
+<ewqr!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Tetris</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+	<link rel="stylesheet" href="app.css">
+</head>
+<body>
 
-    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
-    <!-- Also uploaded the demo of this code in a gif : https://c.tenor.com/x8v1oNUOmg4AAAAd/tenor.gif-->
-    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
+<div class="game">
+	<div class="left">
+		<canvas id="tetris" class="tetris" width="240px" height="400px"></canvas>
+	</div>
+	<div class="right">
+		<div class="game-info">
+			<div class="level">Level: <span id="level">1</span></div>
+			<div class="score">Score: <span id="score">0</span></div>
+		</div>
+		<div class="next-piece-container">
+			<h3>Next up</h3>
+			<canvas id="nextPiece" class="next__piece" width="160px" height="160px"></canvas>
+		</div>
+	</div>
+</div>
 
-    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
-    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha -->
-    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
-  </head>
-  <body>
-    <div id="tetris">
-      <div id="info">
-        <div id="next_shape"></div>
-        <p id="level">Level: <span></span></p>
-        <p id="lines">Lines: <span></span></p>
-        <p id="score">Score: <span></span></p>
-        <p id="time">Time: <span></span></p>
-        <p class="red">Press Esc to pause / Use touch controls below<span></span></p>
-      </div>
-      <div id="canvas"></div>
-    </div>
-    
-    <!-- Mobile Touch Controls -->
-    <div class="mobile-controls">
-      <button class="control-btn" id="move-left">◀</button>
-      <button class="control-btn" id="move-down">▼</button>
-      <button class="control-btn" id="rotate">↻</button>
-      <button class="control-btn" id="move-right">▶</button>
-    </div>
-    
-    <script type="text/javascript" src="script.js"></script>
-  </body>
+<!-- Mobile Touch Controls (Hidden on Desktop) -->
+<div class="mobile-controls">
+	<div class="control-row">
+		<button class="control-btn" id="rotate-left" aria-label="Rotate Left">
+			<i class="fas fa-undo"></i>
+		</button>
+		<button class="control-btn" id="move-down" aria-label="Move Down">
+			<i class="fas fa-arrow-down"></i>
+		</button>
+		<button class="control-btn" id="rotate-right" aria-label="Rotate Right">
+			<i class="fas fa-redo"></i>
+		</button>
+	</div>
+	<div class="control-row">
+		<button class="control-btn" id="move-left" aria-label="Move Left">
+			<i class="fas fa-arrow-left"></i>
+		</button>
+		<button class="control-btn" id="move-right" aria-label="Move Right">
+			<i class="fas fa-arrow-right"></i>
+		</button>
+	</div>
+</div>
+
+<script type="text/javascript" src="app.js" defer></script>
+</body>
 </html>
