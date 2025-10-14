@@ -8,6 +8,49 @@ document.addEventListener('DOMContentLoaded', () => {
 	let lastTimestamp      = 0;
 	let dropCounter        = 0;
 	let dropInterval       = 1000;
+	
+	// Audio system
+	const sounds = {
+		rotate: document.getElementById('audio-rotate'),
+		drop: document.getElementById('audio-drop'),
+		line: document.getElementById('audio-line'),
+		crash: document.getElementById('audio-crash'),
+		pause: document.getElementById('audio-pause'),
+		end: document.getElementById('audio-end')
+	};
+	
+	// Continuous movement system
+	let isDownPressed = false;
+	let downInterval = null;
+	
+	// Audio helper functions
+	const initAudio = () => {
+		Object.values(sounds).forEach(sound => {
+			if (sound) {
+				sound.volume = 0.3;
+				sound.preload = 'auto';
+			}
+		});
+		
+		// Set specific volumes
+		if (sounds.rotate) sounds.rotate.volume = 0.2;
+		if (sounds.drop) sounds.drop.volume = 0.4;
+		if (sounds.line) sounds.line.volume = 0.5;
+		if (sounds.crash) sounds.crash.volume = 0.6;
+		if (sounds.end) sounds.end.volume = 0.5;
+	};
+	
+	const playSound = (soundName) => {
+		try {
+			const sound = sounds[soundName];
+			if (sound) {
+				sound.currentTime = 0;
+				sound.play().catch(e => console.log('Audio play failed:', e));
+			}
+		} catch (error) {
+			console.log('Audio error:', error);
+		}
+	};
 	const controls         = {
 		ArrowDown : 'ArrowDown',
 		ArrowLeft : 'ArrowLeft',
@@ -216,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		player.pos.y++;
 		if (collide(arena, player) === true) {
 			player.pos.y--;
+			playSound('drop');
 			merge(arena, player);
 			playerReset();
 			arenaSweep();
@@ -223,6 +267,44 @@ document.addEventListener('DOMContentLoaded', () => {
 			drawNextPiece();
 		}
 		dropCounter = 0;
+	};
+	
+	// Enhanced down movement functions
+	let downTimeout = null;
+	
+	const startDownMovement = () => {
+		if (isDownPressed) return;
+		isDownPressed = true;
+		
+		// First immediate drop on click
+		playerDrop();
+		
+		// Start continuous movement after a short delay (hold detection)
+		downTimeout = setTimeout(() => {
+			if (isDownPressed) {
+				downInterval = setInterval(() => {
+					if (isDownPressed) {
+						playerDrop();
+					}
+				}, 50); // Fast continuous drop when holding
+			}
+		}, 200); // 200ms delay before continuous movement starts
+	};
+	
+	const stopDownMovement = () => {
+		isDownPressed = false;
+		
+		// Clear the timeout for hold detection
+		if (downTimeout) {
+			clearTimeout(downTimeout);
+			downTimeout = null;
+		}
+		
+		// Clear the continuous movement interval
+		if (downInterval) {
+			clearInterval(downInterval);
+			downInterval = null;
+		}
 	};
 	
 	const playerRotate = direction => {
@@ -248,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		player.matrix = rotatedShape;
 		if (!collide(arena, player)) {
 			player.rotation = nextRotation;
+			playSound('rotate');
 			console.log(`${player.type} piece rotated to state ${nextRotation}/${pieceData.shapes.length - 1}`);
 			return true;
 		}
@@ -261,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			
 			if (!collide(arena, player)) {
 				player.rotation = nextRotation;
+				playSound('rotate');
 				console.log(`${player.type} piece rotated to state ${nextRotation}/${pieceData.shapes.length - 1} (with wall kick)`);
 				return true;
 			}
@@ -296,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		nextPiece.pos = nextPiecePos();
 		
 		if (collide(arena, player) === true) {
+			playSound('end');
 			arena.forEach(row => row.fill(0));
 			player.score = 0;
 			player.level = 1;
@@ -324,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		
 		if (linesCleared > 0) {
 			player.lines += linesCleared;
+			playSound('line');
 			updateLevel();
 			console.log(`Lines cleared: ${linesCleared}, Total lines: ${player.lines}`);
 		}
@@ -360,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			case controls.ArrowDown:
 			case controls.s:
 			case controls.S:
-				playerDrop();
+				startDownMovement();
 				break;
 			case controls.q:
 			case controls.Q:
@@ -369,6 +455,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			case controls.e:
 			case controls.E:
 				playerRotate(1);
+				break;
+		}
+	};
+	
+	const onKeyUp = evt => {
+		switch (evt.key) {
+			case controls.ArrowDown:
+			case controls.s:
+			case controls.S:
+				stopDownMovement();
 				break;
 		}
 	};
@@ -415,7 +511,36 @@ document.addEventListener('DOMContentLoaded', () => {
 		
 		setupButton(moveLeftBtn, () => playerMove(-1));
 		setupButton(moveRightBtn, () => playerMove(1));
-		setupButton(moveDownBtn, () => playerDrop());
+		
+		// Special setup for down button with hold functionality
+		if (moveDownBtn) {
+			moveDownBtn.style.touchAction = 'manipulation';
+			moveDownBtn.style.userSelect = 'none';
+			
+			const startDown = (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				console.log('Down button pressed - starting movement');
+				startDownMovement();
+			};
+			
+			const stopDown = (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				console.log('Down button released - stopping movement');
+				stopDownMovement();
+			};
+			
+			// Touch events for hold functionality
+			moveDownBtn.addEventListener('touchstart', startDown, { passive: false, capture: true });
+			moveDownBtn.addEventListener('touchend', stopDown, { passive: false, capture: true });
+			moveDownBtn.addEventListener('touchcancel', stopDown, { passive: false, capture: true });
+			
+			// Mouse events for desktop
+			moveDownBtn.addEventListener('mousedown', startDown, { passive: false });
+			moveDownBtn.addEventListener('mouseup', stopDown, { passive: false });
+			moveDownBtn.addEventListener('mouseleave', stopDown, { passive: false });
+		}
 		
 		// Left rotation button - exact functionality of Q key
 		setupButton(rotateLeftBtn, () => {
@@ -451,6 +576,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	};
 	
 	window.addEventListener('keydown', onKeyDown);
+	window.addEventListener('keyup', onKeyUp);
+	
+	// Initialize audio system
+	initAudio();
 	
 	// Initialize touch controls for mobile
 	setupTouchControls();
