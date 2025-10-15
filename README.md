@@ -33,6 +33,55 @@ rewarded with 50 points instead. Consecutive Perfects awards additional 25 point
   <img width="550" src="https://user-images.githubusercontent.com/17680888/47473105-d9021180-d843-11e8-8c19-b6b78d86cbdf.png" />
 </p>
 
+## Tower Game
+
+A tower building game based on [Tower_game](https://github.com/iamkun/tower_game) by [@iamkun](https://github.com/iamkun)
+
+## Features
+
+- Progressive crane speed (starts slow, increases after 50 floors)
+- 5-second auto-start countdown timer
+- Game over postMessage integration
+- Mobile-optimized controls
+
+## Play
+
+[https://bmqb.github.io/tower_game/](https://bmqb.github.io/tower_game/)
+
+## Development
+
+```bash
+npm install
+npm start
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Deploy to Vercel
+
+This project is configured for Vercel deployment with Node.js compatibility fixes:
+
+1. Push your code to GitHub
+2. Connect your GitHub repo to Vercel
+3. Vercel will automatically use the `vercel-build` script
+4. The build uses `cross-env` and `--openssl-legacy-provider` to handle Node.js v22 compatibility
+
+### Manual Deploy
+```bash
+npm install -g vercel
+vercel --prod
+```
+
+The `vercel.json` configuration handles:
+- Static build process
+- Asset routing
+- Node.js compatibility
+- Environment variables
+
 ## Customizing the game rules
 
 ```
