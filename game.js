@@ -2,7 +2,7 @@
 const timeValue = document.getElementById("time");
 const levelValue = document.getElementById("level");
 const scoreValue = document.getElementById("score");
-const startButton = document.getElementById("start");
+const gameTitle = document.getElementById("game-title");
 const gameContainer = document.querySelector(".game-container");
 const result = document.getElementById("result");
 const controls = document.querySelector(".controls-container");
@@ -232,8 +232,8 @@ const generateRandom = (size = 4) => {
     });
     };
 
-//Start game
-startButton.addEventListener("click", () => {
+//Auto-start game function
+const startGame = () => {
     // Reset game state
     movesCount = 0;
     gameScore = 0;
@@ -244,7 +244,6 @@ startButton.addEventListener("click", () => {
     
     //controls and buttons visibility
     controls.classList.add("hide");
-    startButton.classList.add("hide");
     gameOverOverlay.classList.add("hide");
     
     //Start timer
@@ -256,7 +255,7 @@ startButton.addEventListener("click", () => {
     updateLevel();
     
     initializer();
-});
+};
 
 //Initialize values and func calls
 const initializer = () => {
@@ -271,7 +270,8 @@ const initializer = () => {
 gameOverOverlay.addEventListener("click", () => {
     gameOverOverlay.classList.add("hide");
     controls.classList.remove("hide");
-    startButton.classList.remove("hide");
+    // Auto-start after 2 seconds
+    setTimeout(startGame, 2000);
 });
 
     //for sound
@@ -294,4 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ensure game is not active on load
     gameActive = false;
     clearInterval(interval);
+    
+    // Auto-start game after 2 seconds
+    setTimeout(startGame, 2000);
 });
