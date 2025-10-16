@@ -1,187 +1,131 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui"><title>Tower Building</title><link rel="icon" type="image/x-icon" href="./assets/favicon.png"><style>*{margin:0;padding:0}img{width:100%}html{background:#fff;height:100%}body{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;margin:0 auto;text-align:center;width:100%;height:100%;background:#f95240 url(assets/main-bg.png)}@media screen and (min-height:560px){html{font-size:100px}}@media screen and (min-height:640px){html{font-size:112.5px}}@media screen and (min-height:720px){html{font-size:125px}}@media screen and (min-height:800px){html{font-size:137.5px}}@media screen and (min-height:880px){html{font-size:150px}}@media screen and (min-height:960px){html{font-size:162.5px}}@media screen and (min-height:1040px){html{font-size:180px}}@media screen and (min-height:1200px){html{font-size:200px}}html{font-size:17.6vh}#canvas{position:fixed;left:0;top:0;right:0;bottom:0;margin:auto}a{text-decoration:none}li,ol,ul{list-style-type:none;padding:0;margin:0}.hide{display:none}.clear{clear:both}.loading{background-color:#f05a50;height:100%;width:100%}.loading .main{width:60%;margin:0 auto;color:#fff}.loading .main img{width:60%;margin:1rem auto 0}.loading .main .title{font-size:.3rem}.loading .main .text{font-size:.15rem}.loading .main .bar{height:.12rem;width:100%;border:3px solid #fff;border-radius:.6rem;margin:.1rem 0}.loading .main .bar .sub{height:.1rem;width:98%;margin:.008rem auto 0}.loading .main .bar .percent{height:100%;width:0;background-color:#fff;border-radius:.6rem}.loading .logo{position:absolute;bottom:.3rem;left:0;right:0}.loading .logo img{width:1rem}.content{height:100vh;margin:0 auto;position:relative}.landing .title{width:60%}.landing .logo{width:30%;position:absolute;right:.2rem;top:.2rem}.landing .action-2{position:absolute;bottom:.2rem;width:100%}.landing .start{width:65%}.slideTop{-webkit-animation:st 1s ease-in-out;animation:st 1s ease-in-out}@-webkit-keyframes st{0%{transform:translateZ(0)}100%{transform:translate3d(0,-100%,0)}}@keyframes st{0%{transform:translateZ(0)}100%{transform:translate3d(0,-100%,0)}}.slideBottom{-webkit-animation:sb 1s ease-in-out;animation:sb 1s ease-in-out}@-webkit-keyframes sb{0%{transform:translateZ(0)}100%{transform:translate3d(0,200%,0)}}@keyframes sb{0%{transform:translateZ(0)}100%{transform:translate3d(0,200%,0)}}.swing{-webkit-animation:sw 2s ease-in-out alternate infinite;animation:sw 2s ease-in-out alternate infinite}@-webkit-keyframes sw{0%{transform:rotate(5deg);transform-origin:top center}100%{transform:rotate(-5deg);transform-origin:top center}}@keyframes sw{0%{transform:rotate(5deg);transform-origin:top center}100%{transform:rotate(-5deg);transform-origin:top center}}.modal .mask{background-color:#000;opacity:.6;position:fixed;height:100%;width:100%;top:0;left:0}.modal .modal-content{position:fixed;height:100%;width:90%;margin-top:.3rem;top:0}.modal .main{width:85%;margin:0 auto}.modal .container{position:relative}.modal .bg{width:100%;position:absolute;top:0;left:0}.modal .modal-main{width:100%;position:absolute;top:0;left:0;margin-top:-.4rem}.modal .over-img{width:80%;margin:.8rem auto 0}.modal .over-score{margin-top:-.2rem;font-size:.5rem;color:#ff735c;text-shadow:-2px -2px 0 #fff,2px -2px 0 #fff,-2px 2px 0 #fff,2px 2px 0 #fff}.modal .tip{font-size:.16rem;color:#9b724e}.modal .over-button-b{width:70%;margin:.1rem auto 0}.wxShare{background:#000;position:absolute;top:0;left:0;width:100%;height:100%;z-index:11;opacity:.9}.wxShare img{width:50%;float:right;margin:10px 10px 0 0}.js-reload,.js-invite{display:none!important}#countdown-timer{position:absolute;top:10px;left:10px;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,0.8);z-index:10;font-family:wenxue}@font-face{font-family:wenxue;src:url(assets/wenxue.eot);src:url(assets/wenxue.eot),url(assets/wenxue.woff),url(assets/wenxue.ttf),url(assets/wenxue.svg)}.font-wenxue{font-family:wenxue}</style></head><body><canvas id="canvas" class="hide"></canvas><div class="content"><div class="loading"><div class="main"><img src="./assets/main-loading.gif"><div class="progress"><div class="title font-wenxue">0%</div><div class="bar"><div class="sub"><div class="percent"></div></div></div><div class="text">Loading...</div></div></div></div><div class="landing hide"><div id="countdown-timer" class="hide"></div><div class="action-1"><img src="./assets/main-index-title.png" class="title swing"></div><div class="action-2"><img id="start" src="./assets/main-index-start.png" class="start"></div></div><div id="modal" class="modal hide"><div class="mask"></div><div class="js-modal-content modal-content"><div class="main"><div class="container"><img src="./assets/main-modal-bg.png" class="bg"><div class="modal-main"><div id="over-modal" class="hide js-modal-card"><img src="./assets/main-modal-over.png" class="over-img"><div id="score" class="over-score font-wenxue"></div><div id="over-zero" class="hide"><div class="tip"><p>Try Again!</p><img src="./assets/main-modal-again-b.png" class="over-button-b js-reload"><img src="./assets/main-modal-invite-b.png" class="over-button-b js-invite"></div></div></div></div></div></div></div></div><div class="wxShare hide"><img src="./assets/main-share-icon.png"></div></div><script src="./dist/main.js"></script><script src="./assets/zepto-1.1.6.min.js"></script><script>var domReady, loadFinish, canvasReady, loadError, gameStart, game, score, successCount
-  // init window height and width
-  var gameWidth = window.innerWidth
-  var gameHeight = window.innerHeight
-  var ratio = 1.5
-  if (gameHeight / gameWidth < ratio) {
-    gameWidth = Math.ceil(gameHeight / ratio)
-  }
-  $('.content').css({ "height": gameHeight + "px", "width": gameWidth + "px" })
-  $('.js-modal-content').css({ "width": gameWidth + "px" })
-
-  // loading animation
-  function hideLoading() {
-    if (domReady && canvasReady) {
-      $('#canvas').show()
-      loadFinish = true
-      setTimeout(function () {
-        $('.loading').hide()
-        $('.landing').show()
-      }, 1000)
-    }
-  }
-
-  function updateLoading(status) {
-    var success = status.success
-    var total = status.total
-    var failed = status.failed
-    if (failed > 0 && !loadError) {
-      loadError = true
-      alert('Network error... Please try again.')
-      return
-    }
-    var percent = parseInt((success / total) * 100);
-    if (percent === 100 && !canvasReady) {
-      canvasReady = true
-      hideLoading()
-    }
-    percent = percent > 98 ? 98 : percent
-    percent = percent + '%'
-    $('.loading .title').text(percent);
-    $('.loading .percent').css({
-      'width': percent
-    })
-  }
-
-  function overShowOver() {
-    $('#modal').show()
-    $('#over-modal').show()
-    $('#over-zero').show()
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Mobile Archery Game</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg">
+  </head>
+  <body>
+    <!-- Game UI -->
+    <div id="game-ui">
+      <div id="score-display">Score: <span id="score">0</span></div>
+      <div id="timer-display">Time: <span id="timer">2:00</span></div>
+    </div>
     
-    // Send game over message to parent window
-    window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
-  }
-
-  // game customization options
-  const option = {
-    width: gameWidth,
-    height: gameHeight,
-    canvasId: 'canvas',
-    soundOn: true,
-    setGameScore: function (s) {
-      score = s
-    },
-    setGameSuccess: function (s) {
-      successCount = s
-    },
-    setGameFailed: function (f) {
-      $('#score').text(score)
-      if (f >= 3) overShowOver()
-    }
-  }
-
-  // game init with option
-  function gameReady() {
-    game = TowerGame(option)
-    game.load(function () {
-      game.init()
-      setTimeout(function () {
-        game.playBgm()
-      })
-    }, updateLoading)
-  }
-
-  var isWechat = navigator.userAgent.toLowerCase().indexOf("micromessenger") !== -1
-  if (isWechat) {
-    document.addEventListener("WeixinJSBridgeReady", gameReady, false)
-  } else {
-    gameReady()
-  }
-
-  function indexHide() {
-    $('.landing .action-1').addClass('slideTop')
-    $('.landing .action-2').addClass('slideBottom')
-    setTimeout(function () {
-      $('.landing').hide()
-    }, 950)
-  }
-
-  // countdown timer functionality
-  var countdownInterval
-  var countdownActive = false
-
-  function startGame() {
-    if (gameStart) return
-    gameStart = true
+    <!-- Game Start/Over Overlay -->
+    <div id="game-overlay" class="overlay hidden">
+      <div id="game-over-screen" class="screen">
+        <h1>🎯 Game Over!</h1>
+        <p>Final Score: <span id="final-score">0</span></p>
+        <button id="restart-button">PLAY AGAIN</button>
+      </div>
+    </div>
     
-    // Clear countdown if running
-    if (countdownInterval) {
-      clearInterval(countdownInterval)
-    }
-    
-    // Hide countdown and start button
-    $('#countdown-timer').hide()
-    $('#start').hide()
-    countdownActive = false
-    
-    setTimeout(function () {
-      game.playBgm()
-    })
-    indexHide()
-    setTimeout(game.start, 400)
-  }
+    <!-- Game Instructions -->
+    <div id="instructions">
+      <span>Drag to aim • Release to shoot</span>
+    </div>
 
-  function startAutoCountdown() {
-    if (countdownActive || gameStart) return
-    countdownActive = true
-    
-    // Show countdown timer (keep start button visible)
-    $('#countdown-timer').show()
-    
-    var count = 5
-    $('#countdown-timer').text(count)
-    
-    countdownInterval = setInterval(function() {
-      count--
-      if (count > 0) {
-        $('#countdown-timer').text(count)
-      } else {
-        // Countdown finished, auto-start game
-        clearInterval(countdownInterval)
-        startGame()
-      }
-    }, 1000)
-  }
+    <svg id="game" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" overflow="visible">
+      <linearGradient id="ArcGradient" >
+          <stop offset="0"  stop-color="#fff" stop-opacity=".2"/>
+          <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
+      </linearGradient>
+        <path id="arc" fill="none" stroke="url(#ArcGradient)" stroke-width="4" d="M150,250c250-400,550-400,750,0"  pointer-events="none"/>
+        <defs>
+            <g id="arrow">
+                <!-- Arrow shaft with wood texture -->
+                <line x2="90" fill="none" stroke="#8B4513" stroke-width="5" />
+                <line x2="90" y1="-1" y2="-1" fill="none" stroke="#A0522D" stroke-width="1" />
+                <line x2="90" y1="1" y2="1" fill="none" stroke="#654321" stroke-width="1" />
+                
+                <!-- Metal arrowhead with gradient -->
+                <defs>
+                    <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#C0C0C0;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#E8E8E8;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#A0A0A0;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <polygon fill="url(#metalGradient)" stroke="#666" stroke-width="0.5" points="96 0 84 4 86 0 84 -4" />
+                
+                <!-- Colorful fletching -->
+                <polygon fill="#FF4444" points="2 -5 -8 -5 -3 0 -8 5 2 5 6 0" />
+                <polygon fill="#44FF44" points="1 -4 -6 -4 -2 0 -6 4 1 4 4 0" />
+                <polygon fill="#4444FF" points="0 -3 -4 -3 -1 0 -4 3 0 3 2 0" />
+            </g>
+        </defs>
+        <g id="target">
+            <path fill="#FFF" d="M924.2,274.2c-21.5,21.5-45.9,19.9-52,3.2c-4.4-12.1,2.4-29.2,14.2-41c11.8-11.8,29-18.6,41-14.2 C944.1,228.3,945.7,252.8,924.2,274.2z" />
+            <path fill="#F4531C" d="M915.8,265.8c-14.1,14.1-30.8,14.6-36,4.1c-4.1-8.3,0.5-21.3,9.7-30.5s22.2-13.8,30.5-9.7 C930.4,235,929.9,251.7,915.8,265.8z" />
+            <path fill="#FFF" d="M908.9,258.9c-8,8-17.9,9.2-21.6,3.5c-3.2-4.9-0.5-13.4,5.6-19.5c6.1-6.1,14.6-8.8,19.5-5.6 C918.1,241,916.9,250.9,908.9,258.9z" />
+            <path fill="#F4531C" d="M903.2,253.2c-2.9,2.9-6.7,3.6-8.3,1.7c-1.5-1.8-0.6-5.4,2-8c2.6-2.6,6.2-3.6,8-2 C906.8,246.5,906.1,250.2,903.2,253.2z" />
+        </g>
+        <g id="bow" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke" pointer-events="none">
+          <!-- Bow limbs with high contrast design -->
+          <defs>
+            <linearGradient id="bowMetalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#2C3E50;stop-opacity:1" />
+              <stop offset="30%" style="stop-color:#34495E;stop-opacity:1" />
+              <stop offset="70%" style="stop-color:#2C3E50;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#1A252F;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Main bow body -->
+          <polyline fill="none" stroke="url(#bowMetalGradient)" stroke-linecap="round" stroke-width="6" points="125,180 125,250 125,320"/>
+          <polyline fill="none" stroke="#00FFFF" stroke-linecap="round" stroke-width="2" points="123,180 123,250 123,320"/>
+          
+          <!-- Bow grip area -->
+          <rect x="122" y="240" width="6" height="20" fill="#2C3E50" stroke="#00FFFF" stroke-width="2" rx="3"/>
+          
+          <!-- Bow string with tension -->
+          <path fill="none" stroke="#00FFFF" stroke-width="4" stroke-linecap="round" d="M125,320 c0-15.15,18-37.65,18-75s-18-59.85-18-75"/>
+          <path fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" d="M125,318 c0-14.85,17-36.85,17-73s-17-58.15-17-73"/>
+          
+          <!-- Bow tips -->
+          <circle cx="125" cy="180" r="4" fill="#00FFFF" stroke="#FFFFFF" stroke-width="2"/>
+          <circle cx="125" cy="320" r="4" fill="#00FFFF" stroke="#FFFFFF" stroke-width="2"/>
+        </g>
+      <g class="arrow-angle"><use x="143" y="250" xlink:href="#arrow"/></g>
+      <clipPath id="mask">
+        <polygon opacity=".5" points="0,0 1500,0 1500,400 0,400" pointer-events="none"/>
+      </clipPath>
+      <g class="arrows" clip-path="url(#mask)"  pointer-events="none">
+      </g>
+      <g class="miss" fill="#aaa" opacity="0" transform="translate(0, 100)">
+        <path d="M358 194L363 118 386 120 400 153 416 121 440 119 446 203 419 212 416 163 401 180 380 160 381 204"/>
+        <path d="M450 120L458 200 475 192 474 121"/>
+        <path d="M537 118L487 118 485 160 515 162 509 177 482 171 482 193 529 199 538 148 501 146 508 133 537 137"/>
+        <path d="M540 202L543 178 570 186 569 168 544 167 546 122 590 116 586 142 561 140 560 152 586 153 586 205"/>
+        <path d="M595,215l5-23l31,0l-5,29L595,215z M627,176l13-70l-41-0l-0,70L627,176z"/>
+      </g>
+      <g class="bullseye" fill="#F4531C" opacity="0">
+        <path d="M322,159l15-21l-27-13l-32,13l15,71l41-14l7-32L322,159z M292,142h20l3,8l-16,8 L292,142z M321,182l-18,9l-4-18l23-2V182z"/>
+        <path d="M340 131L359 125 362 169 381 167 386 123 405 129 392 183 351 186z"/>
+        <path d="M413 119L402 188 450 196 454 175 422 175 438 120z"/>
+        <path d="M432 167L454 169 466 154 451 151 478 115 453 113z"/>
+        <path d="M524 109L492 112 466 148 487 155 491 172 464 167 463 184 502 191 513 143 487 141 496 125 517 126z"/>
+        <path d="M537 114L512 189 558 199 566 174 533 175 539 162 553 164 558 150 543 145 547 134 566 148 575 124z"/>
+        <path d="M577 118L587 158 570 198 587 204 626 118 606 118 598 141 590 112z"/>
+        <path d="M635 122L599 198 643 207 649 188 624 188 630 170 639 178 645 162 637 158 649 143 662 151 670 134z"/>
+        <path d="M649,220l4-21l28,4l-6,25L649,220z M681,191l40-79l-35-8L659,184L681,191z"/>
+      </g>
+      <g class="hit" fill="#ffcc00" opacity="0" transform="translate(180, -80) rotate(12) ">
+        <path d="M383 114L385 195 407 191 406 160 422 155 418 191 436 189 444 112 423 119 422 141 407 146 400 113"/>
+        <path d="M449 185L453 113 477 112 464 186"/>
+        <path d="M486 113L484 130 506 130 481 188 506 187 520 131 540 135 545 119"/>
+        <path d="M526,195l5-20l22,5l-9,16L526,195z M558,164l32-44l-35-9l-19,51L558,164z"/>
+      </g>
+    <!-- 	<line x1= "875", y1= "280", x2= "925", y2= "220" stroke="red"/>
 
-  // Auto-start countdown when landing page is shown
-  function showLandingWithCountdown() {
-    $('.landing').show()
-    setTimeout(startAutoCountdown, 100) // Small delay to ensure landing is visible
-  }
+    <circle class="point" r="7" fill="purple" opacity=".4"/> -->
+    </svg>
 
-  // Override the hideLoading function to start countdown
-  var originalHideLoading = hideLoading
-  hideLoading = function() {
-    if (domReady && canvasReady) {
-      $('#canvas').show()
-      loadFinish = true
-      setTimeout(function () {
-        $('.loading').hide()
-        showLandingWithCountdown()
-      }, 1000)
-    }
-  }
-
-  // click event - manual start
-  $('#start').on('click', function () {
-    if (gameStart) return
-    startGame()
-  })
-
-  $('.js-reload').on('click', function () {
-    window.location.href = window.location.href + '?s=' + (+new Date())
-  })
-
-  $('.js-invite').on('click', function () {
-    $('.wxShare').show()
-  })
-
-  $('.wxShare').on('click', function () {
-    $('.wxShare').hide()
-  })
-
-  // listener
-  window.addEventListener('load', function () {
-    domReady = true
-    hideLoading()
-  }, false);</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-YCWZ8ZDCH2"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-YCWZ8ZDCH2")</script></body></html>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenMax.min.js'></script>
+    <script src='//s3-us-west-2.amazonaws.com/s.cdpn.io/16327/MorphSVGPlugin.min.js'></script>
+    <script src="script.js"></script>
+  </body>
+</html>
