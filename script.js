@@ -48,6 +48,77 @@ var pivot = {
     y: 250
 };
 
+// Asset preloading functions
+function preloadAssets() {
+    return new Promise((resolve, reject) => {
+        const imagesToLoad = ['BG.png'];
+        let loadedImages = 0;
+        const totalImages = imagesToLoad.length;
+        
+        console.log("Starting to preload", totalImages, "images...");
+        
+        imagesToLoad.forEach((imageSrc) => {
+            const img = new Image();
+            
+            img.onload = () => {
+                loadedImages++;
+                console.log(`Loaded: ${imageSrc} (${loadedImages}/${totalImages})`);
+                updateLoadingProgress(loadedImages, totalImages);
+                
+                if (loadedImages === totalImages) {
+                    console.log("All images preloaded successfully!");
+                    resolve();
+                }
+            };
+            
+            img.onerror = () => {
+                console.error(`Failed to load: ${imageSrc}`);
+                reject(new Error(`Failed to load ${imageSrc}`));
+            };
+            
+            img.src = imageSrc;
+        });
+    });
+}
+
+function showLoadingScreen() {
+    // Create loading overlay if it doesn't exist
+    let loadingOverlay = document.getElementById('loading-overlay');
+    if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loading-overlay';
+        loadingOverlay.innerHTML = `
+            <div class="loading-content">
+                <h2>🏹 Loading Archery Game</h2>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loading-progress"></div>
+                </div>
+                <p id="loading-text">Loading assets...</p>
+            </div>
+        `;
+        document.body.appendChild(loadingOverlay);
+    }
+    loadingOverlay.classList.remove('hidden');
+}
+
+function hideLoadingScreen() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+    }
+}
+
+function updateLoadingProgress(loaded, total) {
+    const progressBar = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    
+    if (progressBar && loadingText) {
+        const percentage = (loaded / total) * 100;
+        progressBar.style.width = percentage + '%';
+        loadingText.textContent = `Loading assets... ${loaded}/${total} (${Math.round(percentage)}%)`;
+    }
+}
+
 // Initialize game
 document.addEventListener('DOMContentLoaded', function() {
     initializeGame();
@@ -60,31 +131,45 @@ function initializeGame() {
     console.log("Score element:", scoreElement);
     console.log("Restart button:", restartButton);
     
-    // NUCLEAR OPTION - Restart button event listeners with maximum override
-    restartButton.addEventListener('click', restartGame);
-    restartButton.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        restartGame();
-    }, { passive: false, capture: true });
-    restartButton.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        restartGame();
-    }, { passive: false, capture: true });
+    // Show loading message
+    showLoadingScreen();
     
-    // Set up touch and mouse controls
-    setupControls();
-    
-    // Start game directly
-    startGame();
-    
-    // Initial aim position
-    aim({
-        clientX: 370,
-        clientY: 300
+    // Preload background image before starting game
+    preloadAssets().then(() => {
+        console.log("All assets loaded, starting game...");
+        
+        // NUCLEAR OPTION - Restart button event listeners with maximum override
+        restartButton.addEventListener('click', restartGame);
+        restartButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            restartGame();
+        }, { passive: false, capture: true });
+        restartButton.addEventListener('pointerdown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            restartGame();
+        }, { passive: false, capture: true });
+        
+        // Set up touch and mouse controls
+        setupControls();
+        
+        // Hide loading screen and start game
+        hideLoadingScreen();
+        startGame();
+        
+        // Initial aim position
+        aim({
+            clientX: 370,
+            clientY: 300
+        });
+    }).catch((error) => {
+        console.error("Error loading assets:", error);
+        // Start game anyway with fallback background
+        hideLoadingScreen();
+        startGame();
     });
 }
 
