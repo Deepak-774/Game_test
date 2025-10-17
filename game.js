@@ -233,6 +233,11 @@ function playBackgroundMusic() {
     }
 }
 
+function stopBackgroundMusic() {
+    backgroundMusicPlaying = false;
+    console.log('Background music stopped');
+}
+
 let ballRadius = 10;
 let x = 0;
 let y = 0;
@@ -273,12 +278,12 @@ function nextLevel() {
 
 // Responsive ball speed based on level (consistent across all devices)
 function getBallSpeed() {
-    // Use realistic base speed for better gameplay feel
-    const baseSpeed = 3; // Increased from 1 to 3 for more realistic movement
+    // Use faster base speed for more dynamic gameplay
+    const baseSpeed = 4; // Increased from 3 to 4 for faster, more exciting gameplay
     
     // Add level-based speed increase (10% per level, max 2x speed)
     const levelMultiplier = Math.min(2, 1 + (currentLevel - 1) * 0.1);
-    const finalSpeed = Math.max(2, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 2
+    const finalSpeed = Math.max(3, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 3
     
     return finalSpeed;
 }
@@ -443,7 +448,7 @@ function collisionDetection() {
                 if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
                     dy = -dy;
                     b.status = 0;
-                    score++;
+                    score += 5; // 5 points per brick instead of 1
                     generateCollisionEffect(b.x + brickWidth / 2, b.y + brickHeight / 2);  // Generate brick hitting effects
                     playBrickHitSound();  // 播放砖块击中音效
                     vibrateDevice(15);  // 砖块碰撞振动反馈
@@ -931,6 +936,13 @@ function showMenu(menuId) {
         gameMenu.classList.remove('active');
         gameMenu.classList.add('hidden');
     }
+    
+    // Start auto-countdown if showing start menu
+    if (menuId === 'startMenu') {
+        setTimeout(() => {
+            startAutoCountdown();
+        }, 500); // Small delay to let menu appear first
+    }
 }
 
 function hideAllMenus() {
@@ -976,7 +988,83 @@ function backToMainMenu() {
     if (animationId) {
         cancelAnimationFrame(animationId);
     }
+    
+    // Cancel any existing countdown
+    cancelAutoCountdown();
+    
+    // Restore start button if it was hidden
+    const startButton = document.getElementById('startGameBtn');
+    if (startButton) {
+        startButton.style.display = 'block';
+    }
+    
     showMenu('startMenu');
+}
+
+// Auto-start countdown with manual override
+let countdownInterval = null;
+let countdownActive = false;
+
+function startAutoCountdown() {
+    if (countdownActive) return; // Prevent multiple countdowns
+    
+    countdownActive = true;
+    let countdown = 5;
+    const startMenu = document.getElementById('startMenu');
+    const startButton = document.getElementById('startGameBtn');
+    
+    // Create small countdown number in top-left
+    const countdownDisplay = document.createElement('div');
+    countdownDisplay.id = 'autoCountdown';
+    countdownDisplay.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        color: #feca57;
+        text-shadow: 0 0 10px rgba(254, 202, 87, 0.8);
+        font-weight: 700;
+        z-index: 1001;
+        font-family: 'Orbitron', monospace;
+    `;
+    
+    // Add to document body instead of menu content
+    document.body.appendChild(countdownDisplay);
+    
+    // Start countdown - just show the number
+    countdownDisplay.textContent = countdown;
+    
+    countdownInterval = setInterval(() => {
+        countdown--;
+        
+        if (countdown > 0) {
+            countdownDisplay.textContent = countdown;
+        } else {
+            // Auto-start the game
+            clearInterval(countdownInterval);
+            countdownDisplay.remove();
+            countdownActive = false;
+            
+            // Start the game
+            gameState = 'playing';
+            hideAllMenus();
+            initGame();
+        }
+    }, 1000);
+}
+
+function cancelAutoCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    const countdownDisplay = document.getElementById('autoCountdown');
+    if (countdownDisplay) {
+        countdownDisplay.remove();
+    }
+    
+    countdownActive = false;
 }
 
 // 事件监听器
@@ -1000,9 +1088,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const startGameBtn = document.getElementById('startGameBtn');
     setupRobustButton(startGameBtn, () => {
         console.log('Start game button clicked');
+        // Cancel auto countdown and start game immediately
+        cancelAutoCountdown();
         gameState = 'playing';
         hideAllMenus();
-        // Touch guide removed for cleaner experience
         initGame();
     }, 'Start Game Button');
     
@@ -1047,6 +1136,42 @@ document.addEventListener("DOMContentLoaded", () => {
             e.stopImmediatePropagation();
         }
     }, { passive: false, capture: true });
+    
+    // Music control for screen changes and device power off
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            console.log('Page hidden - stopping background music');
+            stopBackgroundMusic();
+        }
+    });
+    
+    // Handle page lifecycle events (mobile app switching, device sleep)
+    window.addEventListener('pagehide', () => {
+        console.log('Page hide - stopping background music');
+        stopBackgroundMusic();
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        console.log('Before unload - stopping background music');
+        stopBackgroundMusic();
+    });
+    
+    // Handle focus loss (window/tab switching)
+    window.addEventListener('blur', () => {
+        console.log('Window blur - stopping background music');
+        stopBackgroundMusic();
+    });
+    
+    // Mobile-specific events
+    document.addEventListener('pause', () => {
+        console.log('App pause - stopping background music');
+        stopBackgroundMusic();
+    });
+    
+    document.addEventListener('resume', () => {
+        console.log('App resume - music will restart if game is playing');
+        // Music will restart automatically if game is in playing state
+    });
     
     console.log('All event listeners set up successfully');
 });
