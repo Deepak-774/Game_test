@@ -545,8 +545,8 @@ function drawBricks() {
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) {
             if (bricks[c][r].status == 1) {
-                let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
-                let brickY = (r * (brickHeight + brickRowPadding)) + brickOffsetTop;
+                let brickX = Math.floor((c * (brickWidth + brickPadding)) + brickOffsetLeft);
+                let brickY = Math.floor((r * (brickHeight + brickRowPadding)) + brickOffsetTop);
                 bricks[c][r].x = brickX;
                 bricks[c][r].y = brickY;
                 
@@ -725,6 +725,11 @@ function draw() {
     ctx.shadowBlur = 0;
     ctx.lineWidth = 1;
     
+    // Ensure crisp rendering
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    
     // 按层次绘制
     drawBricks();
     drawTailParticles();
@@ -755,8 +760,14 @@ function draw() {
     
     // Only check paddle collision if ball is moving downward and near paddle level
     if (dy > 0 && y + dy >= paddleTop - ballRadius && y < paddleTop) {
-        // Check if ball center will be within paddle horizontal bounds
-        if (x >= paddleX && x <= paddleX + paddleWidth) {
+        // Check if ball overlaps with paddle (including ball radius for more forgiving collision)
+        const ballLeft = x - ballRadius;
+        const ballRight = x + ballRadius;
+        const paddleLeft = paddleX;
+        const paddleRight = paddleX + paddleWidth;
+        
+        // More forgiving collision detection - ball edge can hit paddle edge
+        if (ballRight >= paddleLeft && ballLeft <= paddleRight) {
             console.log('Paddle collision detected at x:', x, 'paddleX:', paddleX, 'paddleWidth:', paddleWidth);
             
             // Calculate hit position on paddle (-1 to 1, where 0 is center)
