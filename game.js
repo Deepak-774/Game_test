@@ -46,32 +46,42 @@ const isVerySmallScreen = () => window.innerWidth < 480;
 // 响应式 Canvas 尺寸配置
 function getOptimalCanvasSize() {
     const maxWidth = window.innerWidth - 40; // 留边距
-    const maxHeight = window.innerHeight - 40;
+    const maxHeight = window.innerHeight - 120; // 为UI元素留更多空间
 
-    // 默认比例 4:3
-    const aspectRatio = 4 / 3;
-
+    const isPortrait = window.innerHeight > window.innerWidth;
+    
     let width, height;
 
     if (isVerySmallScreen()) {
-        // 超小屏幕：使用更小的尺寸
-        width = Math.min(320, maxWidth);
-        height = Math.min(240, maxHeight);
+        // 超小屏幕：适应屏幕方向
+        if (isPortrait) {
+            width = Math.min(maxWidth, 320);
+            height = Math.min(maxHeight, 480); // 更高的高度适合竖屏
+        } else {
+            width = Math.min(320, maxWidth);
+            height = Math.min(240, maxHeight);
+        }
     } else if (isSmallScreen()) {
-        // 小屏幕：中等尺寸
-        width = Math.min(480, maxWidth);
-        height = Math.min(360, maxHeight);
+        // 小屏幕：适应屏幕方向
+        if (isPortrait) {
+            width = Math.min(maxWidth, 400);
+            height = Math.min(maxHeight, 600); // 竖屏时使用更高的高度
+        } else {
+            width = Math.min(480, maxWidth);
+            height = Math.min(360, maxHeight);
+        }
     } else {
-        // 桌面：原始尺寸
+        // 桌面：保持原始比例
+        const aspectRatio = 4 / 3;
         width = Math.min(800, maxWidth);
         height = Math.min(600, maxHeight);
-    }
-
-    // 确保保持宽高比
-    if (width / height > aspectRatio) {
-        width = height * aspectRatio;
-    } else {
-        height = width / aspectRatio;
+        
+        // 确保保持宽高比
+        if (width / height > aspectRatio) {
+            width = height * aspectRatio;
+        } else {
+            height = width / aspectRatio;
+        }
     }
 
     return { width: Math.floor(width), height: Math.floor(height) };
@@ -118,21 +128,39 @@ const performanceConfig = {
     explosionParticleCount: isVerySmallScreen() ? 8 : (isSmallScreen() ? 10 : 15)  // 爆炸粒子数量
 };
 
-// 屏幕方向检测和提示
-function checkOrientation() {
-    if (!isMobile) return;
 
-    const orientationWarning = document.getElementById('orientationWarning');
-    if (!orientationWarning) return;
-
-    const isPortrait = window.innerHeight > window.innerWidth;
-
-    if (isPortrait && isSmallScreen()) {
-        // 竖屏且是小屏幕设备，显示提示
-        orientationWarning.classList.remove('hidden');
-    } else {
-        orientationWarning.classList.add('hidden');
+// Nuclear option button setup for mobile webview compatibility
+function setupRobustButton(button, action, buttonName) {
+    if (!button) {
+        console.error(`${buttonName} not found!`);
+        return;
     }
+    
+    // Force touch-action styles
+    button.style.touchAction = 'manipulation';
+    button.style.webkitTouchAction = 'manipulation';
+    button.style.msTouchAction = 'manipulation';
+    button.style.userSelect = 'none';
+    button.style.webkitUserSelect = 'none';
+    button.style.webkitTouchCallout = 'none';
+    
+    // Create handler with comprehensive event prevention
+    const handler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log(`${buttonName} activated via ${e.type}`);
+        action();
+    };
+    
+    // Add multiple event types for maximum compatibility
+    button.addEventListener('click', handler, { passive: false, capture: true });
+    button.addEventListener('touchstart', handler, { passive: false, capture: true });
+    button.addEventListener('touchend', handler, { passive: false, capture: true });
+    button.addEventListener('pointerdown', handler, { passive: false, capture: true });
+    button.addEventListener('pointerup', handler, { passive: false, capture: true });
+    
+    console.log(`${buttonName} setup with nuclear option event handlers`);
 }
 
 // 触摸指引管理
@@ -149,23 +177,17 @@ function showTouchGuide() {
 
             // 添加"知道了"按钮事件
             const touchGuideBtn = document.getElementById('touchGuideBtn');
-            if (touchGuideBtn) {
-                touchGuideBtn.onclick = () => {
-                    touchGuide.classList.add('hidden');
-                    localStorage.setItem('hasSeenTouchGuide', 'true');
-                };
-            }
+            setupRobustButton(touchGuideBtn, () => {
+                touchGuide.classList.add('hidden');
+                localStorage.setItem('hasSeenTouchGuide', 'true');
+            }, 'Touch Guide Button');
         }
     }
 }
 
-// 监听屏幕方向变化
-window.addEventListener('orientationchange', () => {
-    setTimeout(checkOrientation, 100);
-});
-
+// 监听屏幕尺寸变化
 window.addEventListener('resize', () => {
-    checkOrientation();
+    resizeCanvas();
 });
 
 // 音效系统
@@ -814,8 +836,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // 初始化 Canvas 尺寸（必须在 DOM 加载后）
     resizeCanvas();
 
-    // 初始化方向检测
-    checkOrientation();
 
     // 确保初始状态正确
     gameState = 'menu';
@@ -828,90 +848,66 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // 开始菜单按钮
     const startGameBtn = document.getElementById('startGameBtn');
-    if (startGameBtn) {
-        startGameBtn.addEventListener('click', () => {
-            console.log('Start game button clicked');
-            gameState = 'playing';
-            hideAllMenus();
-            showTouchGuide();  // 显示触摸指引（仅首次）
-            initGame();
-        });
-    } else {
-        console.error('Start game button not found!');
-    }
+    setupRobustButton(startGameBtn, () => {
+        console.log('Start game button clicked');
+        gameState = 'playing';
+        hideAllMenus();
+        showTouchGuide();  // 显示触摸指引（仅首次）
+        initGame();
+    }, 'Start Game Button');
     
     // 其他菜单按钮
     const instructionsBtn = document.getElementById('instructionsBtn');
-    if (instructionsBtn) {
-        instructionsBtn.addEventListener('click', () => {
-            console.log('Instructions button clicked');
-            showMenu('instructionsMenu');
-        });
-    }
+    setupRobustButton(instructionsBtn, () => {
+        console.log('Instructions button clicked');
+        showMenu('instructionsMenu');
+    }, 'Instructions Button');
     
     const highScoreBtn = document.getElementById('highScoreBtn');
-    if (highScoreBtn) {
-        highScoreBtn.addEventListener('click', () => {
-            console.log('High score button clicked');
-            displayHighScores();
-            showMenu('highScoreMenu');
-        });
-    }
+    setupRobustButton(highScoreBtn, () => {
+        console.log('High score button clicked');
+        displayHighScores();
+        showMenu('highScoreMenu');
+    }, 'High Score Button');
     
     // 说明页面按钮
     const backToMenuBtn = document.getElementById('backToMenuBtn');
-    if (backToMenuBtn) {
-        backToMenuBtn.addEventListener('click', () => {
-            console.log('Back to menu button clicked');
-            showMenu('startMenu');
-        });
-    }
+    setupRobustButton(backToMenuBtn, () => {
+        console.log('Back to menu button clicked');
+        showMenu('startMenu');
+    }, 'Back to Menu Button');
     
     // 高分榜按钮
     const clearScoresBtn = document.getElementById('clearScoresBtn');
-    if (clearScoresBtn) {
-        clearScoresBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to clear all high scores?')) {
-                highScores = [];
-                localStorage.removeItem('starlightBreakerHighScores');
-                displayHighScores();
-            }
-        });
-    }
+    setupRobustButton(clearScoresBtn, () => {
+        if (confirm('Are you sure you want to clear all high scores?')) {
+            highScores = [];
+            localStorage.removeItem('starlightBreakerHighScores');
+            displayHighScores();
+        }
+    }, 'Clear Scores Button');
     
     const backToMenuFromScoresBtn = document.getElementById('backToMenuFromScoresBtn');
-    if (backToMenuFromScoresBtn) {
-        backToMenuFromScoresBtn.addEventListener('click', () => {
-            showMenu('startMenu');
-        });
-    }
+    setupRobustButton(backToMenuFromScoresBtn, () => {
+        showMenu('startMenu');
+    }, 'Back to Menu from Scores Button');
     
     // 游戏UI按钮
     const pauseBtn = document.getElementById('pauseBtn');
-    if (pauseBtn) {
-        pauseBtn.addEventListener('click', pauseGame);
-    }
+    setupRobustButton(pauseBtn, pauseGame, 'Pause Button');
     
     const menuBtn = document.getElementById('menuBtn');
-    if (menuBtn) {
-        menuBtn.addEventListener('click', backToMainMenu);
-    }
+    setupRobustButton(menuBtn, backToMainMenu, 'Menu Button');
     
     // 暂停菜单按钮
     const resumeBtn = document.getElementById('resumeBtn');
-    if (resumeBtn) {
-        resumeBtn.addEventListener('click', resumeGame);
-    }
+    setupRobustButton(resumeBtn, resumeGame, 'Resume Button');
     
     const restartBtn = document.getElementById('restartBtn');
-    if (restartBtn) {
-        restartBtn.addEventListener('click', restartGame);
-    }
+    setupRobustButton(restartBtn, restartGame, 'Restart Button');
     
     const backToMainMenuBtn = document.getElementById('backToMainMenuBtn');
-    if (backToMainMenuBtn) {
-        backToMainMenuBtn.addEventListener('click', backToMainMenu);
-    }
+    setupRobustButton(backToMainMenuBtn, backToMainMenu, 'Back to Main Menu Button');
     
     // 键盘事件
     document.addEventListener('keydown', (e) => {
@@ -921,6 +917,44 @@ document.addEventListener("DOMContentLoaded", () => {
             resumeGame();
         }
     });
+    
+    // Nuclear option: Document-level touch prevention for webview compatibility
+    document.addEventListener('touchstart', (e) => {
+        // Allow touches only on buttons and interactive elements
+        const target = e.target;
+        const isButton = target.tagName === 'BUTTON' || target.closest('button');
+        const isCanvas = target.tagName === 'CANVAS';
+        
+        if (!isButton && !isCanvas) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    }, { passive: false, capture: true });
+    
+    document.addEventListener('touchmove', (e) => {
+        // Always prevent touchmove unless on canvas for game control
+        const target = e.target;
+        const isCanvas = target.tagName === 'CANVAS';
+        
+        if (!isCanvas) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, { passive: false, capture: true });
+    
+    document.addEventListener('touchend', (e) => {
+        // Allow touchend on buttons and canvas
+        const target = e.target;
+        const isButton = target.tagName === 'BUTTON' || target.closest('button');
+        const isCanvas = target.tagName === 'CANVAS';
+        
+        if (!isButton && !isCanvas) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    }, { passive: false, capture: true });
     
     console.log('All event listeners set up successfully');
 });
