@@ -278,12 +278,12 @@ function nextLevel() {
 
 // Responsive ball speed based on level (consistent across all devices)
 function getBallSpeed() {
-    // Use faster base speed for more dynamic gameplay
-    const baseSpeed = 4; // Increased from 3 to 4 for faster, more exciting gameplay
+    // Use realistic base speed for better gameplay feel
+    const baseSpeed = 3; // Increased from 1 to 3 for more realistic movement
     
     // Add level-based speed increase (10% per level, max 2x speed)
     const levelMultiplier = Math.min(2, 1 + (currentLevel - 1) * 0.1);
-    const finalSpeed = Math.max(3, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 3
+    const finalSpeed = Math.max(2, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 2
     
     return finalSpeed;
 }
