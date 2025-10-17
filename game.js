@@ -163,28 +163,6 @@ function setupRobustButton(button, action, buttonName) {
     console.log(`${buttonName} setup with nuclear option event handlers`);
 }
 
-// 触摸指引管理
-function showTouchGuide() {
-    if (!isMobile) return;
-
-    // 检查是否已显示过触摸指引
-    const hasSeenGuide = localStorage.getItem('hasSeenTouchGuide');
-
-    if (!hasSeenGuide) {
-        const touchGuide = document.getElementById('touchGuide');
-        if (touchGuide) {
-            touchGuide.classList.remove('hidden');
-
-            // 添加"知道了"按钮事件
-            const touchGuideBtn = document.getElementById('touchGuideBtn');
-            setupRobustButton(touchGuideBtn, () => {
-                touchGuide.classList.add('hidden');
-                localStorage.setItem('hasSeenTouchGuide', 'true');
-            }, 'Touch Guide Button');
-        }
-    }
-}
-
 // 监听屏幕尺寸变化
 window.addEventListener('resize', () => {
     resizeCanvas();
@@ -260,21 +238,99 @@ let x = 0;
 let y = 0;
 let dx = 0;
 let dy = 0;
+let currentLevel = 1;
 
-let paddleHeight = 10;
-let paddleWidth = 75;
-let paddleX = (canvas.width - paddleWidth) / 2;
+// Function to advance to next level
+function nextLevel() {
+    currentLevel++;
+    
+    // Reset all bricks for next level
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+            bricks[c][r].status = 1;
+        }
+    }
+    
+    // Level completion - continue immediately without popup
+    playVictorySound();  // 播放胜利音效
+    
+    // Get new ball speed for the level
+    const ballSpeed = getBallSpeed();
+    
+    // Reset ball position and speed
+    x = canvas.width / 2;
+    y = canvas.height - 30;
+    dx = ballSpeed;
+    dy = -ballSpeed;
+    
+    // Continue playing immediately
+    setTimeout(() => {
+        draw();
+    }, 1000); // Brief pause to let victory sound play
+}
+
+// Responsive ball speed based on level (consistent across all devices)
+function getBallSpeed() {
+    // Use slow base speed for all devices for better control
+    const baseSpeed = 1; // Slow base speed for better gameplay
+    
+    // Add level-based speed increase (10% per level, max 2x speed)
+    const levelMultiplier = Math.min(2, 1 + (currentLevel - 1) * 0.1);
+    const finalSpeed = Math.max(1, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 1
+    
+    return finalSpeed;
+}
+
+// Responsive paddle dimensions
+function getPaddleDimensions() {
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    // Calculate responsive paddle dimensions
+    const paddleWidth = Math.max(60, Math.min(100, Math.floor(canvasWidth * 0.15))); // 15% of canvas width, between 60-100px
+    const paddleHeight = Math.max(8, Math.floor(canvasHeight * 0.02)); // 2% of canvas height, minimum 8px
+    
+    return { paddleWidth, paddleHeight };
+}
+
+let paddleX = 0; // Will be initialized properly in initGame()
 
 let rightPressed = false;
 let leftPressed = false;
 
 const brickRowCount = 5;
 const brickColumnCount = 9;
-const brickWidth = 75;
-const brickHeight = 20;
-const brickPadding = 10;
-const brickOffsetTop = 30;
-const brickOffsetLeft = 30;
+
+// Responsive brick dimensions based on canvas size
+function getBrickDimensions() {
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    // Calculate responsive dimensions
+    const totalHorizontalPadding = 60; // Left and right margins
+    const availableWidth = canvasWidth - totalHorizontalPadding;
+    const brickPadding = Math.max(5, Math.floor(availableWidth * 0.015)); // 1.5% of available width, minimum 5px
+    
+    // Calculate brick width to fit all bricks with padding
+    const totalPaddingWidth = brickPadding * (brickColumnCount - 1);
+    const brickWidth = Math.floor((availableWidth - totalPaddingWidth) / brickColumnCount);
+    
+    // Calculate brick height based on canvas height (responsive)
+    const brickHeight = Math.max(15, Math.floor(canvasHeight * 0.035)); // 3.5% of canvas height, minimum 15px
+    
+    // Calculate offsets to center the brick grid
+    const totalBricksWidth = (brickWidth * brickColumnCount) + (brickPadding * (brickColumnCount - 1));
+    const brickOffsetLeft = Math.floor((canvasWidth - totalBricksWidth) / 2);
+    const brickOffsetTop = Math.max(20, Math.floor(canvasHeight * 0.08)); // 8% from top, minimum 20px
+    
+    return {
+        brickWidth,
+        brickHeight,
+        brickPadding,
+        brickOffsetTop,
+        brickOffsetLeft
+    };
+}
 
 let bricks = [];
 for (let c = 0; c < brickColumnCount; c++) {
@@ -317,7 +373,8 @@ document.addEventListener("touchstart", touchStartHandler, { passive: false });
 
 function mouseMoveHandler(e) {
     if (gameState !== 'playing') return;
-
+    
+    const { paddleWidth } = getPaddleDimensions();
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const relativeX = (e.clientX - rect.left) * scaleX;
@@ -329,8 +386,8 @@ function mouseMoveHandler(e) {
 
 function touchMoveHandler(e) {
     if (gameState !== 'playing') return;
-
-    e.preventDefault(); // 防止页面滚动
+    
+    const { paddleWidth } = getPaddleDimensions();
     const touch = e.touches[0];
     const relativeX = getTouchPosition(touch);
 
@@ -342,9 +399,9 @@ function touchMoveHandler(e) {
 function touchStartHandler(e) {
     e.preventDefault(); // 防止页面滚动
 
-    // 如果菜单打开，不处理触摸
-    if (gameState === 'menu') return;
-
+    if (gameState !== 'playing') return;
+    
+    const { paddleWidth } = getPaddleDimensions();
     const touch = e.touches[0];
     const relativeX = getTouchPosition(touch);
 
@@ -359,6 +416,10 @@ function collisionDetection() {
     if (!isFinite(x) || !isFinite(y)) {
         return;
     }
+    
+    // Get responsive brick dimensions
+    const dimensions = getBrickDimensions();
+    const { brickWidth, brickHeight, brickPadding, brickOffsetTop, brickOffsetLeft } = dimensions;
     
     // 预计算球的边界
     const ballLeft = x - ballRadius;
@@ -383,15 +444,18 @@ function collisionDetection() {
                     generateCollisionEffect(b.x + brickWidth / 2, b.y + brickHeight / 2);  // Generate brick hitting effects
                     playBrickHitSound();  // 播放砖块击中音效
                     vibrateDevice(15);  // 砖块碰撞振动反馈
-                    if (score == brickRowCount * brickColumnCount) {
-                        playVictorySound();  // 播放胜利音效
-                        saveHighScore(score);  // 保存高分
-                        gameState = 'menu';
-                        backgroundMusicPlaying = false;
-                        showMessage("🎉 Victory! 🎉", () => {
-                            resetGame();
-                            showMenu('startMenu');
-                        });
+                    // Check if all bricks in current level are destroyed
+                    let remainingBricks = 0;
+                    for (let col = 0; col < brickColumnCount; col++) {
+                        for (let row = 0; row < brickRowCount; row++) {
+                            if (bricks[col][row].status == 1) {
+                                remainingBricks++;
+                            }
+                        }
+                    }
+                    
+                    if (remainingBricks == 0) {
+                        nextLevel(); // Advance to next level instead of ending game
                     }
                     return; // 只处理第一个碰撞
                 }
@@ -436,6 +500,9 @@ function drawPaddle() {
         return;
     }
     
+    // Get responsive paddle dimensions
+    const { paddleWidth, paddleHeight } = getPaddleDimensions();
+    
     const scaleFactor = 1.2;  // Scaling factor to slightly increase width and height
     const scaledWidth = paddleWidth * scaleFactor;
     const scaledHeight = paddleHeight * scaleFactor * 6;
@@ -467,6 +534,10 @@ function drawBricks() {
         ["#96ceb4", "#66bb6a"],
         ["#feca57", "#ffb74d"]
     ];
+    
+    // Get responsive brick dimensions
+    const dimensions = getBrickDimensions();
+    const { brickWidth, brickHeight, brickPadding, brickOffsetTop, brickOffsetLeft } = dimensions;
     
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) {
@@ -534,6 +605,21 @@ function drawLives() {
     // 根据屏幕大小调整位置
     const textWidth = ctx.measureText("LIVES: " + lives).width;
     ctx.fillText("LIVES: " + lives, canvas.width - textWidth - 15, 25);
+    ctx.shadowBlur = 0;
+}
+
+function drawLevel() {
+    // 响应式字体大小
+    const fontSize = isVerySmallScreen() ? 14 : (isSmallScreen() ? 16 : 18);
+    ctx.font = `bold ${fontSize}px 'Orbitron', monospace`;
+    ctx.fillStyle = "#feca57"; // Golden yellow color for level
+    ctx.shadowColor = "#feca57";
+    ctx.shadowBlur = 10;
+
+    // Position level in center top
+    const text = "LEVEL: " + currentLevel;
+    const textWidth = ctx.measureText(text).width;
+    ctx.fillText(text, (canvas.width - textWidth) / 2, 25);
     ctx.shadowBlur = 0;
 }
 
@@ -619,7 +705,7 @@ function generateCollisionEffect(x, y) {
 
 function draw() {
     // 确保游戏状态有效
-    if (gameState !== 'playing') {
+    if (gameState !== 'playing' && gameState !== 'gameOver') {
         return;
     }
     
@@ -643,6 +729,7 @@ function draw() {
     drawPaddle();
     drawScore();
     drawLives();
+    drawLevel();
     collisionDetection();
 
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
@@ -650,77 +737,108 @@ function draw() {
     }
     if (y + dy < ballRadius) {
         dy = -dy;
-    } else if (y + dy > canvas.height - ballRadius) {
-        if (x > paddleX && x < paddleX + paddleWidth) {
+    }
+    
+    // Check paddle collision separately and more precisely
+    const { paddleWidth, paddleHeight } = getPaddleDimensions();
+    const paddleTop = canvas.height - paddleHeight;
+    
+    // Only check paddle collision if ball is moving downward and near paddle level
+    if (dy > 0 && y + dy >= paddleTop - ballRadius && y < paddleTop) {
+        // Check if ball center will be within paddle horizontal bounds
+        if (x >= paddleX && x <= paddleX + paddleWidth) {
+            console.log('Paddle collision detected at x:', x, 'paddleX:', paddleX, 'paddleWidth:', paddleWidth);
             dy = -dy;
-            generateCollisionEffect(x, canvas.height - paddleHeight);  // 生成碰撞反弹板效果
-            playPaddleHitSound();  // 播放挡板击中音效
-            vibrateDevice(20);  // 挡板碰撞振动反馈
+            y = paddleTop - ballRadius;
+            generateCollisionEffect(x, paddleTop);
+            playPaddleHitSound();
+        }
+    }
+    
+    // Check if ball falls off screen (game over condition)
+    if (y + dy > canvas.height - ballRadius) {
+        lives--;
+        if (lives > 0) {
+            // Life lost - reset ball position above paddle (paddle stays where user left it)
+            const ballSpeed = getBallSpeed();
+            const { paddleWidth } = getPaddleDimensions();
+            x = paddleX + paddleWidth / 2; // Position ball above center of paddle
+            y = canvas.height - 30;
+            dx = ballSpeed;
+            dy = -ballSpeed;
+            // Removed: paddleX reset - let paddle stay where user positioned it
         } else {
-            lives--;
-            if (lives > 0) {
-                showMessage("💔 Life Lost!", () => {
-                    x = canvas.width / 2;
-                    y = canvas.height - 30;
-                    dx = 4;
-                    dy = -4;
-                    draw();
-                });
-            } else {
-                playGameOverSound();  // 播放游戏结束音效
-                saveHighScore(score);  // 保存高分
-                gameState = 'menu';
-                backgroundMusicPlaying = false;
-                showMessage("💀 Game Over!", () => {
-                    resetGame();
-                    showMenu('startMenu');
-                });
-            }
-            return; // Stops the current drawing loop and waits for user input.
+            // Game over - freeze everything and blur screen
+            playGameOverSound();  // 播放游戏结束音效
+            saveHighScore(score);  // 保存高分
+            gameState = 'gameOver'; // New game over state
+            backgroundMusicPlaying = false;
+            
+            // Blur the canvas
+            canvas.classList.add('game-over-blur');
+            
+            // Send postMessage to parent with score
+            console.log('Sending GAME_OVER message with score:', score);
+            window.parent.postMessage({ type: "GAME_OVER", score: score }, "*");
+            
+            return; // Stop the game loop - everything frozen in place
         }
     }
 
-    x += dx;
-    y += dy;
-    generateTailParticle(x, y);  // Generate meteor tail particles
-    
+    // Only update ball position and continue animation if still playing
     if (gameState === 'playing') {
+        x += dx;
+        y += dy;
+        generateTailParticle(x, y);  // Generate meteor tail particles
         animationId = requestAnimationFrame(draw);
     }
+    // If gameState is 'gameOver', everything stays frozen in place
 }
 
-function showMessage(message, callback) {
-    const messageBox = document.getElementById("messageBox");
-    const messageText = document.getElementById("messageText");
-    const messageButton = document.getElementById("messageButton");
-
-    messageText.textContent = message;
-    messageBox.classList.remove("hidden");
-
-    messageButton.onclick = () => {
-        messageBox.classList.add("hidden");
-        callback();
-    };
-}
+// Message popup functionality removed for cleaner gameplay experience
 
 function resetGame() {
     lives = 3;
     score = 0;
+    currentLevel = 1; // Reset to level 1
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) {
             bricks[c][r].status = 1;
         }
     }
-    initGame();
+    
+    // Remove blur effect if it was applied
+    canvas.classList.remove('game-over-blur');
+    
+    // Reset ball position above paddle without affecting paddle position
+    const ballSpeed = getBallSpeed();
+    const { paddleWidth } = getPaddleDimensions();
+    x = paddleX + paddleWidth / 2; // Position ball above center of paddle
+    y = canvas.height - 30;
+    dx = ballSpeed;
+    dy = -ballSpeed;
+    
+    gameState = 'playing';
+    playBackgroundMusic();  // 开始播放背景音乐
 }
 
 
 
 function initGame() {
+    // Get responsive paddle dimensions for proper initialization
+    const { paddleWidth } = getPaddleDimensions();
+    
+    // Get responsive ball speed
+    const ballSpeed = getBallSpeed();
+    
     x = canvas.width / 2;
     y = canvas.height - 30;
-    dx = 4;
-    dy = -4;
+    dx = ballSpeed;
+    dy = -ballSpeed;
+    
+    // Initialize paddle position with responsive width
+    paddleX = (canvas.width - paddleWidth) / 2;
+    
     gameState = 'playing';
     playBackgroundMusic();  // 开始播放背景音乐
     draw();
@@ -852,71 +970,13 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('Start game button clicked');
         gameState = 'playing';
         hideAllMenus();
-        showTouchGuide();  // 显示触摸指引（仅首次）
+        // Touch guide removed for cleaner experience
         initGame();
     }, 'Start Game Button');
     
-    // 其他菜单按钮
-    const instructionsBtn = document.getElementById('instructionsBtn');
-    setupRobustButton(instructionsBtn, () => {
-        console.log('Instructions button clicked');
-        showMenu('instructionsMenu');
-    }, 'Instructions Button');
+    // All popup menus and game UI buttons have been removed for clean gameplay
     
-    const highScoreBtn = document.getElementById('highScoreBtn');
-    setupRobustButton(highScoreBtn, () => {
-        console.log('High score button clicked');
-        displayHighScores();
-        showMenu('highScoreMenu');
-    }, 'High Score Button');
-    
-    // 说明页面按钮
-    const backToMenuBtn = document.getElementById('backToMenuBtn');
-    setupRobustButton(backToMenuBtn, () => {
-        console.log('Back to menu button clicked');
-        showMenu('startMenu');
-    }, 'Back to Menu Button');
-    
-    // 高分榜按钮
-    const clearScoresBtn = document.getElementById('clearScoresBtn');
-    setupRobustButton(clearScoresBtn, () => {
-        if (confirm('Are you sure you want to clear all high scores?')) {
-            highScores = [];
-            localStorage.removeItem('starlightBreakerHighScores');
-            displayHighScores();
-        }
-    }, 'Clear Scores Button');
-    
-    const backToMenuFromScoresBtn = document.getElementById('backToMenuFromScoresBtn');
-    setupRobustButton(backToMenuFromScoresBtn, () => {
-        showMenu('startMenu');
-    }, 'Back to Menu from Scores Button');
-    
-    // 游戏UI按钮
-    const pauseBtn = document.getElementById('pauseBtn');
-    setupRobustButton(pauseBtn, pauseGame, 'Pause Button');
-    
-    const menuBtn = document.getElementById('menuBtn');
-    setupRobustButton(menuBtn, backToMainMenu, 'Menu Button');
-    
-    // 暂停菜单按钮
-    const resumeBtn = document.getElementById('resumeBtn');
-    setupRobustButton(resumeBtn, resumeGame, 'Resume Button');
-    
-    const restartBtn = document.getElementById('restartBtn');
-    setupRobustButton(restartBtn, restartGame, 'Restart Button');
-    
-    const backToMainMenuBtn = document.getElementById('backToMainMenuBtn');
-    setupRobustButton(backToMainMenuBtn, backToMainMenu, 'Back to Main Menu Button');
-    
-    // 键盘事件
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && gameState === 'playing') {
-            pauseGame();
-        } else if (e.key === 'Escape' && gameState === 'paused') {
-            resumeGame();
-        }
-    });
+    // Keyboard events removed - no pause functionality
     
     // Nuclear option: Document-level touch prevention for webview compatibility
     document.addEventListener('touchstart', (e) => {
