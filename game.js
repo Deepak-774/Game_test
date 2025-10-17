@@ -240,6 +240,8 @@ let dx = 0;
 let dy = 0;
 let currentLevel = 1;
 
+// Removed loop detection variables - using natural physics instead
+
 // Function to advance to next level
 function nextLevel() {
     currentLevel++;
@@ -271,12 +273,12 @@ function nextLevel() {
 
 // Responsive ball speed based on level (consistent across all devices)
 function getBallSpeed() {
-    // Use slow base speed for all devices for better control
-    const baseSpeed = 1; // Slow base speed for better gameplay
+    // Use realistic base speed for better gameplay feel
+    const baseSpeed = 3; // Increased from 1 to 3 for more realistic movement
     
     // Add level-based speed increase (10% per level, max 2x speed)
     const levelMultiplier = Math.min(2, 1 + (currentLevel - 1) * 0.1);
-    const finalSpeed = Math.max(1, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 1
+    const finalSpeed = Math.max(2, Math.floor(baseSpeed * levelMultiplier)); // Ensure minimum speed of 2
     
     return finalSpeed;
 }
@@ -309,14 +311,14 @@ function getBrickDimensions() {
     // Calculate responsive dimensions
     const totalHorizontalPadding = 60; // Left and right margins
     const availableWidth = canvasWidth - totalHorizontalPadding;
-    const brickPadding = Math.max(5, Math.floor(availableWidth * 0.015)); // 1.5% of available width, minimum 5px
+    const brickPadding = Math.max(2, Math.floor(availableWidth * 0.005)); // 0.5% of available width, minimum 2px (reduced gaps)
     
     // Calculate brick width to fit all bricks with padding
     const totalPaddingWidth = brickPadding * (brickColumnCount - 1);
     const brickWidth = Math.floor((availableWidth - totalPaddingWidth) / brickColumnCount);
     
     // Calculate brick height based on canvas height (responsive)
-    const brickHeight = Math.max(15, Math.floor(canvasHeight * 0.035)); // 3.5% of canvas height, minimum 15px
+    const brickHeight = Math.max(18, Math.floor(canvasHeight * 0.04)); // 4% of canvas height, minimum 18px (increased for better hit detection)
     
     // Calculate offsets to center the brick grid
     const totalBricksWidth = (brickWidth * brickColumnCount) + (brickPadding * (brickColumnCount - 1));
@@ -328,7 +330,8 @@ function getBrickDimensions() {
         brickHeight,
         brickPadding,
         brickOffsetTop,
-        brickOffsetLeft
+        brickOffsetLeft,
+        brickRowPadding: Math.max(2, Math.floor(canvasHeight * 0.005)) // Small vertical padding between rows
     };
 }
 
@@ -419,7 +422,7 @@ function collisionDetection() {
     
     // Get responsive brick dimensions
     const dimensions = getBrickDimensions();
-    const { brickWidth, brickHeight, brickPadding, brickOffsetTop, brickOffsetLeft } = dimensions;
+    const { brickWidth, brickHeight, brickPadding, brickOffsetTop, brickOffsetLeft, brickRowPadding } = dimensions;
     
     // 预计算球的边界
     const ballLeft = x - ballRadius;
@@ -430,8 +433,8 @@ function collisionDetection() {
     // 只检测球可能碰撞的砖块区域
     const startCol = Math.max(0, Math.floor((ballLeft - brickOffsetLeft) / (brickWidth + brickPadding)));
     const endCol = Math.min(brickColumnCount - 1, Math.floor((ballRight - brickOffsetLeft) / (brickWidth + brickPadding)));
-    const startRow = Math.max(0, Math.floor((ballTop - brickOffsetTop) / (brickHeight + brickPadding)));
-    const endRow = Math.min(brickRowCount - 1, Math.floor((ballBottom - brickOffsetTop) / (brickHeight + brickPadding)));
+    const startRow = Math.max(0, Math.floor((ballTop - brickOffsetTop) / (brickHeight + brickRowPadding)));
+    const endRow = Math.min(brickRowCount - 1, Math.floor((ballBottom - brickOffsetTop) / (brickHeight + brickRowPadding)));
     
     for (let c = startCol; c <= endCol; c++) {
         for (let r = startRow; r <= endRow; r++) {
@@ -537,13 +540,13 @@ function drawBricks() {
     
     // Get responsive brick dimensions
     const dimensions = getBrickDimensions();
-    const { brickWidth, brickHeight, brickPadding, brickOffsetTop, brickOffsetLeft } = dimensions;
+    const { brickWidth, brickHeight, brickPadding, brickOffsetTop, brickOffsetLeft, brickRowPadding } = dimensions;
     
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) {
             if (bricks[c][r].status == 1) {
                 let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
-                let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                let brickY = (r * (brickHeight + brickRowPadding)) + brickOffsetTop;
                 bricks[c][r].x = brickX;
                 bricks[c][r].y = brickY;
                 
@@ -732,13 +735,20 @@ function draw() {
     drawLevel();
     collisionDetection();
 
+    // Wall collision with minimal randomness to prevent perfect loops
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
         dx = -dx;
+        // Add very slight angle variation only to prevent perfect horizontal bouncing
+        dy += (Math.random() - 0.5) * 0.1;
     }
     if (y + dy < ballRadius) {
         dy = -dy;
+        // Add very slight angle variation only to prevent perfect vertical bouncing
+        dx += (Math.random() - 0.5) * 0.1;
     }
     
+    // Removed artificial loop detection - let physics handle ball movement naturally
+
     // Check paddle collision separately and more precisely
     const { paddleWidth, paddleHeight } = getPaddleDimensions();
     const paddleTop = canvas.height - paddleHeight;
@@ -748,7 +758,18 @@ function draw() {
         // Check if ball center will be within paddle horizontal bounds
         if (x >= paddleX && x <= paddleX + paddleWidth) {
             console.log('Paddle collision detected at x:', x, 'paddleX:', paddleX, 'paddleWidth:', paddleWidth);
-            dy = -dy;
+            
+            // Calculate hit position on paddle (-1 to 1, where 0 is center)
+            const hitPosition = (x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+            
+            // Calculate current ball speed
+            const currentSpeed = Math.sqrt(dx * dx + dy * dy);
+            
+            // Create new velocity with subtle angle based on hit position
+            const bounceAngle = hitPosition * Math.PI / 6; // Max 30 degrees (reduced from 45)
+            dx = Math.sin(bounceAngle) * currentSpeed * 0.8; // Reduced horizontal influence
+            dy = -Math.abs(Math.cos(bounceAngle) * currentSpeed); // Always upward
+            
             y = paddleTop - ballRadius;
             generateCollisionEffect(x, paddleTop);
             playPaddleHitSound();
