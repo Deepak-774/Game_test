@@ -2,10 +2,12 @@
 
 body {
     margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    min-height: 100vh;
     background: #0a0a0a;
     font-family: 'Orbitron', monospace;
     overflow: hidden;
@@ -557,14 +559,18 @@ body::before {
         linear-gradient(45deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
     background-repeat: repeat;
     background-size: 200px 100px;
-    animation: starField 20s linear infinite, nebula 15s ease-in-out infinite;
+    animation: nebula 15s ease-in-out infinite;
     z-index: -1;
 }
 
 #gameContainer {
     position: relative;
     animation: glow 3s ease-in-out infinite;
-    margin-bottom: 70px; /* 为底部按钮留出空间 */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @media (min-width: 769px) {

@@ -46,7 +46,7 @@ const isVerySmallScreen = () => window.innerWidth < 480;
 // 响应式 Canvas 尺寸配置
 function getOptimalCanvasSize() {
     const maxWidth = window.innerWidth - 40; // 留边距
-    const maxHeight = window.innerHeight - 120; // 为UI元素留更多空间
+    const maxHeight = window.innerHeight - 40; // Reduce UI space reservation to prevent black areas
 
     const isPortrait = window.innerHeight > window.innerWidth;
     
@@ -536,11 +536,11 @@ function drawPaddle() {
 
 function drawBricks() {
     const colors = [
-        ["#ff6b6b", "#ff5252"],
-        ["#4ecdc4", "#26a69a"],
-        ["#45b7d1", "#2196f3"],
-        ["#96ceb4", "#66bb6a"],
-        ["#feca57", "#ffb74d"]
+        { main: "#ff4757", light: "#ff6b7a", dark: "#c44569", glow: "#ff4757" }, // Red
+        { main: "#2ed573", light: "#7bed9f", dark: "#2f9e44", glow: "#2ed573" }, // Green  
+        { main: "#70a1ff", light: "#5352ed", dark: "#3742fa", glow: "#70a1ff" }, // Blue
+        { main: "#ffa502", light: "#ffb142", dark: "#ff6348", glow: "#ffa502" }, // Orange
+        { main: "#ff6348", light: "#ff7675", dark: "#e84393", glow: "#ff6348" }  // Pink
     ];
     
     // Get responsive brick dimensions
@@ -555,35 +555,70 @@ function drawBricks() {
                 bricks[c][r].x = brickX;
                 bricks[c][r].y = brickY;
                 
-                // 创建渐变效果
-                const gradient = ctx.createLinearGradient(brickX, brickY, brickX, brickY + brickHeight);
-                gradient.addColorStop(0, colors[r % colors.length][0]);
-                gradient.addColorStop(1, colors[r % colors.length][1]);
+                const color = colors[r % colors.length];
+                const cornerRadius = Math.min(brickWidth, brickHeight) * 0.15;
                 
-                // 绘制砖块主体
+                // Draw shadow first
+                ctx.save();
+                ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                
+                // Main brick body with 3D gradient
+                const mainGradient = ctx.createLinearGradient(brickX, brickY, brickX, brickY + brickHeight);
+                mainGradient.addColorStop(0, color.light);
+                mainGradient.addColorStop(0.5, color.main);
+                mainGradient.addColorStop(1, color.dark);
+                
                 ctx.beginPath();
                 if (ctx.roundRect) {
-                    ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 8);
+                    ctx.roundRect(brickX, brickY, brickWidth, brickHeight, cornerRadius);
                 } else {
-                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                    ctx.rect(brickX, brickY, brickWidth, brickHeight);
                 }
-                ctx.fillStyle = gradient;
+                ctx.fillStyle = mainGradient;
+                ctx.fill();
+                ctx.restore();
+                
+                // Inner highlight for 3D effect
+                const highlightGradient = ctx.createLinearGradient(brickX, brickY, brickX, brickY + brickHeight * 0.4);
+                highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.4)");
+                highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+                
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(brickX + 2, brickY + 2, brickWidth - 4, brickHeight * 0.4, cornerRadius - 1);
+                } else {
+                    ctx.rect(brickX + 2, brickY + 2, brickWidth - 4, brickHeight * 0.4);
+                }
+                ctx.fillStyle = highlightGradient;
                 ctx.fill();
                 
-                // 添加发光边框
-                ctx.strokeStyle = colors[r % colors.length][0];
-                ctx.lineWidth = 2;
-                ctx.shadowColor = colors[r % colors.length][0];
-                ctx.shadowBlur = 5;
+                // Glowing border
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(brickX, brickY, brickWidth, brickHeight, cornerRadius);
+                } else {
+                    ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                }
+                ctx.strokeStyle = color.glow;
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = color.glow;
+                ctx.shadowBlur = 8;
                 ctx.stroke();
                 ctx.shadowBlur = 0;
                 
-                // 添加高光效果
-                const highlightGradient = ctx.createLinearGradient(brickX, brickY, brickX, brickY + brickHeight/3);
-                highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.3)");
-                highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-                ctx.fillStyle = highlightGradient;
-                ctx.fill();
+                // Inner border for depth
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(brickX + 1, brickY + 1, brickWidth - 2, brickHeight - 2, cornerRadius - 1);
+                } else {
+                    ctx.rect(brickX + 1, brickY + 1, brickWidth - 2, brickHeight - 2);
+                }
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
                 
                 ctx.closePath();
             }
