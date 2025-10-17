@@ -539,16 +539,22 @@ function candyCrushGame() {
 
     // Process matches with smooth animations
     function processMatches(onComplete) {
-        let matchedSquares = [];
+        // Find all matches with their lengths
+        const matchGroups = findAllMatches();
         
-        // Find all matches
-        matchedSquares = matchedSquares.concat(findRowMatches());
-        matchedSquares = matchedSquares.concat(findColumnMatches());
-        
-        // Remove duplicates
-        matchedSquares = [...new Set(matchedSquares)];
-        
-        if (matchedSquares.length > 0) {
+        if (matchGroups.length > 0) {
+            let matchedSquares = [];
+            let totalScore = 0;
+            
+            // Process each match group and calculate score
+            matchGroups.forEach(group => {
+                matchedSquares = matchedSquares.concat(group.squares);
+                totalScore += calculateMatchScore(group.length);
+            });
+            
+            // Remove duplicates
+            matchedSquares = [...new Set(matchedSquares)];
+            
             // Add disappearing animation to matched pieces
             matchedSquares.forEach(index => {
                 squares[index].classList.add('disappearing');
@@ -560,8 +566,10 @@ function candyCrushGame() {
                 matchedSquares.forEach(index => {
                     squares[index].style.backgroundImage = "";
                     squares[index].classList.remove('disappearing');
-                    score += 1;
                 });
+                
+                // Update score with calculated total
+                score += totalScore;
                 scoreDisplay.innerHTML = score;
                 
                 // Move pieces down to fill gaps
@@ -577,6 +585,93 @@ function candyCrushGame() {
             // No matches found, complete
             if (onComplete) onComplete();
         }
+    }
+    
+    // Calculate score based on match length
+    function calculateMatchScore(matchLength) {
+        if (matchLength === 3) return 5;
+        if (matchLength === 4) return 10;
+        if (matchLength === 5) return 20;
+        // For 6+ pieces, double the score for each additional piece
+        return 20 * Math.pow(2, matchLength - 5);
+    }
+    
+    // Find all matches and group them by length
+    function findAllMatches() {
+        let matchGroups = [];
+        let processedSquares = new Set();
+        
+        // Check horizontal matches
+        for (let row = 0; row < width; row++) {
+            for (let col = 0; col < width - 2; col++) {
+                const startIndex = row * width + col;
+                if (processedSquares.has(startIndex)) continue;
+                
+                const color = squares[startIndex].style.backgroundImage;
+                if (!color || color === "") continue;
+                
+                let matchLength = 1;
+                let matchSquares = [startIndex];
+                
+                // Count consecutive matching pieces to the right
+                for (let i = col + 1; i < width; i++) {
+                    const checkIndex = row * width + i;
+                    if (squares[checkIndex].style.backgroundImage === color) {
+                        matchLength++;
+                        matchSquares.push(checkIndex);
+                    } else {
+                        break;
+                    }
+                }
+                
+                // If we have a match of 3 or more
+                if (matchLength >= 3) {
+                    matchGroups.push({
+                        length: matchLength,
+                        squares: matchSquares
+                    });
+                    // Mark these squares as processed
+                    matchSquares.forEach(index => processedSquares.add(index));
+                }
+            }
+        }
+        
+        // Check vertical matches
+        for (let col = 0; col < width; col++) {
+            for (let row = 0; row < width - 2; row++) {
+                const startIndex = row * width + col;
+                if (processedSquares.has(startIndex)) continue;
+                
+                const color = squares[startIndex].style.backgroundImage;
+                if (!color || color === "") continue;
+                
+                let matchLength = 1;
+                let matchSquares = [startIndex];
+                
+                // Count consecutive matching pieces downward
+                for (let i = row + 1; i < width; i++) {
+                    const checkIndex = i * width + col;
+                    if (squares[checkIndex].style.backgroundImage === color) {
+                        matchLength++;
+                        matchSquares.push(checkIndex);
+                    } else {
+                        break;
+                    }
+                }
+                
+                // If we have a match of 3 or more
+                if (matchLength >= 3) {
+                    matchGroups.push({
+                        length: matchLength,
+                        squares: matchSquares
+                    });
+                    // Mark these squares as processed
+                    matchSquares.forEach(index => processedSquares.add(index));
+                }
+            }
+        }
+        
+        return matchGroups;
     }
     
     // Find row matches
