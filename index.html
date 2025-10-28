@@ -1,63 +1,103 @@
 <!DOCTYPE html>
-<html>
-    <head lang="en">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui">
-        <meta charset="UTF-8">
-        <title>Gumball</title>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html manifest="offline.appcache" class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>My Puki (Virtual Pet)</title>
+        
+        <meta name="Title" content="My Puki (Virtual Pet)" />
+        <meta name="description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die.">
+		<meta name="keywords" content="pet, virtual, feed, play, toy, food, shop, game">
+        
+        <!-- for Facebook -->
+        <meta property="og:title" content="My Puki (Virtual Pet)"/>
+        <meta property="og:site_name" content="My Puki (Virtual Pet)"/>
+        <meta property="og:image" content="http://demonisblack.com/code/mypuki/game/share.jpg" />
+        <meta property="og:url" content="http://demonisblack.com/code/mypuki/game/" />
+        <meta property="og:description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die.">
+        
+        <!-- for Twitter -->
+        <meta name="twitter:title" content="My Puki (Virtual Pet)" />
+        <meta name="twitter:description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die." />
+        <meta name="twitter:image" content="http://demonisblack.com/code/mypuki/game/share.jpg" />
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
+		<script>
+        if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
+            var msViewportStyle = document.createElement("style");
+            msViewportStyle.appendChild(
+                document.createTextNode(
+                    "@-ms-viewport{width:device-width}"
+                )
+            );
+            document.getElementsByTagName("head")[0].
+                appendChild(msViewportStyle);
+        }
+        </script>
 
-        <link href="css/fonts.css" rel="stylesheet" type="text/css" media="all">
-        <link href="css/game.css" rel="stylesheet" type="text/css" media="all">
-
+        <link rel="shortcut icon" href="icon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
     </head>
     <body>
-        <div class="container">
-            <div class="game">
-                <canvas id="canvasGame" class="canvasGame"></canvas>
+        <!-- CONTENT START-->
+        <div id="mainHolder">
+        	<!-- BROWSER NOT SUPPORT START-->
+        	<div id="notSupportHolder">
+                <div class="notSupport">YOUR BROWSER ISN'T SUPPORTED.<br/>PLEASE UPDATE YOUR BROWSER IN ORDER TO RUN THE GAME</div>
             </div>
+            <!-- BROWSER NOT SUPPORT END-->
+            
+            <!-- ROTATE INSTRUCTION START-->
+            <div id="rotateHolder">
+                <div class="mobileRotate">
+                        <div class="rotateDesc">Rotate your device <br/>to landscape</div>
+                </div>
+            </div>
+            <!-- ROTATE INSTRUCTION END-->
+            
+            <!-- CANVAS START-->
+            <div id="canvasHolder">
+                <canvas id="gameCanvas" width="1024" height="768"></canvas>
+            </div>
+            <!-- CANVAS END-->
+            
+            <!-- PROGRESS BAR LOADER START-->
+            <div id="loaderHolder">
+            	<div class="percentHolder">
+                	<div class="percentIndicator"></div>
+                </div>
+            	<img src="assets/bgMain.jpg" />
+            </div>
+            <!-- PROGRESS BAR LOADER END-->
         </div>
+        <!-- CONTENT END-->
+        
+        <script src="jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.3.min.js"><\/script>')</script>
+        
+        <script src="js/vendor/detectmobilebrowser.js"></script>
+        <script src="js/vendor/jquery.cookie.js"></script>
+        <script src="js/vendor/preloadjs-0.6.1.min.js"></script>
+        <script src="js/vendor/easeljs-0.8.1.min.js"></script>
+        <script src="js/vendor/soundjs-0.6.1.min.js"></script>
+        
+        <script src="js/plugins.js"></script>
+        <script src="js/sound.js"></script>
+        <script src="js/canvas.js"></script>
+        <script src="js/items.js"></script>
+        <script src="js/pet.js"></script>
+        <script src="js/game.js"></script>
+        <script src="js/mobile.js"></script>
+        <script src="js/main.js"></script>
+        <script src="js/loader.js"></script>
+        <script src="js/init.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        
     </body>
-
-    <!-- wisetrack -->
-    <script>
-        var config = config || {};
-        config.language_code = 'en_GB';
-        config.wisetrack = 'WISETRACK_1732_3c3388ae75';
-    </script>
-
-    <!-- JS GAME -->
-    <script type="text/javascript" src="js/libs/createjs-2013.12.12.min.js"></script>
-    <script type="text/javascript" src="js/libs/Collision.js"></script>
-    <script type="text/javascript" src="js/libs/ndgmr.Collision.js"></script>
-    <script type="text/javascript" src="js/libs/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="js/libs/CopyParser.js"></script>
-    <script type="text/javascript" src="js/libs/SoundsManager.js"></script>
-    <script type="text/javascript" src="js/libs/matchMedia.js"></script>
-    <script type="text/javascript" src="js/libs/modernizr.js"></script>
-    <script type="text/javascript" src="js/libs/Utils.js"></script>
-
-
-    <script type="text/javascript" src="js/gumball/interface/BtnContinue.js"></script>
-    <script type="text/javascript" src="js/gumball/interface/BtnPlay.js"></script>
-    <script type="text/javascript" src="js/gumball/interface/BtnPlayAgain.js"></script>
-    <script type="text/javascript" src="js/gumball/interface/GameLogo.js"></script>
-    <script type="text/javascript" src="js/gumball/interface/SummaryScore.js"></script>
-    <script type="text/javascript" src="js/gumball/game/objects/Hero.js"></script>
-    <script type="text/javascript" src="js/gumball/game/objects/Customer.js"></script>
-    <script type="text/javascript" src="js/gumball/game/objects/Money.js"></script>
-    <script type="text/javascript" src="js/gumball/game/objects/PointsCloud.js"></script>
-    <script type="text/javascript" src="js/gumball/game/objects/Veg.js"></script>
-    <script type="text/javascript" src="js/gumball/game/Hud.js"></script>
-    <script type="text/javascript" src="js/gumball/game/Status.js"></script>
-    <script type="text/javascript" src="js/gumball/game/controllers/ControllerKeyboard.js"></script>
-    <script type="text/javascript" src="js/gumball/game/controllers/ControllerTouch.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenPreload.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenRotate.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenFront.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenInstructions.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenGame.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenSummary.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenFailed.js"></script>
-    <script type="text/javascript" src="js/gumball/screens/ScreenWin.js"></script>
-    <script type="text/javascript" src="js/gumball/Navigation.js"></script>
-    <script type="text/javascript" src="js/gumball/Main.js"></script>
 </html>
