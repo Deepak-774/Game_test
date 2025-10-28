@@ -44,6 +44,10 @@ input, input:before, input:after {
     width:640px;
     height: 960px;
     position: fixed;
+    /* Center the canvas horizontally and vertically */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     /* Ensure canvas receives touch events */
     pointer-events: auto;
 }
