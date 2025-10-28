@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Virtual Pet Game - Asset Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        // Test critical assets
+        const criticalAssets = [
+            'assets/bgMain.jpg',
+            'assets/items/comb.png',
+            'assets/items/noodle.png', 
+            'assets/items/spacesuit.png',
+            'jquery.min.js',
+            'js/vendor/jquery-1.8.3.min.js'
+        ];
+        
+        addResult('Testing critical assets...', 'info');
+        
+        criticalAssets.forEach(asset => {
+            const img = new Image();
+            const isScript = asset.endsWith('.js');
+            
+            if (isScript) {
+                fetch(asset)
+                    .then(response => {
+                        if (response.ok) {
+                            addResult(`✓ ${asset} - OK (${response.status})`, 'success');
+                        } else {
+                            addResult(`✗ ${asset} - Failed (${response.status})`, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        addResult(`✗ ${asset} - Error: ${err.message}`, 'error');
+                    });
+            } else {
+                img.onload = () => {
+                    addResult(`✓ ${asset} - OK (${img.width}x${img.height})`, 'success');
+                };
+                img.onerror = () => {
+                    addResult(`✗ ${asset} - Failed to load`, 'error');
+                };
+                img.src = asset;
+            }
+        });
+        
+        // Test jQuery loading
+        setTimeout(() => {
+            if (typeof jQuery !== 'undefined') {
+                addResult('✓ jQuery loaded successfully', 'success');
+            } else {
+                addResult('✗ jQuery failed to load', 'error');
+            }
+        }, 2000);
+    </script>
+    
+    <script src="jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.3.min.js"><\/script>')</script>
+</body>
+</html>

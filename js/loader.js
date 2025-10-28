@@ -121,6 +121,16 @@ function initPreload(){
 	loader.addEventListener("fileload", fileComplete);
 	loader.addEventListener("error",handleFileError);
 	loader.on("progress", handleProgress, this);
+	
+	// Add timeout to prevent infinite loading
+	setTimeout(function() {
+		if (!loaded) {
+			console.warn("Loading timeout reached. Starting game with available assets.");
+			console.warn("Failed assets:", failedAssets);
+			handleComplete();
+		}
+	}, 30000); // 30 second timeout
+	
 	loader.loadManifest(manifest);
 }
 
@@ -140,8 +150,13 @@ function fileComplete(evt) {
  * CANVAS FILE HANDLE EVENT - This is the function that runs to handle file error
  * 
  */
+var failedAssets = [];
 function handleFileError(evt) {
-	console.log("error ", evt);
+	console.error("Asset loading error: ", evt.item.src, evt);
+	failedAssets.push(evt.item.src);
+	
+	// Continue loading even if some assets fail
+	// The game should still be playable with missing assets
 }
 
 /*!
@@ -160,6 +175,10 @@ function handleProgress() {
  */
 function handleComplete() {
 	loaded = true;
+	console.log("Asset loading completed!");
+	if (failedAssets.length > 0) {
+		console.warn(`${failedAssets.length} assets failed to load:`, failedAssets);
+	}
 	toggleLoader(false);
 	initMain();
 };
