@@ -1,26 +1,63 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> Candy Crush</title>
+<html>
+    <head lang="en">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui">
+        <meta charset="UTF-8">
+        <title>Gumball</title>
 
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400&display=swap" rel="stylesheet">
-    <script src="script.js" charset="utf-8"></script>
-  </head>
-  <body>
-    <!-- Splash Screen -->
-    <div id="splashScreen">
-      <img src="startscreen.png" alt="Start Screen">
-    </div>
-    <!-- Scoreboard with Timer -->
-    <div class="scoreBoard">
-      <h3>score</h3>
-      <h1 id="score">0</h1>
-      <div id="timer"></div>
-    </div>
-    <!-- Game Grid -->
-    <div class="grid"></div>
-  </body>
+        <link href="css/fonts.css" rel="stylesheet" type="text/css" media="all">
+        <link href="css/game.css" rel="stylesheet" type="text/css" media="all">
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="game">
+                <canvas id="canvasGame" class="canvasGame"></canvas>
+            </div>
+        </div>
+    </body>
+
+    <!-- wisetrack -->
+    <script>
+        var config = config || {};
+        config.language_code = 'en_GB';
+        config.wisetrack = 'WISETRACK_1732_3c3388ae75';
+    </script>
+
+    <!-- JS GAME -->
+    <script type="text/javascript" src="js/libs/createjs-2013.12.12.min.js"></script>
+    <script type="text/javascript" src="js/libs/Collision.js"></script>
+    <script type="text/javascript" src="js/libs/ndgmr.Collision.js"></script>
+    <script type="text/javascript" src="js/libs/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="js/libs/CopyParser.js"></script>
+    <script type="text/javascript" src="js/libs/SoundsManager.js"></script>
+    <script type="text/javascript" src="js/libs/matchMedia.js"></script>
+    <script type="text/javascript" src="js/libs/modernizr.js"></script>
+    <script type="text/javascript" src="js/libs/Utils.js"></script>
+
+
+    <script type="text/javascript" src="js/gumball/interface/BtnContinue.js"></script>
+    <script type="text/javascript" src="js/gumball/interface/BtnPlay.js"></script>
+    <script type="text/javascript" src="js/gumball/interface/BtnPlayAgain.js"></script>
+    <script type="text/javascript" src="js/gumball/interface/GameLogo.js"></script>
+    <script type="text/javascript" src="js/gumball/interface/SummaryScore.js"></script>
+    <script type="text/javascript" src="js/gumball/game/objects/Hero.js"></script>
+    <script type="text/javascript" src="js/gumball/game/objects/Customer.js"></script>
+    <script type="text/javascript" src="js/gumball/game/objects/Money.js"></script>
+    <script type="text/javascript" src="js/gumball/game/objects/PointsCloud.js"></script>
+    <script type="text/javascript" src="js/gumball/game/objects/Veg.js"></script>
+    <script type="text/javascript" src="js/gumball/game/Hud.js"></script>
+    <script type="text/javascript" src="js/gumball/game/Status.js"></script>
+    <script type="text/javascript" src="js/gumball/game/controllers/ControllerKeyboard.js"></script>
+    <script type="text/javascript" src="js/gumball/game/controllers/ControllerTouch.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenPreload.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenRotate.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenFront.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenInstructions.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenGame.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenSummary.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenFailed.js"></script>
+    <script type="text/javascript" src="js/gumball/screens/ScreenWin.js"></script>
+    <script type="text/javascript" src="js/gumball/Navigation.js"></script>
+    <script type="text/javascript" src="js/gumball/Main.js"></script>
 </html>
