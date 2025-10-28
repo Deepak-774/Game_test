@@ -210,7 +210,19 @@ var Main = {
 
     OnLoadFilesProgress: function(e)
     {
-        ScreenPreload.SetProgress(0.8 * e.progress);
+        // Enhanced progress tracking with better granularity
+        const baseProgress = 0.6 * e.progress; // Reduced from 0.8 to make room for optimization phases
+        ScreenPreload.SetProgress(baseProgress);
+        
+        // Update external loading indicator if available
+        if (window.updateLoadingProgress) {
+            window.updateLoadingProgress(baseProgress * 100);
+        }
+        
+        // Log progress for debugging
+        if (e.progress > 0.9) {
+            console.log('Asset loading nearly complete:', Math.round(e.progress * 100) + '%');
+        }
     },
 
 
@@ -243,24 +255,50 @@ var Main = {
     LoadSounds: function()
     {
         var me = this;
-        var sounds = [];
-        sounds.push({id: "theme", src: "audio/gumball_theme.mp3"});
-        sounds.push({id: "walk", src: "audio/agnes_walk.mp3"});
-        sounds.push({id: "twinkles", src: "audio/twinkles.mp3"});
-        sounds.push({id: "pickup_candy", src: "audio/pick_up_candy.mp3"});
-        sounds.push({id: "throw_veg", src: "audio/throw_veg.mp3"});
-        sounds.push({id: "veg_splat", src: "audio/veg_splat.mp3"});
-        sounds.push({id: "collect_veg", src: "audio/pick_up_food.mp3"});
-        sounds.push({id: "fail", src: "audio/scream.mp3"});
-        sounds.push({id: "money_count", src: "audio/end_money_count.mp3"});
-
-        SoundsManager.Init(sounds, me);
+        
+        // Check if lazy loading is enabled
+        if (config.lazyLoadAudio) {
+            console.log('Audio lazy loading enabled - deferring until user interaction');
+            this.SetupLazyAudioLoading();
+            // Skip audio loading and proceed to game start
+            this.StartGame();
+            return;
+        }
+        
+        // Priority-based audio loading
+        var criticalSounds = [
+            {id: "theme", src: "audio/gumball_theme.mp3", priority: 1},
+            {id: "twinkles", src: "audio/twinkles.mp3", priority: 1}
+        ];
+        
+        var secondarySounds = [
+            {id: "walk", src: "audio/agnes_walk.mp3", priority: 2},
+            {id: "fail", src: "audio/scream.mp3", priority: 2},
+            {id: "money_count", src: "audio/end_money_count.mp3", priority: 2},
+            {id: "pickup_candy", src: "audio/pick_up_candy.mp3", priority: 3},
+            {id: "throw_veg", src: "audio/throw_veg.mp3", priority: 3},
+            {id: "veg_splat", src: "audio/veg_splat.mp3", priority: 3},
+            {id: "collect_veg", src: "audio/pick_up_food.mp3", priority: 3}
+        ];
+        
+        // Load critical sounds first, then secondary
+        var allSounds = criticalSounds.concat(secondarySounds);
+        SoundsManager.Init(allSounds, me);
     },
 
 
     OnProgressSounds: function(e)
     {
-        ScreenPreload.SetProgress(0.8 + e.progress * 0.2);
+        // Enhanced audio loading progress
+        const audioProgress = 0.6 + (e.progress * 0.3); // From 60% to 90%
+        ScreenPreload.SetProgress(audioProgress);
+        
+        // Update external loading indicator
+        if (window.updateLoadingProgress) {
+            window.updateLoadingProgress(audioProgress * 100);
+        }
+        
+        console.log('Audio loading progress:', Math.round(e.progress * 100) + '%');
     },
 
 
@@ -273,20 +311,106 @@ var Main = {
     StartGame: function()
     {
         this.s_loaded = true;
-
-        //
+        
+        // Final loading phase
+        ScreenPreload.SetProgress(0.95);
+        if (window.updateLoadingProgress) {
+            window.updateLoadingProgress(95);
+        }
+        
+        // Optimize ticker for better performance
         createjs.Ticker.setFPS(30);
-
-        //
+        createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
+        
+        // Initialize game state
         Status.Reset();
-        Navigation.ShowScreen(Navigation.SCREEN_FRONT);
-
-        //
+        
+        // Complete loading
+        setTimeout(() => {
+            ScreenPreload.SetProgress(1.0);
+            if (window.updateLoadingProgress) {
+                window.updateLoadingProgress(100);
+            }
+            
+            // Hide external loading screen
+            if (window.hideLoadingScreen) {
+                window.hideLoadingScreen();
+            }
+            
+            // Show game front screen
+            Navigation.ShowScreen(Navigation.SCREEN_FRONT);
+            
+            // Trigger service worker preloading
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'PRELOAD_GAME_ASSETS'
+                });
+            }
+            
+            console.log('Game initialization complete');
+        }, 100);
+        
         // Rotation screen disabled - allow play in any orientation
         // if ($("body").hasClass("portrait"))
         // {
         //     Navigation.ShowRotateScreen();
         // }
+    },
+
+
+    SetupLazyAudioLoading: function()
+    {
+        var me = this;
+        var audioLoaded = false;
+        
+        // Audio loading function
+        function loadAudioAssets() {
+            if (audioLoaded) return;
+            audioLoaded = true;
+            
+            console.log('Loading audio assets on user interaction...');
+            
+            var sounds = [
+                {id: "theme", src: "audio/gumball_theme.mp3"},
+                {id: "walk", src: "audio/agnes_walk.mp3"},
+                {id: "twinkles", src: "audio/twinkles.mp3"},
+                {id: "pickup_candy", src: "audio/pick_up_candy.mp3"},
+                {id: "throw_veg", src: "audio/throw_veg.mp3"},
+                {id: "veg_splat", src: "audio/veg_splat.mp3"},
+                {id: "collect_veg", src: "audio/pick_up_food.mp3"},
+                {id: "fail", src: "audio/scream.mp3"},
+                {id: "money_count", src: "audio/end_money_count.mp3"}
+            ];
+            
+            // Load audio in background
+            SoundsManager.Init(sounds, {
+                OnProgressSounds: function(e) {
+                    console.log('Background audio loading:', Math.round(e.progress * 100) + '%');
+                },
+                OnLoadSounds: function(e) {
+                    console.log('Background audio loading complete');
+                }
+            });
+        }
+        
+        // Set up event listeners for user interaction
+        var interactionEvents = ['click', 'touchstart', 'keydown'];
+        
+        function handleUserInteraction() {
+            loadAudioAssets();
+            
+            // Remove listeners after first interaction
+            interactionEvents.forEach(function(eventType) {
+                document.removeEventListener(eventType, handleUserInteraction, true);
+            });
+        }
+        
+        // Add listeners for user interaction
+        interactionEvents.forEach(function(eventType) {
+            document.addEventListener(eventType, handleUserInteraction, true);
+        });
+        
+        console.log('Lazy audio loading setup complete - waiting for user interaction');
     },
 
 
