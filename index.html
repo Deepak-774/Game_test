@@ -1,103 +1,105 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<html>
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>My Puki (Virtual Pet)</title>
-        
-        <meta name="Title" content="My Puki (Virtual Pet)" />
-        <meta name="description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die.">
-		<meta name="keywords" content="pet, virtual, feed, play, toy, food, shop, game">
-        
-        <!-- for Facebook -->
-        <meta property="og:title" content="My Puki (Virtual Pet)"/>
-        <meta property="og:site_name" content="My Puki (Virtual Pet)"/>
-        <meta property="og:image" content="http://demonisblack.com/code/mypuki/game/share.jpg" />
-        <meta property="og:url" content="http://demonisblack.com/code/mypuki/game/" />
-        <meta property="og:description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die.">
-        
-        <!-- for Twitter -->
-        <meta name="twitter:title" content="My Puki (Virtual Pet)" />
-        <meta name="twitter:description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die." />
-        <meta name="twitter:image" content="http://demonisblack.com/code/mypuki/game/share.jpg" />
-        
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
-		<script>
-        if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
-            var msViewportStyle = document.createElement("style");
-            msViewportStyle.appendChild(
-                document.createTextNode(
-                    "@-ms-viewport{width:device-width}"
-                )
-            );
-            document.getElementsByTagName("head")[0].
-                appendChild(msViewportStyle);
-        }
-        </script>
+        <title></title>
+        <link rel="stylesheet" href="css/reset.css" type="text/css">
+        <link rel="stylesheet" href="css/main.css" type="text/css">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-        <link rel="shortcut icon" href="icon.ico" type="image/x-icon">
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
-        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />
+        <meta name="msapplication-tap-highlight" content="no"/>
+
+        <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
+        <script type="text/javascript" src="js/createjs-2015.11.26.min.js"></script>
+        <script type="text/javascript" src="js/hammer.min.js"></script>
+        <script type="text/javascript" src="js/easystar-0.2.3.min.js"></script>
+        <script type="text/javascript" src="js/main.js"></script>
+        <script type="text/javascript" src="js/mobile-enhancements.js"></script>
+        
+
     </head>
-    <body>
-        <!-- CONTENT START-->
-        <div id="mainHolder">
-        	<!-- BROWSER NOT SUPPORT START-->
-        	<div id="notSupportHolder">
-                <div class="notSupport">YOUR BROWSER ISN'T SUPPORTED.<br/>PLEASE UPDATE YOUR BROWSER IN ORDER TO RUN THE GAME</div>
-            </div>
-            <!-- BROWSER NOT SUPPORT END-->
-            
-            <!-- ROTATE INSTRUCTION START-->
-            <div id="rotateHolder">
-                <div class="mobileRotate">
-                        <div class="rotateDesc">Rotate your device <br/>to landscape</div>
-                </div>
-            </div>
-            <!-- ROTATE INSTRUCTION END-->
-            
-            <!-- CANVAS START-->
-            <div id="canvasHolder">
-                <canvas id="gameCanvas" width="1024" height="768"></canvas>
-            </div>
-            <!-- CANVAS END-->
-            
-            <!-- PROGRESS BAR LOADER START-->
-            <div id="loaderHolder">
-            	<div class="percentHolder">
-                	<div class="percentIndicator"></div>
-                </div>
-            	<img src="assets/bgMain.jpg" />
-            </div>
-            <!-- PROGRESS BAR LOADER END-->
-        </div>
-        <!-- CONTENT END-->
-        
-        <script src="jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.3.min.js"><\/script>')</script>
-        
-        <script src="js/vendor/detectmobilebrowser.js"></script>
-        <script src="js/vendor/jquery.cookie.js"></script>
-        <script src="js/vendor/preloadjs-0.6.1.min.js"></script>
-        <script src="js/vendor/easeljs-0.8.1.min.js"></script>
-        <script src="js/vendor/soundjs-0.6.1.min.js"></script>
-        
-        <script src="js/plugins.js"></script>
-        <script src="js/sound.js"></script>
-        <script src="js/canvas.js"></script>
-        <script src="js/items.js"></script>
-        <script src="js/pet.js"></script>
-        <script src="js/game.js"></script>
-        <script src="js/mobile.js"></script>
-        <script src="js/main.js"></script>
-        <script src="js/loader.js"></script>
-        <script src="js/init.js"></script>
+    <body ondragstart="return false;" ondrop="return false;" >
+        <div style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%"></div>
+        <script>
+            $(document).ready(function () {
+                var oMain = new CMain({
+                    character_speed: 5, //SPEED OF CHARACTER IN MILLISECONDS
+                    enemy_speed: [1000], //SPEED OF ENEMIES IN MILLISECONDS (FIRST NUMBER, TYPE 0)
+                    life_character: 2, //START LIFE OF CHARACTER
+                    coin_score: 100, //ADD THIS VALUE TO SCORE WHEN A COIN IS TAKEN
+                    score_kill_enemy: [200, 400, 800, 1600],
+                    num_levels_for_ads: 3 //NUMBER OF TURNS PLAYED BEFORE AD SHOWING //
+                            //////// THIS FEATURE  IS ACTIVATED ONLY WITH CTL ARCADE PLUGIN./////////////////////////// 
+                            /////////////////// YOU CAN GET IT AT: ///////////////////////////////////////////////////////// 
+                            // http://codecanyon.net/item/ctl-arcade-wordpress-plugin/13856421///////////
+                });
 
-        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-        
+                $(oMain).on("start_session", function (evt) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeStartSession();
+                    }
+                });
+
+                $(oMain).on("end_session", function (evt) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeEndSession();
+                    }
+                });
+
+                $(oMain).on("start_level", function (evt, iLevel) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeStartLevel({level: iLevel});
+                    }
+                });
+
+                $(oMain).on("end_level", function (evt, iLevel) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeEndLevel({level: iLevel});
+                    }
+                });
+
+                $(oMain).on("restart_level", function (evt, iLevel) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeRestartLevel({level: iLevel});
+                    }
+                });
+
+                $(oMain).on("save_score", function (evt, iScore) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeSaveScore({score: iScore});
+                    }
+                });
+
+                $(oMain).on("show_interlevel_ad", function (evt) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeShowInterlevelAD();
+                    }
+                });
+
+                $(oMain).on("share_event", function (evt, iScore) {
+                    if (getParamValue('ctl-arcade') === "true") {
+                        parent.__ctlArcadeShareEvent({img: TEXT_SHARE_IMAGE,
+                            title: TEXT_SHARE_TITLE,
+                            msg: TEXT_SHARE_MSG1 + iScore
+                                    + TEXT_SHARE_MSG2,
+                            msg_share: TEXT_SHARE_SHARE1
+                                    + iScore + TEXT_SHARE_SHARE1});
+                    }
+                });
+
+                if (isIOS()) {
+                    setTimeout(function () {
+                        sizeHandler();
+                    }, 200);
+                } else {
+                    sizeHandler();
+                }
+            });
+
+        </script>
+        <canvas id="canvas" class='ani_hack' width="960" height="1440"> </canvas>
+
+        <div id="block_game" style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%; display:none"></div>
+
     </body>
 </html>
