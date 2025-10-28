@@ -13,12 +13,16 @@ root {
 body{
     background-color: #000;
     background-repeat: repeat-x;
-    background-position: top;
+    background-position: center;
     /* Prevent body scrolling to allow swipe gestures on canvas */
     overflow: hidden;
     position: fixed;
     width: 100%;
     height: 100%;
+    /* Center canvas container */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 *, *:before, *:after {
@@ -43,13 +47,13 @@ input, input:before, input:after {
 #canvas{
     width:640px;
     height: 960px;
-    position: fixed;
-    /* Center the canvas horizontally and vertically */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
     /* Ensure canvas receives touch events */
     pointer-events: auto;
+    /* Center canvas within viewport - override JavaScript positioning */
+    margin: auto;
+    left: 0 !important;
+    top: 0 !important;
 }
 
 canvas {
@@ -75,6 +79,15 @@ canvas {
     user-select: none;
     outline: none;
     -webkit-tap-highlight-color: transparent; /* mobile webkit */
+}
+
+#block_game {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 9999;
 }
 
 /***************FONTS*******************/
