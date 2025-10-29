@@ -1,104 +1,183 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Nugget Seeker Adventure</title>
-        <link rel="stylesheet" href="css/reset.css" type="text/css">
-        <link rel="stylesheet" href="css/main.css" type="text/css">
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />
-        <meta name="msapplication-tap-highlight" content="no"/>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
-        <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
-        <script type="text/javascript" src="js/createjs-2015.11.26.min.js"></script>
-        <script type="text/javascript" src="js/hammer.min.js"></script>
-        <script type="text/javascript" src="js/easystar-0.2.3.min.js"></script>
-        <script type="text/javascript" src="js/main.js"></script>
+<head><base href='./' />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" />
+    <title>Connect Me</title>
+    
+    <style type="text/css">
+        body
+        {
+            padding: 0;
+            margin: 0;
+            background: #000000;
+            color: white;
+            font: 1em/2em Arial, Helvetica;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-    </head>
-    <body ondragstart="return false;" ondrop="return false;" >
-        <div style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%"></div>
-        <script>
-            $(document).ready(function () {
-                var oMain = new CMain({
-                    character_speed: 5, //SPEED OF CHARACTER IN MILLISECONDS
-                    enemy_speed: [1000], //SPEED OF ENEMIES IN MILLISECONDS (FIRST NUMBER, TYPE 0)
-                    life_character: 2, //START LIFE OF CHARACTER
-                    coin_score: 100, //ADD THIS VALUE TO SCORE WHEN A COIN IS TAKEN
-                    score_kill_enemy: [200, 400, 800, 1600],
-                    num_levels_for_ads: 3 //NUMBER OF TURNS PLAYED BEFORE AD SHOWING //
-                            //////// THIS FEATURE  IS ACTIVATED ONLY WITH CTL ARCADE PLUGIN./////////////////////////// 
-                            /////////////////// YOU CAN GET IT AT: ///////////////////////////////////////////////////////// 
-                            // http://codecanyon.net/item/ctl-arcade-wordpress-plugin/13856421///////////
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: rgb(0, 0, 0, 0);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        canvas {
+            touch-action: manipulation !important;
+            -webkit-touch-action: manipulation !important;
+            -ms-touch-action: manipulation !important;
+        }
+    </style>
+
+    <script src="js/phaser.af.min.js"></script>
+    <script src="js/game.min.js"></script>
+    
+    <script>
+        // Aggressive sound button fix - monitor and invert the muted state
+        (function() {
+            let realMutedState = false; // Our true state: false = playing, true = muted
+            let isFixActive = false;
+            
+            // Wait for game to load
+            setTimeout(function() {
+                console.log('=== SOUND FIX INITIALIZING ===');
+                
+                // Find canvas for touch handling
+                const canvases = document.querySelectorAll('canvas');
+                canvases.forEach(function(canvas) {
+                    canvas.style.touchAction = 'manipulation';
+                    canvas.style.webkitTouchAction = 'manipulation';
                 });
-
-                $(oMain).on("start_session", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeStartSession();
-                    }
-                });
-
-                $(oMain).on("end_session", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeEndSession();
-                    }
-                });
-
-                $(oMain).on("start_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeStartLevel({level: iLevel});
-                    }
-                });
-
-                $(oMain).on("end_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeEndLevel({level: iLevel});
-                    }
-                });
-
-                $(oMain).on("restart_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeRestartLevel({level: iLevel});
-                    }
-                });
-
-                $(oMain).on("save_score", function (evt, iScore) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeSaveScore({score: iScore});
-                    }
-                });
-
-                $(oMain).on("show_interlevel_ad", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeShowInterlevelAD();
-                    }
-                });
-
-                $(oMain).on("share_event", function (evt, iScore) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeShareEvent({img: TEXT_SHARE_IMAGE,
-                            title: TEXT_SHARE_TITLE,
-                            msg: TEXT_SHARE_MSG1 + iScore
-                                    + TEXT_SHARE_MSG2,
-                            msg_share: TEXT_SHARE_SHARE1
-                                    + iScore + TEXT_SHARE_SHARE1});
-                    }
-                });
-
-                if (isIOS()) {
-                    setTimeout(function () {
-                        sizeHandler();
-                    }, 200);
-                } else {
-                    sizeHandler();
+                
+                // Monitor and intercept the muted variable
+                if (typeof window.muted !== 'undefined') {
+                    console.log('Found window.muted, initial value:', window.muted);
+                    
+                    // Store the initial state - invert it for UI
+                    realMutedState = window.muted;
+                    
+                    // Create a property that inverts the UI but keeps audio correct
+                    let internalMuted = window.muted;
+                    
+                    Object.defineProperty(window, 'muted', {
+                        get: function() {
+                            // Return the real state for UI
+                            return realMutedState;
+                        },
+                        set: function(value) {
+                            console.log('=== BUTTON CLICKED ===');
+                            console.log('Game toggling muted to:', value);
+                            
+                            // Store the value directly
+                            realMutedState = value;
+                            console.log('UI shows X:', realMutedState ? 'YES (muted)' : 'NO (playing)');
+                            console.log('Audio state:', realMutedState ? 'MUTED' : 'PLAYING');
+                            
+                            // Control audio with the same state (no inversion)
+                            controlAudio(realMutedState);
+                        },
+                        configurable: true
+                    });
+                    
+                    isFixActive = true;
+                    console.log('=== SOUND FIX ACTIVE ===');
+                    console.log('Expected: X visible = MUTED, No X = PLAYING');
                 }
-            });
+                
+                // Don't override the functions - let them work normally
+                console.log('Keeping original resumeMusic and pauseMusic functions');
+                
+                // Periodically check for music object
+                const checkMusicInterval = setInterval(function() {
+                    if (window.music) {
+                        console.log('Music object found!');
+                        // Apply current muted state to music
+                        if (realMutedState) {
+                            window.music.stop();
+                            console.log('Initial state: music stopped (muted)');
+                        }
+                        clearInterval(checkMusicInterval);
+                    }
+                }, 100);
+                
+                // Clear interval after 5 seconds
+                setTimeout(function() {
+                    clearInterval(checkMusicInterval);
+                }, 5000);
+                
+            }, 1000);
+            
+            function controlAudio(shouldMute) {
+                console.log('=== CONTROLLING AUDIO ===');
+                console.log('Should mute:', shouldMute);
+                
+                // Control HTML5 audio elements
+                const audioElements = document.querySelectorAll('audio');
+                console.log('Found', audioElements.length, 'audio elements');
+                audioElements.forEach(function(audio) {
+                    audio.muted = shouldMute;
+                    if (shouldMute) {
+                        audio.pause();
+                        console.log('Paused audio element');
+                    } else {
+                        audio.play().catch(function(e) {
+                            console.log('Audio play prevented:', e.message);
+                        });
+                    }
+                });
+                
+                // Control Phaser sound if available
+                try {
+                    if (window.game && window.game.sound) {
+                        window.game.sound.mute = shouldMute;
+                        console.log('Set Phaser game.sound.mute to', shouldMute);
+                    }
+                } catch(e) {
+                    console.log('Could not control Phaser sound:', e.message);
+                }
+                
+                // Control music object directly - this is the key!
+                try {
+                    if (window.music) {
+                        console.log('Found window.music object');
+                        if (shouldMute) {
+                            window.music.stop();
+                            console.log('Called music.stop()');
+                        } else {
+                            // Use restart with parameters from original resumeMusic
+                            window.music.restart("", 0, 0.5, true);
+                            console.log('Called music.restart()');
+                        }
+                    } else {
+                        console.log('window.music not found yet');
+                    }
+                } catch(e) {
+                    console.log('Error controlling music object:', e.message);
+                }
+                
+                console.log('=== AUDIO CONTROL COMPLETE ===');
+            }
+        })();
+    </script>
+</head>
 
-        </script>
-        <canvas id="canvas" class='ani_hack' width="960" height="1440"> </canvas>
+<body>
+    <div id="game"></div>
+</body>
 
-        <div id="block_game" style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%; display:none"></div>
-
-    </body>
 </html>
