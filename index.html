@@ -1,183 +1,95 @@
 <!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-
-<head><base href='./' />
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" />
-    <title>Connect Me</title>
-    
-    <style type="text/css">
-        body
-        {
-            padding: 0;
-            margin: 0;
-            background: #000000;
-            color: white;
-            font: 1em/2em Arial, Helvetica;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html manifest="offline.appcache" class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>My Puki (Virtual Pet)</title>
+        
+        <meta name="Title" content="My Puki (Virtual Pet)" />
+        <meta name="description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die.">
+		<meta name="keywords" content="pet, virtual, feed, play, toy, food, shop, game">
+        
+        <!-- for Facebook -->
+        <meta property="og:title" content="My Puki (Virtual Pet)"/>
+        <meta property="og:site_name" content="My Puki (Virtual Pet)"/>
+        <meta property="og:image" content="http://demonisblack.com/code/mypuki/game/share.jpg" />
+        <meta property="og:url" content="http://demonisblack.com/code/mypuki/game/" />
+        <meta property="og:description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die.">
+        
+        <!-- for Twitter -->
+        <meta name="twitter:title" content="My Puki (Virtual Pet)" />
+        <meta name="twitter:description" content="My Puki is a virtual pet HTML5 game where you can take care of Puki by feed and play with, the more you interact with Puki the more XP will earn to help purchase new extra items, be sure to fulfill your Puki needs meter or else Puki will be sad and die." />
+        <meta name="twitter:image" content="http://demonisblack.com/code/mypuki/game/share.jpg" />
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<script>
+        if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
+            var msViewportStyle = document.createElement("style");
+            msViewportStyle.appendChild(
+                document.createTextNode(
+                    "@-ms-viewport{width:device-width}"
+                )
+            );
+            document.getElementsByTagName("head")[0].
+                appendChild(msViewportStyle);
         }
+        </script>
 
-        * {
-            user-select: none;
-            -webkit-tap-highlight-color: rgb(0, 0, 0, 0);
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        canvas {
-            touch-action: manipulation !important;
-            -webkit-touch-action: manipulation !important;
-            -ms-touch-action: manipulation !important;
-        }
-    </style>
-
-    <script src="js/phaser.af.min.js"></script>
-    <script src="js/game.min.js"></script>
-    
-    <script>
-        // Aggressive sound button fix - monitor and invert the muted state
-        (function() {
-            let realMutedState = false; // Our true state: false = playing, true = muted
-            let isFixActive = false;
+        <link rel="shortcut icon" href="icon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+        <!-- CONTENT START-->
+        <div id="mainHolder">
+        	<!-- BROWSER NOT SUPPORT START-->
+        	<div id="notSupportHolder">
+                <div class="notSupport">YOUR BROWSER ISN'T SUPPORTED.<br/>PLEASE UPDATE YOUR BROWSER IN ORDER TO RUN THE GAME</div>
+            </div>
+            <!-- BROWSER NOT SUPPORT END-->
             
-            // Wait for game to load
-            setTimeout(function() {
-                console.log('=== SOUND FIX INITIALIZING ===');
-                
-                // Find canvas for touch handling
-                const canvases = document.querySelectorAll('canvas');
-                canvases.forEach(function(canvas) {
-                    canvas.style.touchAction = 'manipulation';
-                    canvas.style.webkitTouchAction = 'manipulation';
-                });
-                
-                // Monitor and intercept the muted variable
-                if (typeof window.muted !== 'undefined') {
-                    console.log('Found window.muted, initial value:', window.muted);
-                    
-                    // Store the initial state - invert it for UI
-                    realMutedState = window.muted;
-                    
-                    // Create a property that inverts the UI but keeps audio correct
-                    let internalMuted = window.muted;
-                    
-                    Object.defineProperty(window, 'muted', {
-                        get: function() {
-                            // Return the real state for UI
-                            return realMutedState;
-                        },
-                        set: function(value) {
-                            console.log('=== BUTTON CLICKED ===');
-                            console.log('Game toggling muted to:', value);
-                            
-                            // Store the value directly
-                            realMutedState = value;
-                            console.log('UI shows X:', realMutedState ? 'YES (muted)' : 'NO (playing)');
-                            console.log('Audio state:', realMutedState ? 'MUTED' : 'PLAYING');
-                            
-                            // Control audio with the same state (no inversion)
-                            controlAudio(realMutedState);
-                        },
-                        configurable: true
-                    });
-                    
-                    isFixActive = true;
-                    console.log('=== SOUND FIX ACTIVE ===');
-                    console.log('Expected: X visible = MUTED, No X = PLAYING');
-                }
-                
-                // Don't override the functions - let them work normally
-                console.log('Keeping original resumeMusic and pauseMusic functions');
-                
-                // Periodically check for music object
-                const checkMusicInterval = setInterval(function() {
-                    if (window.music) {
-                        console.log('Music object found!');
-                        // Apply current muted state to music
-                        if (realMutedState) {
-                            window.music.stop();
-                            console.log('Initial state: music stopped (muted)');
-                        }
-                        clearInterval(checkMusicInterval);
-                    }
-                }, 100);
-                
-                // Clear interval after 5 seconds
-                setTimeout(function() {
-                    clearInterval(checkMusicInterval);
-                }, 5000);
-                
-            }, 1000);
+            <!-- CANVAS START-->
+            <div id="canvasHolder">
+                <canvas id="gameCanvas" width="1024" height="768"></canvas>
+            </div>
+            <!-- CANVAS END-->
             
-            function controlAudio(shouldMute) {
-                console.log('=== CONTROLLING AUDIO ===');
-                console.log('Should mute:', shouldMute);
-                
-                // Control HTML5 audio elements
-                const audioElements = document.querySelectorAll('audio');
-                console.log('Found', audioElements.length, 'audio elements');
-                audioElements.forEach(function(audio) {
-                    audio.muted = shouldMute;
-                    if (shouldMute) {
-                        audio.pause();
-                        console.log('Paused audio element');
-                    } else {
-                        audio.play().catch(function(e) {
-                            console.log('Audio play prevented:', e.message);
-                        });
-                    }
-                });
-                
-                // Control Phaser sound if available
-                try {
-                    if (window.game && window.game.sound) {
-                        window.game.sound.mute = shouldMute;
-                        console.log('Set Phaser game.sound.mute to', shouldMute);
-                    }
-                } catch(e) {
-                    console.log('Could not control Phaser sound:', e.message);
-                }
-                
-                // Control music object directly - this is the key!
-                try {
-                    if (window.music) {
-                        console.log('Found window.music object');
-                        if (shouldMute) {
-                            window.music.stop();
-                            console.log('Called music.stop()');
-                        } else {
-                            // Use restart with parameters from original resumeMusic
-                            window.music.restart("", 0, 0.5, true);
-                            console.log('Called music.restart()');
-                        }
-                    } else {
-                        console.log('window.music not found yet');
-                    }
-                } catch(e) {
-                    console.log('Error controlling music object:', e.message);
-                }
-                
-                console.log('=== AUDIO CONTROL COMPLETE ===');
-            }
-        })();
-    </script>
-</head>
+            <!-- PROGRESS BAR LOADER START-->
+            <div id="loaderHolder">
+            	<div class="percentHolder">
+                	<div class="percentIndicator"></div>
+                </div>
+            	<img src="assets/bgMain.jpg" />
+            </div>
+            <!-- PROGRESS BAR LOADER END-->
+        </div>
+        <!-- CONTENT END-->
+        
+        <script src="jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.3.min.js"><\/script>')</script>
+        
+        <script src="js/vendor/detectmobilebrowser.js"></script>
+        <script src="js/vendor/jquery.cookie.js"></script>
+        <script src="js/vendor/preloadjs-0.6.1.min.js"></script>
+        <script src="js/vendor/easeljs-0.8.1.min.js"></script>
+        <script src="js/vendor/soundjs-0.6.1.min.js"></script>
+        
+        <script src="js/plugins.js"></script>
+        <script src="js/sound.js"></script>
+        <script src="js/canvas.js"></script>
+        <script src="js/items.js"></script>
+        <script src="js/pet.js"></script>
+        <script src="js/game.js"></script>
+        <script src="js/mobile.js"></script>
+        <script src="js/main.js"></script>
+        <script src="js/loader.js"></script>
+        <script src="js/init.js"></script>
 
-<body>
-    <div id="game"></div>
-</body>
-
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        
+    </body>
 </html>
