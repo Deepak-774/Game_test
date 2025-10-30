@@ -31,58 +31,10 @@
         }
         canvas {
             display: block;
-            /* High-quality image rendering for crisp graphics */
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
-            /* Prevent blurring on high-DPI displays */
-            -ms-interpolation-mode: nearest-neighbor;
         }
     </style>
 </head>
 <body style="padding:0; margin: 0; background: #000;">
 <canvas id="gameCanvas" width="document.window.width" height="document.window.height"></canvas>
-<script>
-    // High-DPI display support for crisp image quality
-    (function() {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Get device pixel ratio (2x for Retina, 3x for some mobiles, etc.)
-        const dpr = window.devicePixelRatio || 1;
-        
-        // Function to setup high-DPI canvas
-        function setupHighDPICanvas() {
-            // Get CSS size of canvas
-            const rect = canvas.getBoundingClientRect();
-            
-            // Set actual canvas size (accounting for device pixel ratio)
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            
-            // Set CSS display size
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
-            
-            // Scale context to match device pixel ratio
-            ctx.scale(dpr, dpr);
-            
-            console.log('Canvas initialized with DPR:', dpr, 'Size:', canvas.width, 'x', canvas.height);
-        }
-        
-        // Wait for window to fully load before setting up canvas
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(setupHighDPICanvas, 100);
-            });
-        } else {
-            setTimeout(setupHighDPICanvas, 100);
-        }
-        
-        // Handle window resize for responsive high-DPI
-        window.addEventListener('resize', setupHighDPICanvas);
-    })();
-</script>
 <script src="RS_TrashNDash.js"></script>
 <body></html>
