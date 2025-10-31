@@ -208,82 +208,25 @@
 		
 	</style>
 	<meta name="description" content="Star Blaster - Epic Space Shooter Game"/>
+	<!-- Direct Audio Fix: Simple HTML5 Audio solution -->
+	<script type="text/javascript" src="direct-audio-fix.js"></script>
+	<script type="text/javascript" src="xtype.js"></script>
 	<script type="text/javascript">
-		// CRITICAL: Enable sound BEFORE game initializes
+		// Disable pause menu completely
 		(function() {
-			// Set ig.Sound.enabled to true as soon as ig.Sound exists
-			var soundCheckInterval = setInterval(function() {
-				if (window.ig && window.ig.Sound) {
-					window.ig.Sound.enabled = true;
-					console.log('✓ PRE-INIT: ig.Sound.enabled = true');
-					clearInterval(soundCheckInterval);
-				}
-			}, 10);
-			
-			// Patch ig.main to enable sound before soundManager is created
-			var mainCheckInterval = setInterval(function() {
-				if (window.ig && window.ig.main && !window.ig.mainPatched) {
-					var originalMain = window.ig.main;
-					window.ig.main = function() {
-						console.log('🎵 INTERCEPTING ig.main - PRE-ENABLING SOUND');
-						if (window.ig && window.ig.Sound) {
-							window.ig.Sound.enabled = true;
-							console.log('✓ ig.Sound.enabled = true (before soundManager)');
-						}
-						return originalMain.apply(this, arguments);
-					};
-					window.ig.mainPatched = true;
-					console.log('✓ ig.main patched successfully');
-					clearInterval(mainCheckInterval);
-				}
-			}, 10);
-			
-			// ALSO patch XType.startGame for mobile sound disable
-			var originalXTypeStartGame = null;
 			var checkInterval = setInterval(function() {
-				if (window.XType && window.XType.startGame && !originalXTypeStartGame) {
-					originalXTypeStartGame = window.XType.startGame;
-					window.XType.startGame = function() {
-						console.log('🎵 INTERCEPTING XType.startGame - FORCING SOUND ENABLED');
-						
-						// Force enable BEFORE calling original
-						if (window.ig && window.ig.Sound) {
-							window.ig.Sound.enabled = true;
-							console.log('✓ ig.Sound.enabled = true (pre-startGame)');
-						}
-						
-						// Call original
-						var result = originalXTypeStartGame.apply(this, arguments);
-						
-						// Force enable sound immediately after
-						if (window.ig && window.ig.Sound) {
-							window.ig.Sound.enabled = true;
-							console.log('✓ ig.Sound.enabled = true (post-startGame)');
-						}
-						
-						// Force enable continuously for 3 seconds
-						var enableCount = 0;
-						var forceInterval = setInterval(function() {
-							enableCount++;
-							if (window.ig && window.ig.Sound) {
-								window.ig.Sound.enabled = true;
-							}
-							if (enableCount >= 30) {
-								clearInterval(forceInterval);
-								console.log('✓ Sound force-enable complete (3 seconds)');
-							}
-						}, 100);
-						
-						return result;
+				if (window.ig && window.ig.game && window.ig.game.toggleMenu) {
+					// Override toggleMenu to do nothing
+					window.ig.game.toggleMenu = function() {
+						console.log('Pause menu disabled');
+						// Do nothing - pause is disabled
 					};
-					console.log('✓ XType.startGame patched successfully');
+					console.log('✓ Pause menu functionality DISABLED');
 					clearInterval(checkInterval);
 				}
-			}, 50);
+			}, 100);
 		})();
 	</script>
-	<script type="text/javascript" src="xtype.js"></script>
-	<script type="text/javascript" src="mobile-audio-fix.js"></script>
 	<script type="text/javascript">
 		// Sound control system
 		var gameSoundMuted = false;
@@ -320,49 +263,15 @@
 					e.stopPropagation();
 				}
 				
-				gameSoundMuted = !gameSoundMuted;
-				
-				if (window.ig && window.ig.soundManager) {
-					// Keep volume at 100%, just mute all sounds
-					if (gameSoundMuted) {
-						// Mute all audio clips
-						for (var path in window.ig.soundManager.clips) {
-							var channels = window.ig.soundManager.clips[path];
-							for (var i = 0; i < channels.length; i++) {
-								channels[i].muted = true;
-							}
-						}
-					} else {
-						// Unmute all audio clips
-						for (var path in window.ig.soundManager.clips) {
-							var channels = window.ig.soundManager.clips[path];
-							for (var i = 0; i < channels.length; i++) {
-								channels[i].muted = false;
-							}
-						}
-					}
-					// Keep volume at 100%
-					window.ig.soundManager.volume = 1.0;
-				}
-				
-				if (window.ig && window.ig.music) {
-					if (gameSoundMuted) {
-						// Mute music tracks
-						for (var i = 0; i < window.ig.music.tracks.length; i++) {
-							window.ig.music.tracks[i].muted = true;
-						}
-					} else {
-						// Unmute music tracks
-						for (var i = 0; i < window.ig.music.tracks.length; i++) {
-							window.ig.music.tracks[i].muted = false;
-						}
-					}
-					// Keep volume at 100%
-					window.ig.music.volume = 1.0;
+				// Use direct audio fix toggle if available
+				if (window.toggleGameSound) {
+					gameSoundMuted = !window.toggleGameSound();
+				} else {
+					gameSoundMuted = !gameSoundMuted;
 				}
 				
 				updateButton();
-				console.log('Sound ' + (gameSoundMuted ? 'MUTED' : 'UNMUTED') + ' (Volume kept at 100%)');
+				console.log('Sound ' + (gameSoundMuted ? 'MUTED' : 'UNMUTED'));
 			}
 			
 			// Multiple event types for webview compatibility
@@ -405,90 +314,7 @@
 			}
 		}
 		
-		// Mobile audio context initialization (required for autoplay policy)
-		var audioInitialized = false;
-		function initMobileAudio() {
-			if (audioInitialized) return;
-			audioInitialized = true;
-			
-			console.log('=== INITIALIZING MOBILE AUDIO ===');
-			
-			// Force enable sound
-			if (window.ig && window.ig.Sound) {
-				window.ig.Sound.enabled = true;
-				console.log('✓ ig.Sound.enabled = true');
-			}
-			
-			// Initialize sound manager
-			if (window.ig && window.ig.soundManager) {
-				window.ig.soundManager.volume = 1.0;
-				console.log('✓ soundManager volume = 1.0');
-				
-				// Unlock all audio clips
-				if (window.ig.soundManager.clips) {
-					for (var path in window.ig.soundManager.clips) {
-						var channels = window.ig.soundManager.clips[path];
-						for (var i = 0; i < channels.length; i++) {
-							try {
-								var audio = channels[i];
-								audio.muted = false;
-								audio.volume = 1.0;
-								audio.play().then(function() {
-									audio.pause();
-									audio.currentTime = 0;
-									console.log('✓ Audio clip unlocked');
-								}).catch(function(e) {
-									console.log('Audio unlock attempt:', e);
-								});
-							} catch(e) {
-								console.log('Audio init error:', e);
-							}
-						}
-					}
-				}
-			}
-			
-			// Initialize music
-			if (window.ig && window.ig.music) {
-				window.ig.music.volume = 1.0;
-				console.log('✓ music volume = 1.0');
-				
-				// Unlock music tracks
-				if (window.ig.music.tracks) {
-					for (var i = 0; i < window.ig.music.tracks.length; i++) {
-						try {
-							var track = window.ig.music.tracks[i];
-							track.muted = false;
-							track.volume = 1.0;
-							track.play().then(function() {
-								track.pause();
-								track.currentTime = 0;
-								console.log('✓ Music track unlocked');
-							}).catch(function(e) {
-								console.log('Music unlock attempt:', e);
-							});
-						} catch(e) {
-							console.log('Music init error:', e);
-						}
-					}
-				}
-			}
-			
-			console.log('=== MOBILE AUDIO INITIALIZED ===');
-			
-			// Keep trying to enable sound every 100ms for 5 seconds
-			var attempts = 0;
-			var enableInterval = setInterval(function() {
-				attempts++;
-				if (window.ig && window.ig.Sound) {
-					window.ig.Sound.enabled = true;
-				}
-				if (attempts >= 50) {
-					clearInterval(enableInterval);
-					console.log('Sound enable enforcement stopped after 5 seconds');
-				}
-			}, 100);
-		}
+		// NOTE: Mobile audio initialization is now handled by mobile-audio-fix.js
 		
 		// Hide the Sound Menu item from title screen
 		function hideSoundMenuItem() {
@@ -503,47 +329,8 @@
 			}
 		}
 		
-		// Diagnostic function to check audio system
-		function diagnoseAudioSystem() {
-			console.log('=== AUDIO SYSTEM DIAGNOSIS ===');
-			console.log('1. ig.Sound.enabled:', window.ig && window.ig.Sound ? window.ig.Sound.enabled : 'N/A');
-			console.log('2. ig.ua.mobile:', window.ig && window.ig.ua ? window.ig.ua.mobile : 'N/A');
-			console.log('3. ig.soundManager exists:', !!(window.ig && window.ig.soundManager));
-			if (window.ig && window.ig.soundManager) {
-				console.log('4. soundManager.format:', window.ig.soundManager.format);
-				console.log('5. soundManager.volume:', window.ig.soundManager.volume);
-				console.log('6. soundManager.clips count:', Object.keys(window.ig.soundManager.clips).length);
-				
-				// Check if format is null (sound disabled during init)
-				if (!window.ig.soundManager.format) {
-					console.error('⚠️ CRITICAL: soundManager.format is NULL - sound was disabled during initialization!');
-					console.log('🔧 Attempting to re-initialize soundManager...');
-					
-					// Try to re-initialize
-					if (window.ig.SoundManager) {
-						try {
-							window.ig.soundManager = new window.ig.SoundManager();
-							console.log('✓ soundManager re-initialized');
-							console.log('   New format:', window.ig.soundManager.format);
-						} catch(e) {
-							console.error('❌ Failed to re-initialize:', e);
-						}
-					}
-				}
-			}
-			console.log('7. ig.music exists:', !!(window.ig && window.ig.music));
-			if (window.ig && window.ig.music) {
-				console.log('8. music tracks count:', window.ig.music.tracks ? window.ig.music.tracks.length : 0);
-				console.log('9. music volume:', window.ig.music.volume);
-			}
-			
-			// Test audio support
-			var audio = new Audio();
-			console.log('10. OGG support:', audio.canPlayType('audio/ogg; codecs=vorbis'));
-			console.log('11. MP3 support:', audio.canPlayType('audio/mpeg'));
-			console.log('12. M4A support:', audio.canPlayType('audio/mp4; codecs=mp4a'));
-			console.log('=== END DIAGNOSIS ===');
-		}
+		// NOTE: Audio is handled by direct-audio-fix.js
+		// Use toggleGameSound() in console to toggle sound on/off
 		
 		// Initialize when page loads
 		window.addEventListener('load', function() {
@@ -551,49 +338,15 @@
 			setTimeout(hideSoundMenuItem, 500);
 			setTimeout(hideSoundMenuItem, 1500);
 			
-			// Enable sound on mobile (override the ig.Sound.enabled=false in xtype.js)
-			setTimeout(function() {
-				if (window.ig && window.ig.Sound) {
-					window.ig.Sound.enabled = true;
-					console.log('✓ Mobile sound ENABLED on load');
-				}
-				
-				// Run diagnostics
-				setTimeout(diagnoseAudioSystem, 500);
-			}, 100);
-			
-			// Add listeners for mobile audio initialization on ANY interaction
-			document.addEventListener('touchstart', initMobileAudio, { passive: true });
-			document.addEventListener('touchend', initMobileAudio, { passive: true });
-			document.addEventListener('touchmove', initMobileAudio, { passive: true });
-			document.addEventListener('click', initMobileAudio, { passive: true });
-			document.addEventListener('pointerdown', initMobileAudio, { passive: true });
-			
-			// Also trigger on canvas interaction specifically
-			setTimeout(function() {
-				var canvas = document.getElementById('canvas');
-				if (canvas) {
-					canvas.addEventListener('touchstart', initMobileAudio, { passive: true });
-					canvas.addEventListener('click', initMobileAudio, { passive: true });
-					console.log('Canvas audio triggers added');
-				}
-			}, 500);
-			
+			// NOTE: Audio initialization is handled by direct-audio-fix.js
+			// This only sets up the mute button UI
 			setTimeout(function() {
 				setupMuteButton();
 				
-				// Check button visibility periodically
+				// Check button visibility and enforce volume periodically
 				setInterval(function() {
 					updateMuteButtonVisibility();
 					enforceSoundVolume(); // Keep enforcing 100% volume
-					
-					// Continuously force enable sound on mobile
-					if (window.ig && window.ig.Sound && window.ig.ua && window.ig.ua.mobile) {
-						if (!window.ig.Sound.enabled) {
-							window.ig.Sound.enabled = true;
-							console.log('Re-enabling mobile sound');
-						}
-					}
 				}, 500);
 			}, 1000);
 		});
