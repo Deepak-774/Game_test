@@ -1,134 +1,106 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html manifest="offline.appcache">
-    <head>
-        <title></title>
-        <link rel="stylesheet" href="css/reset.css" type="text/css">
-        <link rel="stylesheet" href="css/main.css" type="text/css">
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<head>
+    <meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>Acselo</title>
+	
+	<!-- Standardised web app manifest -->
+	<link rel="manifest" href="appmanifest.json" />
+	
+	<!-- Allow fullscreen mode on iOS devices. (These are Apple specific meta tags.) -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
+	<meta name="HandheldFriendly" content="true" />
+	
+	<!-- Chrome for Android web app tags -->
+	<meta name="mobile-web-app-capable" content="yes" />
+	<link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
 
-        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0,minimal-ui" />
-        <meta name="msapplication-tap-highlight" content="no"/>
+    <!-- All margins and padding must be zero for the canvas to fill the screen. -->
+	<style type="text/css">
+		* {
+			padding: 0;
+			margin: 0;
+		}
+		html, body {
+			background: #000;
+			color: #fff;
+			overflow: hidden;
+			touch-action: none;
+			-ms-touch-action: none;
+		}
+		canvas {
+			touch-action-delay: none;
+			touch-action: none;
+			-ms-touch-action: none;
+		}
+    </style>
+	
+	<link href="animate.min.css" rel="stylesheet" type="text/css" />
 
-        <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
-        <script type="text/javascript" src="js/createjs-2014.12.12.min.js"></script>
-        <script type="text/javascript" src="js/main.js"></script>
+</head> 
+ 
+<body> 
+	<div id="fb-root"></div>
+	
+	<!-- The canvas must be inside a div called c2canvasdiv -->
+	<div id="c2canvasdiv">
+	
+		<!-- The canvas the project will render to.  If you change its ID, don't forget to change the
+		ID the runtime looks for in the jQuery events above (ready() and cr_sizeCanvas()). -->
+		<canvas id="c2canvas" width="1280" height="720">
+			<!-- This text is displayed if the visitor's browser does not support HTML5.
+			You can change it, but it is a good idea to link to a description of a browser
+			and provide some links to download some popular HTML5-compatible browsers. -->
+			<h1>Your browser does not appear to support HTML5.  Try upgrading your browser to the latest version.  <a href="http://www.whatbrowser.org">What is a browser?</a>
+			<br/><br/><a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Microsoft Internet Explorer</a><br/>
+			<a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a><br/>
+			<a href="http://www.google.com/chrome/">Google Chrome</a><br/>
+			<a href="http://www.apple.com/safari/download/">Apple Safari</a><br/>
+			<a href="http://www.google.com/chromeframe">Google Chrome Frame for Internet Explorer</a><br/></h1>
+		</canvas>
 		
+	</div>
+	
+	<!-- Pages load faster with scripts at the bottom -->
+	
+	<!-- Construct 2 exported games require jQuery. -->
+	<script src="jquery-2.1.1.min.js"></script>
+
+
+	
+    <!-- The runtime script.  You can rename it, but don't forget to rename the reference here as well.
+    This file will have been minified and obfuscated if you enabled "Minify script" during export. -->
+	<script src="c2runtime.js"></script>
+
+    <script>
+		// Size the canvas to fill the browser viewport.
+		jQuery(window).resize(function() {
+			cr_sizeCanvas(jQuery(window).width(), jQuery(window).height());
+		});
 		
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-		<link rel="apple-touch-icon" sizes="256x256" href="icon.png" />
-		<meta name="HandheldFriendly" content="true" />
+		// Start the Construct 2 project running on window load.
+		jQuery(document).ready(function ()
+		{			
+			// Create new runtime using the c2canvas
+			cr_createRuntime("c2canvas");
+		});
 		
-		<!-- Chrome for Android web app tags -->
-		<meta name="mobile-web-app-capable" content="yes" />
-		<link rel="shortcut icon" sizes="256x256" href="icon.png" />
-    </head>
-    <body ondragstart="return false;" ondrop="return false;" >
-        <div style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%"></div>
-        <script>
-            $(document).ready(function () {
-                var oMain = new CMain({
-                    score_alien0: 10, //SCORE OF ALIEN TYPE 0
-                    speed_alien0: 1, //SPEED OF ALIEN TYPE 0 An increment increase the speed of alien speed=speed_alienN * ALIENS_MAX_FRAMES
-                    score_alien1: 8, //SCORE OF ALIEN TYPE 1
-                    speed_alien1: 1, //SPEED OF ALIEN TYPE 1
-                    score_alien2: 6, //SCORE OF ALIEN TYPE 2
-                    speed_alien2: 1, //SPEED OF ALIEN TYPE 2
-                    score_alien3: 5, //SCORE OF ALIEN TYPE 3
-                    speed_alien3: 1, //SPEED OF ALIEN TYPE 3
-                    score_alien4: 4, //SCORE OF ALIEN TYPE 4
-                    speed_alien4: 1, //SPEED OF ALIEN TYPE 4
-                    score_alien5: 3, //SCORE OF ALIEN TYPE 5
-                    speed_alien5: 1, //SPEED OF ALIEN TYPE 5
-                    score_alien6: 1, //SPEED OF ALIEN TYPE 6
-                    speed_alien6: 1, //SPEED OF ALIEN TYPE 6
-                    score_alien7: 14, //SCORE OF ALIEN TYPE 7
-                    speed_alien7: 1, //SPEED OF ALIEN TYPE 7
-                    score_alien8: 14, //SCORE OF ALIEN TYPE 8
-                    speed_alien8: 1, //SPEED OF ALIEN TYPE 8
-                    score_alien9: 0.1, //MULTIPLIER OF ALIEN TYPE 9
-                    speed_alien9: 1, //SPEED OF ALIEN TYPE 9
-                    score_alien10: 0.1, //MULTIPLIER OF ALIEN TYPE 10
-                    speed_alien10: 1, //SPEED OF ALIEN TYPE 10
-                    score_alien11: 0.1, //MULTIPLIER OF ALIEN TYPE 11
-                    speed_alien11: 1, //SPEED OF ALIEN TYPE 11
-                    bonus_time: -3, //TIME TO SUBTRACT WHEN THE USER HIT THE BONUS TIME
-                    time_astronaut_assault: 7, //DURATION  OF THE BONUS ASTRONAUT ASSAULT
-                    time_speed_down: 10, //DURATION OF THE BONUS SPEED DOWN
-                    time_evil_horde: 10, //DURATION OF THE BONUS EVIL HORDE
-                    time_pig_mode: 15, //DURATION OF THE BONUS PIG MODE
-                    aliens_damage: 10, //ALIENS DAMAGE WHEN REACH THE FINISH OF SCREEN
-                    max_bonus_bounces: 5, //MAX BONUS BOUNCE BEFORE DESTROY
-                    bonus_speed: 6, //MAX SPEED OF BONUS
-                    num_waves_for_ads : 3 //NUMBER OF WAVES TO COMPLETE, BEFORE TRIGGERING SAVE_SCORE EVENT. USEFUL FOR INTER-LEVEL AD EVENTUALLY.
-                });
-
-                              $(oMain).on("start_session", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeStartSession();
-                    }
-                });
-
-
-                $(oMain).on("end_session", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeEndSession();
-                    }
-                });
-
-
-                $(oMain).on("start_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeStartLevel({level: iLevel});
-                    }
-                });
-
-                $(oMain).on("restart_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeRestartLevel({level: iLevel});
-                    }
-                });
-
-
-                $(oMain).on("end_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeEndLevel({level: iLevel});
-                    }
-                });
-
-                $(oMain).on("save_score", function (evt, iScore, szMode) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeSaveScore({score: iScore, mode: szMode});
-                    }
-                });
-
-                $(oMain).on("show_interlevel_ad", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeShowInterlevelAD();
-                    }
-                });
-
-                $(oMain).on("share_event", function (evt, iScore) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeShareEvent({img: TEXT_SHARE_IMAGE,
-                            title: TEXT_SHARE_TITLE,
-                            msg: TEXT_SHARE_MSG1 + iScore
-                                    + TEXT_SHARE_MSG2,
-                            msg_share: TEXT_SHARE_SHARE1
-                                    + iScore + TEXT_SHARE_SHARE1});
-                    }
-                });
-
-
-                if(isIphone()){ 
-                    setTimeout(function(){sizeHandler();},200); 
-                }else{ 
-                    sizeHandler(); 
-                }
-            });
-
-        </script>
-        <canvas id="canvas" class='ani_hack' width="840" height="960"> </canvas>
-        <div id="block_game" style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%; display:none"></div>
-    </body>
-</html>
+		// Pause and resume on page becoming visible/invisible
+		function onVisibilityChanged() {
+			if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
+				cr_setSuspended(true);
+			else
+				cr_setSuspended(false);
+		};
+		
+		document.addEventListener("visibilitychange", onVisibilityChanged, false);
+		document.addEventListener("mozvisibilitychange", onVisibilityChanged, false);
+		document.addEventListener("webkitvisibilitychange", onVisibilityChanged, false);
+		document.addEventListener("msvisibilitychange", onVisibilityChanged, false);
+    </script>
+</body> 
+</html> 
