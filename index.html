@@ -3,13 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Planet Defense Game</title>
+  <title>Dino Bone Game</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <div id="controls">
-    <button id="shootBtn">SHOOT</button>
+  <div class="ctn">
+    <canvas id="c" width="360" height="640"></canvas>
+    <div id="scoreboard">0</div>
+    <div id="start-screen">
+      <div id="ctrl-ctn">
+        <div id="up" class="ctrl-btn">↑</div>
+        <div id="tap" class="ctrl-btn">TAP</div>
+      </div>
+    </div>
+    <div id="gameover-screen">
+      <div id="gameover">GAME OVER</div>
+    </div>
   </div>
   <script src="game.js"></script>
 </body>
