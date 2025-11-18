@@ -1,169 +1,427 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const birds = Array.from(document.querySelectorAll('.pajaro'));
-  const birdsKilledEl = document.getElementById('birdsKilled');
-  const scoreEl = document.getElementById('score');
-  const gunEl = document.querySelector('.gun');
-  const wrapper = document.querySelector('.wrapper');
+// Vanilla JS planet defense game
 
-  let birdsKilled = 0;
-  let score = 0;
-  let aliveCount = birds.length;
-  let threshold = getRandomThreshold(); // random 1-6
-  let gameOverSent = false;
+window.addEventListener("DOMContentLoaded", game);
 
-  // Movement state for each bird
-  const birdState = birds.map((bird, index) => ({
-    el: bird,
-    x: -150 - index * 120,
-    y: 0,       // will be set after layout
-    // gentle speed: 0.05 - 0.09 px per ms
-    speed: 0.05 + Math.random() * 0.04,
-    baseY: 0,
-    amp: 10 + Math.random() * 15,     // vertical wave amplitude
-    freq: 0.001 + Math.random() * 0.0015, // wave frequency
-    phase: Math.random() * Math.PI * 2
-  }));
+// General sprite load
+var sprite = new Image();
+var spriteExplosion = new Image();
+sprite.src = 'https://marclopezavila.github.io/planet-defense-game/img/sprite.png';
 
-  function getRandomThreshold() {
-    return Math.floor(Math.random() * 6) + 1; // 1..6
-  }
+window.onload = function() {
+    spriteExplosion.src = 'https://marclopezavila.github.io/planet-defense-game/img/explosion.png';
+};
 
-  function updateUI() {
-    if (birdsKilledEl) birdsKilledEl.textContent = birdsKilled.toString();
-    if (scoreEl) scoreEl.textContent = score.toString();
-  }
+// Game
+function game() {
 
-  function triggerGunRecoil() {
-    if (!gunEl) return;
-    gunEl.classList.remove('shoot');
-    // force reflow so animation can restart
-    void gunEl.offsetWidth;
-    gunEl.classList.add('shoot');
-  }
+    // Canvas
+    var canvas = document.getElementById('canvas'),
+        ctx    = canvas.getContext('2d'),
+        cH     = ctx.canvas.height = window.innerHeight,
+        cW     = ctx.canvas.width  = window.innerWidth ;
 
-  function killBird(bird) {
-    if (bird.classList.contains('dead')) return;
+    // Game state
+    var bullets    = [],
+        asteroids  = [],
+        explosions = [],
+        destroyed  = 0,
+        record     = 0,
+        count      = 0,
+        playing    = true,   // auto-start game
+        gameOver   = false,
+        _planet    = {deg: 0};
 
-    bird.classList.add('dead');
-    bird.style.opacity = '0';
-    bird.style.pointerEvents = 'none';
+    // Player
+    var player = {
+        posX   : -35,
+        posY   : -(100+82),
+        width  : 70,
+        height : 79,
+        deg    : 0
+    };
 
-    const msg = bird.querySelector('span');
-    if (msg) {
-      msg.style.display = 'block';
+    var lastAimX = cW / 2;
+    var lastAimY = cH / 2;
+
+    canvas.addEventListener('click', action);
+    canvas.addEventListener('mousemove', moveFromMouse);
+    canvas.addEventListener('touchstart', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    var shootBtn = document.getElementById('shootBtn');
+    if (shootBtn) {
+        shootBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            createBullet(lastAimX, lastAimY);
+        });
+        shootBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            createBullet(lastAimX, lastAimY);
+        }, { passive: false });
+    }
+    window.addEventListener("resize", update);
+
+    function update() {
+        cH = ctx.canvas.height = window.innerHeight;
+        cW = ctx.canvas.width  = window.innerWidth ;
     }
 
-    birdsKilled += 1;
-    score += 1; // simple 1 point per bird; adjust if you want combos
-    aliveCount -= 1;
-
-    triggerGunRecoil();
-    updateUI();
-
-    if (aliveCount <= threshold) {
-      // small delay so the last kill feels visible
-      setTimeout(respawnAllBirds, 400);
+    function setAim(x, y) {
+        lastAimX = x;
+        lastAimY = y;
+        player.deg = Math.atan2(x - (cW/2), -(y - (cH/2)));
     }
-  }
 
-  function respawnAllBirds() {
-    birds.forEach(bird => {
-      bird.classList.remove('dead');
-      bird.style.opacity = '1';
-      bird.style.pointerEvents = 'auto';
+    function moveFromMouse(e) {
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        setAim(x, y);
+    }
 
-      const msg = bird.querySelector('span');
-      if (msg) {
-        msg.style.display = 'none';
-      }
-    });
-    aliveCount = birds.length;
-    threshold = getRandomThreshold();
-  }
+    function handleTouchMove(e) {
+        e.preventDefault();
+        if (!e.touches || e.touches.length === 0) return;
+        var rect = canvas.getBoundingClientRect();
+        var touch = e.touches[0];
+        var x = touch.clientX - rect.left;
+        var y = touch.clientY - rect.top;
+        setAim(x, y);
+    }
 
-  birds.forEach(bird => {
-    bird.addEventListener('click', () => killBird(bird));
-  });
+    function createBullet(targetX, targetY) {
+        if (!playing) return;
+        var bullet = {
+            x: -8,
+            y: -179,
+            sizeX : 2,
+            sizeY : 10,
+            realX : targetX,
+            realY : targetY,
+            dirX  : targetX,
+            dirY  : targetY,
+            deg   : Math.atan2(targetX - (cW/2), -(targetY - (cH/2))),
+            destroyed: false
+        };
 
-  // Clean up the shoot class when animation ends so it can retrigger
-  if (gunEl) {
-    gunEl.addEventListener('animationend', () => {
-      gunEl.classList.remove('shoot');
-    });
-  }
+        bullets.push(bullet);
+    }
 
-  updateUI();
+    function action(e) {
+        e.preventDefault();
+        if(playing) {
+            var rect = canvas.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            setAim(x, y);
+            createBullet(x, y);
+        }
+    }
 
-   // ---- GAME OVER HANDLING (2 minutes) ----
-   // CSS timer and overlay are 120s; mirror that here.
-   setTimeout(() => {
-     if (gameOverSent) return;
-     gameOverSent = true;
-     try {
-       window.parent.postMessage({ type: "GAME_OVER", score }, "*");
-     } catch (e) {
-       // ignore if not in iframe/parent context
-     }
-   }, 120000);
+    function fire() {
+        var distance;
 
-  // --------- JS-driven bird movement (non-overlapping bands) ---------
-  function setupBirdPositions() {
-    const width = wrapper ? wrapper.clientWidth : window.innerWidth;
-    const height = wrapper ? wrapper.clientHeight : window.innerHeight;
+        for(var i = 0; i < bullets.length; i++) {
+            if(!bullets[i].destroyed) {
+                ctx.save();
+                ctx.translate(cW/2,cH/2);
+                ctx.rotate(bullets[i].deg);
 
-    const topMargin = 80;
-    const bottomMargin = 180;
-    const availableHeight = Math.max(100, height - topMargin - bottomMargin);
-    const bandHeight = availableHeight / birds.length;
+                ctx.drawImage(
+                    sprite,
+                    211,
+                    100,
+                    50,
+                    75,
+                    bullets[i].x,
+                    bullets[i].y -= 20,
+                    19,
+                    30
+                );
 
-    birdState.forEach((b, index) => {
-      b.x = -150 - index * 120;
-      // center each bird in its vertical band
-      b.baseY = topMargin + bandHeight * index + bandHeight / 2;
-      b.y = b.baseY;
-      b.el.style.left = b.x + 'px';
-      b.el.style.top = b.y + 'px';
-    });
-  }
+                ctx.restore();
 
-  let lastTime = 0;
-  function animate(time) {
-    if (!lastTime) lastTime = time;
-    const dt = time - lastTime; // ms
-    lastTime = time;
+                // Real coords
+                bullets[i].realX = (0) - (bullets[i].y + 10) * Math.sin(bullets[i].deg);
+                bullets[i].realY = (0) + (bullets[i].y + 10) * Math.cos(bullets[i].deg);
 
-    const width = wrapper ? wrapper.clientWidth : window.innerWidth;
-    const height = wrapper ? wrapper.clientHeight : window.innerHeight;
-    const topMargin = 80;
-    const bottomMargin = 180;
-    const availableHeight = Math.max(100, height - topMargin - bottomMargin);
-    const bandHeight = availableHeight / birds.length;
+                bullets[i].realX += cW/2;
+                bullets[i].realY += cH/2;
 
-    birdState.forEach((b, index) => {
-      if (!b.el.classList.contains('dead')) {
-        // horizontal movement
-        b.x += b.speed * dt;
-      }
+                // Collision
+                for(var j = 0; j < asteroids.length; j++) {
+                    if(!asteroids[j].destroyed) {
+                        distance = Math.sqrt(Math.pow(
+                                asteroids[j].realX - bullets[i].realX, 2) +
+                            Math.pow(asteroids[j].realY - bullets[i].realY, 2)
+                        );
 
-      if (b.x > width + 150) {
-        // wrap around and slightly jitter the base band position
-        b.x = -150;
-        const jitter = bandHeight * 0.3;
-        b.baseY = topMargin + bandHeight * index + bandHeight / 2 + (Math.random() * jitter - jitter / 2);
-      }
+                        if (distance < (((asteroids[j].width/asteroids[j].size) / 2) - 4) + ((19 / 2) - 4)) {
+                            destroyed += 1;
+                            asteroids[j].destroyed = true;
+                            bullets[i].destroyed   = true;
+                            explosions.push(asteroids[j]);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-      // non-linear vertical motion: sine wave around baseY
-      const t = time;
-      b.y = b.baseY + Math.sin(t * b.freq + b.phase) * b.amp;
+    function planet() {
+        ctx.save();
+        ctx.fillStyle   = 'white';
+        ctx.shadowBlur    = 100;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowColor   = "#999";
 
-      b.el.style.left = b.x + 'px';
-      b.el.style.top = b.y + 'px';
-    });
+        ctx.arc(
+            (cW/2),
+            (cH/2),
+            100,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
 
-    requestAnimationFrame(animate);
-  }
+        // Planet rotation
+        ctx.translate(cW/2,cH/2);
+        ctx.rotate((_planet.deg += 0.1) * (Math.PI / 180));
+        ctx.drawImage(sprite, 0, 0, 200, 200, -100, -100, 200,200);
+        ctx.restore();
+    }
 
-  setupBirdPositions();
-  window.addEventListener('resize', setupBirdPositions);
-  requestAnimationFrame(animate);
-});
+    function _player() {
+
+        ctx.save();
+        ctx.translate(cW/2,cH/2);
+
+        ctx.rotate(player.deg);
+        ctx.drawImage(
+            sprite,
+            200,
+            0,
+            player.width,
+            player.height,
+            player.posX,
+            player.posY,
+            player.width,
+            player.height
+        );
+
+        ctx.restore();
+
+        if(bullets.length - destroyed && playing) {
+            fire();
+        }
+    }
+
+    function newAsteroid() {
+
+        var type = random(1,4),
+            coordsX,
+            coordsY;
+
+        switch(type){
+            case 1:
+                coordsX = random(0, cW);
+                coordsY = 0 - 150;
+                break;
+            case 2:
+                coordsX = cW + 150;
+                coordsY = random(0, cH);
+                break;
+            case 3:
+                coordsX = random(0, cW);
+                coordsY = cH + 150;
+                break;
+            case 4:
+                coordsX = 0 - 150;
+                coordsY = random(0, cH);
+                break;
+        }
+
+        var asteroid = {
+            x: 278,
+            y: 0,
+            state: 0,
+            stateX: 0,
+            width: 134,
+            height: 123,
+            realX: coordsX,
+            realY: coordsY,
+            moveY: 0,
+            coordsX: coordsX,
+            coordsY: coordsY,
+            size: random(1, 3),
+            deg: Math.atan2(coordsX  - (cW/2), -(coordsY - (cH/2))),
+            destroyed: false
+        };
+        asteroids.push(asteroid);
+    }
+
+    function _asteroids() {
+        var distance;
+
+        for(var i = 0; i < asteroids.length; i++) {
+            if (!asteroids[i].destroyed) {
+                ctx.save();
+                ctx.translate(asteroids[i].coordsX, asteroids[i].coordsY);
+                ctx.rotate(asteroids[i].deg);
+
+                ctx.drawImage(
+                    sprite,
+                    asteroids[i].x,
+                    asteroids[i].y,
+                    asteroids[i].width,
+                    asteroids[i].height,
+                    -(asteroids[i].width / asteroids[i].size) / 2,
+                    asteroids[i].moveY += 1/(asteroids[i].size),
+                    asteroids[i].width / asteroids[i].size,
+                    asteroids[i].height / asteroids[i].size
+                );
+
+                ctx.restore();
+
+                // Real Coords
+                asteroids[i].realX = (0) - (asteroids[i].moveY + ((asteroids[i].height / asteroids[i].size)/2)) * Math.sin(asteroids[i].deg);
+                asteroids[i].realY = (0) + (asteroids[i].moveY + ((asteroids[i].height / asteroids[i].size)/2)) * Math.cos(asteroids[i].deg);
+
+                asteroids[i].realX += asteroids[i].coordsX;
+                asteroids[i].realY += asteroids[i].coordsY;
+
+                // Game over
+                distance = Math.sqrt(Math.pow(asteroids[i].realX -  cW/2, 2) + Math.pow(asteroids[i].realY - cH/2, 2));
+                if (distance < (((asteroids[i].width/asteroids[i].size) / 2) - 4) + 100) {
+                    gameOver = true;
+                    playing  = false;
+                    canvas.addEventListener('mousemove', action);
+                }
+            } else if(!asteroids[i].extinct) {
+                explosion(asteroids[i]);
+            }
+        }
+
+        if(asteroids.length - destroyed < 10 + (Math.floor(destroyed/6))) {
+            newAsteroid();
+        }
+    }
+
+    function explosion(asteroid) {
+        ctx.save();
+        ctx.translate(asteroid.realX, asteroid.realY);
+        ctx.rotate(asteroid.deg);
+
+        var spriteY,
+            spriteX = 256;
+        if(asteroid.state == 0) {
+            spriteY = 0;
+            spriteX = 0;
+        } else if (asteroid.state < 8) {
+            spriteY = 0;
+        } else if(asteroid.state < 16) {
+            spriteY = 256;
+        } else if(asteroid.state < 24) {
+            spriteY = 512;
+        } else {
+            spriteY = 768;
+        }
+
+        if(asteroid.state == 8 || asteroid.state == 16 || asteroid.state == 24) {
+            asteroid.stateX = 0;
+        }
+
+        ctx.drawImage(
+            spriteExplosion,
+            asteroid.stateX += spriteX,
+            spriteY,
+            256,
+            256,
+            - (asteroid.width / asteroid.size)/2,
+            -(asteroid.height / asteroid.size)/2,
+            asteroid.width / asteroid.size,
+            asteroid.height / asteroid.size
+        );
+        asteroid.state += 1;
+
+        if(asteroid.state == 31) {
+            asteroid.extinct = true;
+        }
+
+        ctx.restore();
+    }
+
+    function start() {
+        if(!gameOver) {
+            // Clear
+            ctx.clearRect(0, 0, cW, cH);
+            ctx.beginPath();
+
+            // Planet
+            planet();
+
+            // Player
+            _player();
+
+            if(playing) {
+                _asteroids();
+
+                ctx.font = "20px Verdana";
+                ctx.fillStyle = "white";
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = "left";
+                ctx.fillText('Record: '+record+'', 20, 30);
+
+                ctx.font = "40px Verdana";
+                ctx.fillStyle = "white";
+                ctx.strokeStyle = "black";
+                ctx.textAlign = "center";
+                ctx.textBaseline = 'middle';
+                ctx.strokeText(''+destroyed+'', cW/2,cH/2);
+                ctx.fillText(''+destroyed+'', cW/2,cH/2);
+
+            } else {
+                ctx.drawImage(sprite, 428, 12, 70, 70, cW/2 - 35, cH/2 - 35, 70,70);
+            }
+        } else if(count < 1) {
+            count = 1;
+            ctx.fillStyle = 'rgba(0,0,0,0.75)';
+            ctx.rect(0,0, cW,cH);
+            ctx.fill();
+
+            ctx.font = "60px Verdana";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER",cW/2,cH/2 - 150);
+
+            ctx.font = "20px Verdana";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText("Total destroyed: "+ destroyed, cW/2,cH/2 + 140);
+
+            record = destroyed > record ? destroyed : record;
+
+            ctx.font = "20px Verdana";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText("RECORD: "+ record, cW/2,cH/2 + 185);
+
+            ctx.drawImage(sprite, 500, 18, 70, 70, cW/2 - 35, cH/2 + 40, 70,70);
+
+            canvas.removeAttribute('class');
+        }
+    }
+
+    function init() {
+        window.requestAnimationFrame(init);
+        start();
+    }
+
+    init();
+
+    // Utils
+    function random(from, to) {
+        return Math.floor(Math.random() * (to - from + 1)) + from;
+    }
+}
