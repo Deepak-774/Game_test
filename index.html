@@ -1,321 +1,52 @@
 <!DOCTYPE html>
-<html manifest="offline.appcache">
-<head>
-    <meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-	<title>Acselo</title>
-	
-	<!-- Standardised web app manifest -->
-	<link rel="manifest" href="appmanifest.json" />
-	
-	<!-- Allow fullscreen mode on iOS devices. (These are Apple specific meta tags.) -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-	<link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
-	<meta name="HandheldFriendly" content="true" />
-	
-	<!-- Chrome for Android web app tags -->
-	<meta name="mobile-web-app-capable" content="yes" />
-	<link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
+<html>
+  <head>
+     <meta charset="UTF-8"/>
+     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+     <link href="https://fonts.googleapis.com/css?family=Oswald:400,600,700" rel="stylesheet">
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
-    <!-- All margins and padding must be zero for the canvas to fill the screen. -->
-    <style type="text/css">
-		* {
-			padding: 0;
-			margin: 0;
-		}
-		html, body {
-			background: #000;
-			color: #fff;
-			overflow: hidden;
-			touch-action: none;
-			-ms-touch-action: none;
-			user-select: none;
-			-webkit-user-select: none;
-			-webkit-touch-callout: none;
-		}
-		canvas {
-			touch-action: none;
-			-ms-touch-action: none;
-			-webkit-touch-action: none;
-			pointer-events: auto;
-		}
-		
-		/* Tilt Enable Button */
-		#enable-tilt-btn {
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 10000;
-			background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
-			color: #fff;
-			border: none;
-			padding: 20px 40px;
-			font-size: 20px;
-			font-weight: bold;
-			border-radius: 12px;
-			cursor: pointer;
-			box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
-			text-transform: uppercase;
-			letter-spacing: 1px;
-			display: none;
-		}
-		
-		#enable-tilt-btn:active {
-			transform: translate(-50%, -50%) scale(0.95);
-			box-shadow: 0 4px 10px rgba(0, 212, 255, 0.3);
-		}
-		
-		#enable-tilt-btn.show {
-			display: block;
-		}
-		
-		/* Tilt Indicator */
-		#tilt-indicator {
-			position: fixed;
-			top: 10px;
-			right: 10px;
-			z-index: 9999;
-			background: rgba(0, 0, 0, 0.7);
-			color: #00ff00;
-			padding: 8px 12px;
-			border-radius: 6px;
-			font-size: 12px;
-			font-family: monospace;
-			display: none;
-			pointer-events: none;
-		}
-		
-		#tilt-indicator.active {
-			display: block;
-		}
-    </style>
-	
-	<link href="animate.min.css" rel="stylesheet" type="text/css" />
+     <title>Rompe Ralph</title>
 
-</head> 
- 
-<body> 
-	<div id="fb-root"></div>
-	
-	<!-- Tilt Control UI -->
-	<button id="enable-tilt-btn">Enable Tilt Controls</button>
-	<div id="tilt-indicator">Tilt: <span id="tilt-value">0°</span></div>
-	
-	<!-- The canvas must be inside a div called c2canvasdiv -->
-	<div id="c2canvasdiv">
-	
-		<!-- The canvas the project will render to.  If you change its ID, don't forget to change the
-		ID the runtime looks for in the jQuery events above (ready() and cr_sizeCanvas()). -->
-		<canvas id="c2canvas" width="1280" height="720">
-			<!-- This text is displayed if the visitor's browser does not support HTML5.
-			You can change it, but it is a good idea to link to a description of a browser
-			and provide some links to download some popular HTML5-compatible browsers. -->
-			<h1>Your browser does not appear to support HTML5.  Try upgrading your browser to the latest version.  <a href="http://www.whatbrowser.org">What is a browser?</a>
-			<br/><br/><a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Microsoft Internet Explorer</a><br/>
-			<a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a><br/>
-			<a href="http://www.google.com/chrome/">Google Chrome</a><br/>
-			<a href="http://www.apple.com/safari/download/">Apple Safari</a><br/>
-			<a href="http://www.google.com/chromeframe">Google Chrome Frame for Internet Explorer</a><br/></h1>
-		</canvas>
-		
-	</div>
-	
-	<!-- Pages load faster with scripts at the bottom -->
-	
-	<!-- Construct 2 exported games require jQuery. -->
-	<script src="jquery-2.1.1.min.js"></script>
+     <link rel="icon" type="image/png" href="images/rompe-logo.png" />
+     <link rel="stylesheet" href="css/game.css">
+     <script>
+       (function(){
+         try{
+           var coarse = false;
+           if(window.matchMedia){
+             coarse = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+           }
+           var vw = Math.min(window.innerWidth || (screen && screen.width) || 0, document.documentElement.clientWidth || 0);
+           var ua = navigator.userAgent || '';
+           var uaMobile = /Android|iPhone|iPod|Mobile/i.test(ua);
+           var isPhone = (coarse && vw <= 820) || uaMobile;
+           if(isPhone){ window.location.replace('game.html'); }
+         }catch(e){}
+       })();
+     </script>
+   </head>
+   <body>
+    <div class="legend">
+      <h1>How to play to Ralph Wreck-it</h1>
+      <p>The main objective of this game is to preserve the building as well as you can fixing every damage that Ralph has made to it.</p>
+      <p>Game duration is 120 seconds and at the end of this time you should have at least 10 points left.</p>
+      <p>The game could ends before 120 seconds if the total points is equal to 0</p>
+      <p>Commands :</p>
+      <ul>
+        <li>move left -> a</li>
+        <li>move right -> d</li>
+        <li>move up -> w</li>
+        <li>move down -> s</li>
+        <li>fix the window -> f</li>
+        <li style="color:#C92935">pause -> p</li>
 
 
-	
-    <!-- The runtime script.  You can rename it, but don't forget to rename the reference here as well.
-    This file will have been minified and obfuscated if you enabled "Minify script" during export. -->
-	<script src="c2runtime.js"></script>
+      </ul>
+      <p style="color:#C92935">You cant fix windows which has both cristals broken, only when one of them is unbroken</p>
+    </div>
+    <a class="button" href="game.html">Start Game</a>
 
-    <script>
-		// Size the canvas to fill the browser viewport.
-		jQuery(window).resize(function() {
-			cr_sizeCanvas(jQuery(window).width(), jQuery(window).height());
-		});
-		
-		// Start the Construct 2 project running on window load.
-		jQuery(document).ready(function ()
-		{			
-			// Create new runtime using the c2canvas
-			cr_createRuntime("c2canvas");
-		});
-		
-		// Pause and resume on page becoming visible/invisible
-		function onVisibilityChanged() {
-			if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
-				cr_setSuspended(true);
-			else
-				cr_setSuspended(false);
-		};
-		
-		document.addEventListener("visibilitychange", onVisibilityChanged, false);
-		document.addEventListener("mozvisibilitychange", onVisibilityChanged, false);
-		document.addEventListener("webkitvisibilitychange", onVisibilityChanged, false);
-		document.addEventListener("msvisibilitychange", onVisibilityChanged, false);
-		
-		// ========== COMPREHENSIVE TILT CONTROL SYSTEM ==========
-		
-		(function() {
-			var tiltEnabled = false;
-			var enableBtn = document.getElementById('enable-tilt-btn');
-			var tiltIndicator = document.getElementById('tilt-indicator');
-			var tiltValue = document.getElementById('tilt-value');
-			var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-			
-			console.log('[TILT] Mobile device detected:', isMobileDevice);
-			console.log('[TILT] User agent:', navigator.userAgent);
-			
-			// Function to enable device orientation
-			function enableDeviceOrientation() {
-				console.log('[TILT] Attempting to enable device orientation...');
-				
-				// iOS 13+ requires permission
-				if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-					console.log('[TILT] iOS 13+ detected, requesting permission...');
-					
-					DeviceOrientationEvent.requestPermission()
-						.then(function(permissionState) {
-							console.log('[TILT] Permission state:', permissionState);
-							if (permissionState === 'granted') {
-								setupOrientationListener();
-								hideEnableButton();
-								console.log('[TILT] ✅ iOS permission granted!');
-							} else {
-								console.error('[TILT] ❌ iOS permission denied');
-								alert('Tilt controls require motion sensor permission. Please grant permission and try again.');
-							}
-						})
-						.catch(function(error) {
-							console.error('[TILT] Permission request error:', error);
-							alert('Error requesting motion sensor permission: ' + error.message);
-						});
-				} 
-				// Android and other devices
-				else if (typeof DeviceOrientationEvent !== 'undefined') {
-					console.log('[TILT] Non-iOS device, setting up orientation listener...');
-					setupOrientationListener();
-					hideEnableButton();
-					console.log('[TILT] ✅ Orientation listener active!');
-				}
-				// No support
-				else {
-					console.error('[TILT] ❌ DeviceOrientationEvent not supported');
-					alert('Your device does not support motion sensors. Please use touch controls.');
-					hideEnableButton();
-				}
-			}
-			
-			// Set up the orientation event listener
-			function setupOrientationListener() {
-				console.log('[TILT] Setting up orientation listener...');
-				tiltEnabled = true;
-				tiltIndicator.classList.add('active');
-				
-				window.addEventListener('deviceorientation', handleOrientation, true);
-				
-				// Also try devicemotion as fallback
-				window.addEventListener('devicemotion', handleMotion, true);
-				
-				console.log('[TILT] Listeners attached');
-			}
-			
-			// Handle device orientation
-			function handleOrientation(event) {
-				if (!tiltEnabled) return;
-				
-				var gamma = event.gamma; // Left to right tilt in degrees (-90 to 90)
-				var beta = event.beta;   // Front to back tilt in degrees (-180 to 180)
-				
-				if (gamma !== null && gamma !== undefined) {
-					// Update indicator
-					tiltValue.textContent = Math.round(gamma) + '°';
-					
-					// Log for debugging (throttled)
-					if (Math.random() < 0.01) {
-						console.log('[TILT] Gamma:', Math.round(gamma), '° Beta:', Math.round(beta), '°');
-					}
-					
-					// The Construct 2 Touch plugin will automatically read these values
-					// through window.addEventListener('deviceorientation')
-				}
-			}
-			
-			// Handle device motion as fallback
-			function handleMotion(event) {
-				if (!tiltEnabled) return;
-				
-				var acc = event.accelerationIncludingGravity;
-				if (acc && acc.x !== null) {
-					// Log for debugging (throttled)
-					if (Math.random() < 0.05) {
-						console.log('[TILT] Motion - X:', acc.x.toFixed(2), 'Y:', acc.y.toFixed(2), 'Z:', acc.z.toFixed(2));
-					}
-				}
-			}
-			
-			// Hide the enable button
-			function hideEnableButton() {
-				enableBtn.classList.remove('show');
-				console.log('[TILT] Enable button hidden');
-			}
-			
-			// Show the enable button on mobile devices
-			function showEnableButton() {
-				if (isMobileDevice) {
-					enableBtn.classList.add('show');
-					console.log('[TILT] Enable button shown');
-				}
-			}
-			
-			// Button click handler with multiple event types for webview compatibility
-			function handleButtonClick(e) {
-				if (e && e.preventDefault) {
-					e.preventDefault();
-					e.stopPropagation();
-				}
-				console.log('[TILT] Enable button clicked');
-				enableDeviceOrientation();
-			}
-			
-			// Add event listeners to button with webview compatibility
-			enableBtn.addEventListener('click', handleButtonClick, { passive: false, capture: true });
-			enableBtn.addEventListener('touchstart', handleButtonClick, { passive: false, capture: true });
-			enableBtn.addEventListener('touchend', function(e) { 
-				e.preventDefault(); 
-				e.stopPropagation(); 
-			}, { passive: false, capture: true });
-			enableBtn.addEventListener('pointerdown', handleButtonClick, { passive: false, capture: true });
-			enableBtn.addEventListener('pointerup', function(e) { 
-				e.preventDefault(); 
-				e.stopPropagation(); 
-			}, { passive: false, capture: true });
-			
-			// Initialize on page load
-			setTimeout(function() {
-				console.log('[TILT] Initializing tilt controls...');
-				console.log('[TILT] DeviceOrientationEvent supported:', typeof DeviceOrientationEvent !== 'undefined');
-				console.log('[TILT] Permission API available:', typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function');
-				
-				if (isMobileDevice) {
-					// On mobile, show the enable button
-					showEnableButton();
-					console.log('[TILT] Mobile device - waiting for user interaction');
-				} else {
-					// On desktop, hide the button (no tilt needed)
-					console.log('[TILT] Desktop device - tilt controls not needed');
-					hideEnableButton();
-				}
-			}, 1000);
-			
-			console.log('[TILT] Tilt control system loaded');
-		})();
-    </script>
-</body> 
-</html> 
+   </body>
+
+ </html>
