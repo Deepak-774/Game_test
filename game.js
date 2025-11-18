@@ -29,7 +29,8 @@ function game() {
         count      = 0,
         playing    = true,   // auto-start game
         gameOver   = false,
-        _planet    = {deg: 0};
+        _planet    = {deg: 0},
+        gameOverSent = false;
 
     // Player
     var player = {
@@ -277,7 +278,7 @@ function game() {
                     asteroids[i].width,
                     asteroids[i].height,
                     -(asteroids[i].width / asteroids[i].size) / 2,
-                    asteroids[i].moveY += 1/(asteroids[i].size),
+                    asteroids[i].moveY += 0.4/(asteroids[i].size),
                     asteroids[i].width / asteroids[i].size,
                     asteroids[i].height / asteroids[i].size
                 );
@@ -400,16 +401,21 @@ function game() {
             ctx.textAlign = "center";
             ctx.fillText("Total destroyed: "+ destroyed, cW/2,cH/2 + 140);
 
-            record = destroyed > record ? destroyed : record;
-
-            ctx.font = "20px Verdana";
-            ctx.fillStyle = "white";
-            ctx.textAlign = "center";
-            ctx.fillText("RECORD: "+ record, cW/2,cH/2 + 185);
-
             ctx.drawImage(sprite, 500, 18, 70, 70, cW/2 - 35, cH/2 + 40, 70,70);
 
             canvas.removeAttribute('class');
+
+            // send GAME_OVER message once right after drawing game over screen
+            if (!gameOverSent) {
+                gameOverSent = true;
+                try {
+                    window.game = window.game || {};
+                    window.game.score = destroyed;
+                    window.parent.postMessage({ type: "GAME_OVER", score: window.game.score }, "*");
+                } catch (e) {
+                    // ignore if not in iframe/parent context
+                }
+            }
         }
     }
 
