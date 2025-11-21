@@ -60,20 +60,23 @@ player.prototype = {
                 this.player.body.velocity.x = 0;
             }
         } else if (pointer.isDown) {
-            // Touch controls: move left/right based on touch position, tap near top to jump
+            // Touch controls: move smoothly towards touch X, tap above to jump
             var worldX = pointer.worldX;
             var worldY = pointer.worldY;
 
-            // Horizontal movement
-            if(worldX < this.player.x - 20){
-                this.player.frame = 4;
-                this.player.body.velocity.x = -150;
-            } else if(worldX > this.player.x + 20){
-                this.player.frame = 3;
-                this.player.body.velocity.x = 150;
+            var dx = worldX - this.player.x;
+            var deadZone = 10;       // small deadzone for stability
+            var maxSpeed = 140;      // a bit slower than keyboard for better control
+            var lerp = 0.15;         // smoothing factor
+
+            if (Math.abs(dx) > deadZone) {
+                var targetVel = (dx > 0) ? maxSpeed : -maxSpeed;
+                this.player.body.velocity.x += (targetVel - this.player.body.velocity.x) * lerp;
+                this.player.frame = (dx > 0) ? 3 : 4;
             } else {
+                // inside deadzone, ease to stop
+                this.player.body.velocity.x += (0 - this.player.body.velocity.x) * lerp;
                 this.player.frame = 1;
-                this.player.body.velocity.x = 0;
             }
 
             // Jump if touch is above the player and he is standing

@@ -9,6 +9,9 @@ var playState = function(game){
     this.life2;
     this.life3;
     this.lifeptr = 0; // life sprite handler
+    this.muteButton = null;
+    this.timerText = null;
+    this.timeRemaining = 120; // seconds
 };
 
     playState.prototype = {
@@ -54,6 +57,26 @@ var playState = function(game){
           this.gameScore = new Score(game);
           this.gameScore.create();
 
+            // mute / unmute button on HUD (top-left, away from lives)
+            this.muteButton = this.game.add.button(25, 25, 'sound-sprite', this.toggleSound, this);
+            this.muteButton.anchor.setTo(0.5, 0.5);
+            this.muteButton.scale.setTo(0.5, 0.5);
+            this.muteButton.fixedToCamera = true;
+
+            // set initial frame based on global sound state
+            if (game.global.soundPlay) {
+                this.muteButton.frame = 1; // sound on
+            } else {
+                this.muteButton.frame = 0; // sound off
+            }
+
+            // 2-minute countdown timer text (top-center)
+            this.timeRemaining = 120;
+            this.timerText = this.add.text(game.world.centerX, 10, '', { font: '24px Arial', fill: '#ffffff' });
+            this.timerText.anchor.setTo(0.5, 0);
+            this.timerText.fixedToCamera = true;
+            this.updateTimerText();
+
         },
 
         update: function(){
@@ -79,6 +102,9 @@ var playState = function(game){
             if(this.lifeptr==3){
                 this.gameOver();
             }
+
+            // handle countdown timer
+            this.updateTimer();
 
            // this.gameScore.update();
         },
@@ -149,7 +175,6 @@ var playState = function(game){
             this.fruits.fruitsGroup.destroy();
             this.fruits.gemsGroup.destroy();
             this.gameScore.scoreLabel.kill();
-            this.pauseButton.kill();
             this.lifeptr = 0;
         },
 
@@ -197,6 +222,57 @@ var playState = function(game){
 
         handleResume: function(){
 
+        },
+
+        updateTimerText: function(){
+            var minutes = Math.floor(this.timeRemaining / 60);
+            var seconds = this.timeRemaining % 60;
+            var label = minutes + ':' + (seconds < 10 ? '0' + seconds : seconds);
+            if (this.timerText) {
+                this.timerText.text = label;
+            }
+        },
+
+        updateTimer: function(){
+            if (this.timeRemaining <= 0) { return; }
+
+            // Use elapsed time since last frame to decrement; approximate 1s via physics time step
+            // Safer: use the game time
+            if (!this._lastTimerCheck) {
+                this._lastTimerCheck = this.time.now;
+                return;
+            }
+
+            var now = this.time.now;
+            var delta = now - this._lastTimerCheck;
+            if (delta >= 1000) {
+                var steps = Math.floor(delta / 1000);
+                this.timeRemaining = Math.max(0, this.timeRemaining - steps);
+                this._lastTimerCheck += steps * 1000;
+                this.updateTimerText();
+
+                if (this.timeRemaining <= 0) {
+                    this.gameOver();
+                }
+            }
+        },
+
+        toggleSound: function(){
+            // Toggle global sound flag and update button frame
+            game.global.mute = !game.global.mute;
+
+            if (game.global.mute) {
+                game.global.soundPlay = false;
+                if (this.muteButton) { this.muteButton.frame = 0; }
+                // stop any currently playing game sounds
+                if (game.global.jumpSound)  { game.global.jumpSound.stop(); }
+                if (game.global.gemSound)   { game.global.gemSound.stop(); }
+                if (game.global.deadSound)  { game.global.deadSound.stop(); }
+                if (game.global.cocoSound)  { game.global.cocoSound.stop(); }
+            } else {
+                game.global.soundPlay = true;
+                if (this.muteButton) { this.muteButton.frame = 1; }
+            }
         },
 
         render: function(){

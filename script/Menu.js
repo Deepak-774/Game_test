@@ -4,11 +4,17 @@ var menuState = function(game){
     this.titleBg = null;
     this.menuTitle = null;
     this.musicButton = null;
+    this.autoStartTime = 5; // seconds
+    this.autoTimerText = null;
+    this._lastAutoTick = null;
+    this.autoStarted = false;
 };
+
 
     menuState.prototype = {
         
         create: function(){
+
             console.log(game.state.getCurrentState());
             
             this.titleBg = game.add.sprite(game.world.centerX,game.world.centerY,'title-bg');
@@ -27,6 +33,16 @@ var menuState = function(game){
             }
             
             this.tweenButton(this.buttons.playbtn); // make button juicy
+
+            // auto-start countdown number in bottom-left corner
+            this.autoTimerText = this.add.text(
+                10,
+                game.world.height - 40,
+                '',
+                { font: '24px Arial', fill: '#ffffff' }
+            );
+            this.autoTimerText.anchor.setTo(0, 0.5);
+            this.updateAutoTimerText();
         },
         
         tweenButton: function(button){
@@ -37,7 +53,33 @@ var menuState = function(game){
         },
         
         update: function(){
-           
+            // handle 5-second auto-start if player does nothing
+            if (this.autoStarted) { return; }
+
+            if (!this._lastAutoTick) {
+                this._lastAutoTick = this.time.now;
+                return;
+            }
+
+            var now = this.time.now;
+            var delta = now - this._lastAutoTick;
+            if (delta >= 1000) {
+                var steps = Math.floor(delta / 1000);
+                this.autoStartTime = Math.max(0, this.autoStartTime - steps);
+                this._lastAutoTick += steps * 1000;
+                this.updateAutoTimerText();
+
+                if (this.autoStartTime <= 0) {
+                    this.autoStarted = true;
+                    this.buttons.handlePlay();
+                }
+            }
+        },
+
+        updateAutoTimerText: function(){
+            if (this.autoTimerText) {
+                this.autoTimerText.text = this.autoStartTime.toString();
+            }
         }
            
     }

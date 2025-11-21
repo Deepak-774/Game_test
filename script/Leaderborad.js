@@ -33,6 +33,15 @@ leaderboardState.prototype = {
         // Only display the player's final score in the center
         var currentScore = this.add.text(this.world.centerX, this.world.centerY, 'Your Score - ' + game.global.score, this.textStyle);
         currentScore.anchor.setTo(0.5);
+
+        // Immediately notify parent that the game is over with the final score
+        try {
+            if (window.parent && window.parent.postMessage) {
+                window.parent.postMessage({ type: "GAME_OVER", score: game.global.score }, "*");
+            }
+        } catch (e) {
+            // ignore postMessage errors (e.g., cross-origin)
+        }
     } // end showScore
     
     
