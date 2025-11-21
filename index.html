@@ -719,8 +719,7 @@ class Game {
         else return "Poor...";
     }
     start() {
-
-        this.stop();
+        // Start a new game from intro; do not trigger stop()/GAME_OVER here
         $('.start-game, .stop-game').css('display', 'none');
         $('.nominee').hide();
         new Game();
