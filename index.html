@@ -1,41 +1,223 @@
-<!DOCTYPE HTML>
-<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<!DOCTYPE html>
 <html>
 <head>
-  <title>DuckHuntJS</title>
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="description" content="An open source, web based, responsive implementation of Duck Hunt in canvas or webgl depending on your client.">
-  <meta name="author" content="Matt Surabian">
-  <style>
-    body {
-      overflow: hidden;
-      margin: 0;
-      padding: 0;
-      background-color: #000000;
-      touch-action: none;
-      -ms-touch-action: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
+	<title>EKG Runner</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<style type="text/css">
+		html,body {
+			background-color: #000;
+			color: #3cf3af;
+			font-family: helvetica, arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			font-size: 12pt;
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+	    #frame{
+	      text-align: center;
+	    }
+	    #canvas{
+	      position: relative;
+	      width: 100%;
+	      max-width: 960px;
+	      height: auto;
+	      margin: 20px auto 0;
+	      display: block;
+	      z-index: 0;
+	    }
+	    #mobile-controls{
+	      position: fixed;
+	      left: 0;
+	      right: 0;
+	      bottom: 10px;
+	      display: none;
+	      justify-content: center;
+	      gap: 12px;
+	      z-index: 2;
+	    }
+	    #mobile-controls button{
+	      background-color: #003322;
+	      color: #3cf3af;
+	      border: 2px solid #3cf3af;
+	      border-radius: 6px;
+	      padding: 10px 14px;
+	      font-size: 14px;
+	      min-width: 70px;
+	    }
+	    .desktop-only{
+	      display: inline;
+	    }
+	    .mobile-only{
+	      display: none;
+	    }
+	    @media (max-width: 768px){
+	      #mobile-controls{
+	        display: flex;
+	      }
+	      .desktop-only{
+	        display: none;
+	      }
+	      .mobile-only{
+	        display: inline;
+	      }
+	    }
+	    .progress{
+	      color: #196D4E;
+	      display: none;
+	      width: 100%;
+	      max-width: 640px;
+	      margin: 10px auto 0;
+	      left: 50%;
+	      transform: translateX(-50%);
+	      position: relative;
+	      border: 3px solid #3cf3af;
+	      height: 43px;
+	      text-align: center;
+	      font-size: 24px;
+	      line-height: 43px;
+	    }
+	    .checkpoint1, .checkpoint2{
+	      background-color: #3cf3af;
+	      position: absolute;
+	      height: 100%;
+	      width: 5px;
+	    }
+	    .status{
+	      display: block;
+	      background-color:#3cf3af;
+	      height: 43px;
+	      top: 0;
+	      width: 0%;
+	      position: absolute;
+	      z-index: 3;
+	    }
+	    .display{
+	      z-index: 5;
+	      position: relative;
+	    }
+	    .maxScore{
+	      display: block;
+	      background-color: #3cf3af;
+	      opacity: .3;
+	      height: 43px;
+	      top: 0;
+	      width: 0%;
+	      position: absolute;
+	      z-index: 2;
+	    }
+	    .win, .death, .intro{
+	      width: 100%;
+	      max-width: 960px;
+	      margin-left: 0;
+	      left: 50%;
+	      top: 50%;
+	      transform: translate(-50%, -50%);
+	      font-size: 50px;
+	      text-align: center;
+	      position: fixed;
+	      height: auto;
+	      min-height: 0;
+	      display: none;
+	      background-color: rgba(0,0,0,.5);
+	      z-index: 1;
+	    }
+	    .overlay-inner{
+	      padding: 20px;
+	    }
+	    .intro{
+	      background-color: rgba(0,0,0,.9);
+	    }
+	    .intro h1{
+	      font-size: 50px;
+	    }
+	    .intro small{
+	      font-size: 25px;
+	      font-style: italic;
+	    }
+	    small{
+	      font-size: 25px;
+	      font-style: italic;
+	    }
+	    .credits{
+	      position: absolute;
+	      bottom: 10px;
+	      text-align: center;
+	      width: 100%;
+	    }
+	    a{
+	      color: white;
+	    }
+	    a:visited{
+	      color: white;
+	    }
+	</style>
 
-    canvas {
-      display: block;
-      width: 100vw;
-      height: 100vh;
-      touch-action: none;
-      -ms-touch-action: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-  </style>
-  <script src="dist/duckhunt.js"></script>
+
+  <script src="libraries/lowLag.js"></script>
+  <script src="libraries/sm2/js/soundmanager2.js"></script>
+  <script src="libraries/jquery.js"></script>
+
+
+
+	<!--<script type="text/javascript" src="lib/impact/impact.js"></script>-->
+  <!--<script type="text/javascript" src="lib/drop.js"></script>-->
+  <script type="text/javascript" src="game.min.js"></script>
+
+
 </head>
 <body>
-</body>
-</html>
+	<div id="frame">
+	    <div class="intro">
+	      <div class="overlay-inner">
+	        <h1>EKG Runner<br><small>Run for your life.... (groan)</small></h1>
+	        <small class="desktop-only">Left/Right to move, Up/Space to jump</small>
+	        <small class="mobile-only">Use the on-screen buttons to move and jump</small>
+	        <br>
+	        <small class="desktop-only">Press Enter to start</small>
+	        <small class="mobile-only">Tap Start to begin</small>
+	      </div>
+	    </div>
+	    <div class="win">
+	      <div class="overlay-inner">
+	        YOU WIN!
+	        <br>
+	        <br>
+	        <small>
+	          Total Time Played: <span class="totalTime"></span>
+	          <br>
+	          Score: <span class="score"></span>
+	        </small>
+	      </div>
+	    </div>
+	    <div class="death">
+	      <div class="overlay-inner">
+	        You Died.
+	        <br>
+	        <small>
+	          Total Time Played: <span class="totalTime"></span>
+	          <br>
+	          Score: <span class="score"></span>
+	        </small>
+	      </div>
+	    </div>
+    <div class="progress">
+      <div class="checkpoint1"></div>
+      <div class="checkpoint2"></div>
+      <div class="display"></div>
+      <div class="status"></div>
+      <div class="maxScore"></div>
+      <img src="media/progress.png">
+    </div>
+		<canvas id="canvas"></canvas>
+  	</div>
+	  <div id="mobile-controls">
+	    <button id="btn-left">Left</button>
+	    <button id="btn-right">Right</button>
+	    <button id="btn-jump">Jump</button>
+	    <button id="btn-start">Start</button>
+	  </div>
+	</body>
+	</html>
