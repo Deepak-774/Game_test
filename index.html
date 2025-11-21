@@ -758,9 +758,6 @@ class Game {
         try {
             if (window.parent && window.parent.postMessage) {
                 window.parent.postMessage({ type: "GAME_OVER", score: this.score }, "*");
-                console.log('GAME_OVER message posted', { type: 'GAME_OVER', score: this.score });
-            } else {
-                console.log('GAME_OVER: postMessage not available');
             }
         } catch (e) {
             // ignore postMessage errors (e.g. cross-origin restrictions)
