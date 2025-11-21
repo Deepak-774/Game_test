@@ -1,26 +1,33 @@
-Alien Invasion
-==============
-This is the sample game that is built in the first three Chapter of
-mobile HTML5 Game Development.
+# Jolly Jumper !!
 
-It is released under both the GPL and MIT license to do with what you will.
+**Jolly Jumper (version - 1.0.1)** is infinite jumping style game, highly inspired by Doodle jump.
+This game is made in **Phaserjs** and it also open-sourced you can fork it here jolly-jumper. 
+Supported Browser - **Opera 33.0, Chrome - Version 47.0.2526.73, Firefox Version - 40.0.2.**
+Its my very first approach to be an indie game developer, hope you enjoyed this game.
 
-Playable Version: 
-http://cykod.github.com/AlienInvasion/
+**Android & windows version is coming soon.
 
-Bit.ly link for mobile: 
-http://bit.ly/html5-invasion
+## Play It
 
+[Play on Github](http://shohan4556.github.io/jolly-jumper/)
 
-If you make an interesting fork or enhancement of the game, let me know and it'll get
-linked to here. This original repo will stay matching the code in the book.
+[Play on itch.io](http://shohan4556.itch.io/jolly-jumper)
 
-For more  [HTML5 Game Development](http://www.html5gamedevelopment.org) resources, see:
+[Play on Gamejolt](http://gamejolt.com/games/jolly-jumper/112782#close)
 
-* [HTML5 Game Demos](http://www.html5gamedevelopment.org/html5-demos)
-* [HTML5 GameDev Tutorials](http://www.html5gamedevelopment.org/html5-game-tutorials)
-* [HTML5 Game Development News](http://www.html5gamedevelopment.org/html5-news)
-* [HTML5 Game Engines](http://www.html5gamedevelopment.org/html5-engines)
+**Supported Browser - Opera 33.0, Chrome - Version 47.0.2526.73, Firefox Version - 40.0.2.**
 
+## Contributing
 
+1. Fork it!
+2. Submit a pull request :)
 
+## Credits
+
+Design & Develop : Shohan
+
+## License
+
+All copyright reserved by the Author.
+
+For any query please contact : shohan4556@gmail.com
