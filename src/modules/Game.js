@@ -548,7 +548,7 @@ class Game {
     if (!this.paused) {
       this.pause();
     }
-    window.open('/creator.html', '_blank');
+    window.open('dist/creator.html', '_blank');
   }
 
   handleClick(event) {
