@@ -47,6 +47,30 @@
 	      font-size: 14px;
 	      min-width: 70px;
 	    }
+	    #joystick{
+	      width: 80px;
+	      height: 80px;
+	      border-radius: 50%;
+	      margin-right: 8px;
+	      display: none;
+	      border: 2px solid #3cf3af;
+	      box-shadow: 0 0 10px rgba(60,243,175,0.4);
+	      background: radial-gradient(circle at 30% 30%, rgba(60,243,175,0.35), rgba(0,0,0,0.9));
+	      position: relative;
+	    }
+	    #joystick .knob{
+	      position: absolute;
+	      left: 50%;
+	      top: 50%;
+	      width: 36px;
+	      height: 36px;
+	      margin-left: -18px;
+	      margin-top: -18px;
+	      border-radius: 50%;
+	      background-color: rgba(0,0,0,0.9);
+	      border: 2px solid #3cf3af;
+	      box-shadow: 0 0 6px rgba(60,243,175,0.7);
+	    }
 	    .desktop-only{
 	      display: inline;
 	    }
@@ -56,6 +80,13 @@
 	    @media (max-width: 768px){
 	      #mobile-controls{
 	        display: flex;
+	      }
+	      #joystick{
+	        display: block;
+	      }
+	      #btn-left,
+	      #btn-right{
+	        display: none;
 	      }
 	      .desktop-only{
 	        display: none;
@@ -214,10 +245,53 @@
 		<canvas id="canvas"></canvas>
   	</div>
 	  <div id="mobile-controls">
+	    <div id="joystick"><div class="knob"></div></div>
 	    <button id="btn-left">Left</button>
 	    <button id="btn-right">Right</button>
 	    <button id="btn-jump">Jump</button>
 	    <button id="btn-start">Start</button>
 	  </div>
+
+	  <script>
+	  (function(){
+	    if (window.parent === window) {
+	      window.addEventListener('load', function(){
+	        if (window.ig && ig.music) {
+	          ig.music.volume = 0;
+	        }
+	        if (window.soundManager && soundManager.mute) {
+	          soundManager.mute();
+	        }
+	      });
+	    }
+	    function setupJoystick(){
+	      var joy = document.getElementById('joystick');
+	      if (!joy || !window.ig || !ig.input) { return; }
+	      function setDir(dir){
+	        ig.input.actions.left = (dir === 'left');
+	        ig.input.actions.right = (dir === 'right');
+	      }
+	      function clearDir(){
+	        ig.input.actions.left = false;
+	        ig.input.actions.right = false;
+	      }
+	      function handle(e){
+	        var t = e.touches ? e.touches[0] : e;
+	        var r = joy.getBoundingClientRect();
+	        var x = t.clientX - r.left;
+	        setDir(x < r.width / 2 ? 'left' : 'right');
+	        if (e.cancelable) e.preventDefault();
+	      }
+	      joy.addEventListener('touchstart', handle, { passive: false });
+	      joy.addEventListener('touchmove', handle, { passive: false });
+	      joy.addEventListener('touchend', function(e){ clearDir(); if (e.cancelable) e.preventDefault(); }, { passive: false });
+	    }
+	    if (document.readyState === 'complete') {
+	      setupJoystick();
+	    } else {
+	      window.addEventListener('load', setupJoystick);
+	    }
+	  })();
+	  </script>
 	</body>
 	</html>
