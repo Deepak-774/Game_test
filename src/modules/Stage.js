@@ -22,6 +22,7 @@ const DOG_POINTS = {
 };
 const HUD_LOCATIONS = {
   SCORE: new Point(MAX_X - 10, 10),
+  TIMER: new Point(MAX_X / 2, 10),
   WAVE_STATUS: new Point(MAX_X - 11, MAX_Y - 30),
   LEVEL_CREATOR_LINK: new Point(MAX_X - 11, MAX_Y - 10),
   FULL_SCREEN_LINK: new Point(MAX_X - 130, MAX_Y - 10),
@@ -72,6 +73,10 @@ class Stage extends Container {
 
   static scoreBoxLocation() {
     return HUD_LOCATIONS.SCORE;
+  }
+
+  static timerBoxLocation() {
+    return HUD_LOCATIONS.TIMER;
   }
 
   static waveStatusBoxLocation() {

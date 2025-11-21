@@ -9,9 +9,11 @@ import utils from '../libs/utils';
 const BLUE_SKY_COLOR = 0x64b0ff;
 const PINK_SKY_COLOR = 0xfbb4d4;
 const SUCCESS_RATIO = 0.6;
+const BASE_SCREEN_WIDTH = 800;
+const FONT_SCALE = window.innerWidth < BASE_SCREEN_WIDTH ? BASE_SCREEN_WIDTH / window.innerWidth : 1;
 const BOTTOM_LINK_STYLE = {
   fontFamily: 'Arial',
-  fontSize: '15px',
+  fontSize: (15 * FONT_SCALE) + 'px',
   align: 'left',
   fill: 'white'
 };
@@ -35,6 +37,14 @@ class Game {
     this.muted = false;
     this.paused = false;
     this.activeSounds = [];
+
+    // New game state
+    this.lives = 3;
+    this.misses = 0;
+    this.gameOver = false;
+    this.gameDuration = 120; // seconds
+    this.gameStartTime = null;
+    this.timeRemaining = this.gameDuration;
 
     this.waveEnding = false;
     this.quackingSoundId = null;
@@ -146,7 +156,7 @@ class Game {
         this.stage.hud.createTextBox('score', {
           style: {
             fontFamily: 'Arial',
-            fontSize: '18px',
+            fontSize: (18 * FONT_SCALE) + 'px',
             align: 'left',
             fill: 'white'
           },
@@ -187,7 +197,7 @@ class Game {
         this.stage.hud.createTextBox('waveStatus', {
           style: {
             fontFamily: 'Arial',
-            fontSize: '14px',
+            fontSize: (14 * FONT_SCALE) + 'px',
             align: 'center',
             fill: 'white'
           },
@@ -198,12 +208,8 @@ class Game {
           }
         });
       }
-
-      if (!isNaN(val) && val > 0) {
-        this.stage.hud.waveStatus = 'wave ' + val + ' of ' + this.level.waves;
-      } else {
-        this.stage.hud.waveStatus = '';
-      }
+      // Hide wave text; gameplay is controlled only by global timer and lives
+      this.stage.hud.waveStatus = '';
     }
   }
 
@@ -228,7 +234,7 @@ class Game {
         this.stage.hud.createTextBox('gameStatus', {
           style: {
             fontFamily: 'Arial',
-            fontSize: '40px',
+            fontSize: (40 * FONT_SCALE) + 'px',
             align: 'left',
             fill: 'white'
           },
@@ -259,6 +265,12 @@ class Game {
     this.addMuteLink();
     this.addFullscreenLink();
     this.bindEvents();
+
+    // Initialize HUD elements for lives and timer
+    this.initLivesHud();
+    this.initTimerHud();
+
+    this.gameStartTime = Date.now();
     this.startLevel();
     this.animate();
 
@@ -474,7 +486,7 @@ class Game {
 
   endLevel() {
     this.wave = 0;
-    this.goToNextLevel();
+    // Disable level progression; game is controlled only by timer and lives
   }
 
   goToNextLevel() {
@@ -502,6 +514,15 @@ class Game {
     sound.play('loserSound');
     this.gameStatus = 'You Lose!';
     this.showReplay(this.getScoreMessage());
+
+    // Notify parent frame that the game is over with the final score
+    try {
+      if (typeof window !== 'undefined' && window.parent && window.parent !== window && window.parent.postMessage) {
+        window.parent.postMessage({ type: 'GAME_OVER', score: this.score }, '*');
+      }
+    } catch (e) {
+      // Fail silently if cross-origin or unavailable
+    }
   }
 
   getScoreMessage() {
@@ -548,7 +569,7 @@ class Game {
     if (!this.paused) {
       this.pause();
     }
-    window.open('dist/creator.html', '_blank');
+    window.open('/creator.html', '_blank');
   }
 
   handleClick(event) {
@@ -577,10 +598,15 @@ class Game {
       return;
     }
 
-    if (!this.stage.hud.replayButton && !this.outOfAmmo() && !this.shouldWaveEnd() && !this.paused) {
+    if (!this.stage.hud.replayButton && !this.paused && !this.gameOver) {
       sound.play('gunSound');
-      this.bullets -= 1;
-      this.updateScore(this.stage.shotsFired(clickPoint, this.level.radius));
+
+      const ducksShot = this.stage.shotsFired(clickPoint, this.level.radius);
+      if (ducksShot > 0) {
+        this.updateScore(ducksShot);
+      } else {
+        this.registerMiss();
+      }
       return;
     }
 
@@ -596,8 +622,22 @@ class Game {
   }
 
   animate() {
-    if (!this.paused) {
+    if (!this.paused && !this.gameOver) {
       this.renderer.render(this.stage);
+
+      // Update global game timer
+      if (this.gameStartTime) {
+        const elapsedMs = Date.now() - this.gameStartTime - (this.timePaused * 1000);
+        const elapsedSeconds = elapsedMs / 1000;
+        this.timeRemaining = this.gameDuration - elapsedSeconds;
+        if (this.timeRemaining <= 0) {
+          this.timeRemaining = 0;
+          this.updateTimerHud();
+          this.triggerGameOver('Time Up');
+        } else {
+          this.updateTimerHud();
+        }
+      }
 
       if (this.shouldWaveEnd()) {
         this.endWave();

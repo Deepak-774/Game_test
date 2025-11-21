@@ -37889,7 +37889,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 document.addEventListener('DOMContentLoaded', function () {
 
   var game = new _Game2.default({
-    spritesheet: 'sprites.json'
+    spritesheet: 'dist/sprites.json'
   }).load();
 }, false);
 
