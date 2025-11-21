@@ -48,8 +48,8 @@
 	      min-width: 70px;
 	    }
 	    #joystick{
-	      width: 80px;
-	      height: 80px;
+	      width: 110px;
+	      height: 110px;
 	      border-radius: 50%;
 	      margin-right: 8px;
 	      display: none;
@@ -62,10 +62,10 @@
 	      position: absolute;
 	      left: 50%;
 	      top: 50%;
-	      width: 36px;
-	      height: 36px;
-	      margin-left: -18px;
-	      margin-top: -18px;
+	      width: 46px;
+	      height: 46px;
+	      margin-left: -23px;
+	      margin-top: -23px;
 	      border-radius: 50%;
 	      background-color: rgba(0,0,0,0.9);
 	      border: 2px solid #3cf3af;
@@ -78,6 +78,12 @@
 	      display: none;
 	    }
 	    @media (max-width: 768px){
+	      html, body{
+	        height: 100vh;
+	        overflow: hidden;
+	        touch-action: none;
+	        overscroll-behavior: contain;
+	      }
 	      #mobile-controls{
 	        display: flex;
 	      }
@@ -248,7 +254,6 @@
 	    <div id="joystick"><div class="knob"></div></div>
 	    <button id="btn-left">Left</button>
 	    <button id="btn-right">Right</button>
-	    <button id="btn-jump">Jump</button>
 	    <button id="btn-start">Start</button>
 	  </div>
 
@@ -267,24 +272,46 @@
 	    function setupJoystick(){
 	      var joy = document.getElementById('joystick');
 	      if (!joy || !window.ig || !ig.input) { return; }
-	      function setDir(dir){
-	        ig.input.actions.left = (dir === 'left');
+	      var knob = joy.querySelector('.knob');
+	      var radius = joy.offsetWidth / 2;
+	      var maxOffset = radius - (knob ? knob.offsetWidth / 2 : 0) - 2;
+	      function setState(dir, jump){
+	        ig.input.actions.left  = (dir === 'left');
 	        ig.input.actions.right = (dir === 'right');
+	        if (jump) {
+	          ig.input.actions.jump = true;
+	          ig.input.presses = ig.input.presses || {};
+	          ig.input.presses.jump = true;
+	        }
 	      }
-	      function clearDir(){
+	      function clearState(){
 	        ig.input.actions.left = false;
 	        ig.input.actions.right = false;
+	        ig.input.actions.jump = false;
+	        if (knob) {
+	          knob.style.transform = 'translate(0, 0)';
+	        }
 	      }
 	      function handle(e){
 	        var t = e.touches ? e.touches[0] : e;
 	        var r = joy.getBoundingClientRect();
-	        var x = t.clientX - r.left;
-	        setDir(x < r.width / 2 ? 'left' : 'right');
+	        var x = t.clientX - r.left - r.width / 2;
+	        var y = t.clientY - r.top - r.height / 2;
+	        var dir = x < 0 ? 'left' : 'right';
+	        var jump = (y < -r.height * 0.2); // upper area triggers jump
+	        setState(dir, jump);
+	        if (knob) {
+	          var dist = Math.sqrt(x * x + y * y) || 1;
+	          var scale = Math.min(maxOffset / dist, 1);
+	          var kx = x * scale;
+	          var ky = y * scale;
+	          knob.style.transform = 'translate(' + kx + 'px, ' + ky + 'px)';
+	        }
 	        if (e.cancelable) e.preventDefault();
 	      }
 	      joy.addEventListener('touchstart', handle, { passive: false });
 	      joy.addEventListener('touchmove', handle, { passive: false });
-	      joy.addEventListener('touchend', function(e){ clearDir(); if (e.cancelable) e.preventDefault(); }, { passive: false });
+	      joy.addEventListener('touchend', function(e){ clearState(); if (e.cancelable) e.preventDefault(); }, { passive: false });
 	    }
 	    if (document.readyState === 'complete') {
 	      setupJoystick();
