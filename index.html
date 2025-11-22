@@ -1,324 +1,235 @@
-<!DOCTYPE html>
 <html>
 <head>
-	<title>EKG Runner</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	<style type="text/css">
-		html,body {
-			background-color: #000;
-			color: #3cf3af;
-			font-family: helvetica, arial, sans-serif;
-			margin: 0;
-			padding: 0;
-			font-size: 12pt;
-			min-height: 100vh;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-	    #frame{
-	      text-align: center;
-	    }
-	    #canvas{
-	      position: relative;
-	      width: 100%;
-	      max-width: 960px;
-	      height: auto;
-	      margin: 20px auto 0;
-	      display: block;
-	      z-index: 0;
-	    }
-	    #mobile-controls{
-	      position: fixed;
-	      left: 0;
-	      right: 0;
-	      bottom: 10px;
-	      display: none;
-	      justify-content: center;
-	      gap: 12px;
-	      z-index: 2;
-	    }
-	    #mobile-controls button{
-	      background-color: #003322;
-	      color: #3cf3af;
-	      border: 2px solid #3cf3af;
-	      border-radius: 6px;
-	      padding: 10px 14px;
-	      font-size: 14px;
-	      min-width: 70px;
-	    }
-	    #joystick{
-	      width: 110px;
-	      height: 110px;
-	      border-radius: 50%;
-	      margin-right: 8px;
-	      display: none;
-	      border: 2px solid #3cf3af;
-	      box-shadow: 0 0 10px rgba(60,243,175,0.4);
-	      background: radial-gradient(circle at 30% 30%, rgba(60,243,175,0.35), rgba(0,0,0,0.9));
-	      position: relative;
-	    }
-	    #joystick .knob{
-	      position: absolute;
-	      left: 50%;
-	      top: 50%;
-	      width: 46px;
-	      height: 46px;
-	      margin-left: -23px;
-	      margin-top: -23px;
-	      border-radius: 50%;
-	      background-color: rgba(0,0,0,0.9);
-	      border: 2px solid #3cf3af;
-	      box-shadow: 0 0 6px rgba(60,243,175,0.7);
-	    }
-	    .desktop-only{
-	      display: inline;
-	    }
-	    .mobile-only{
-	      display: none;
-	    }
-	    @media (max-width: 768px){
-	      html, body{
-	        height: 100vh;
-	        overflow: hidden;
-	        touch-action: none;
-	        overscroll-behavior: contain;
-	      }
-	      #mobile-controls{
-	        display: flex;
-	      }
-	      #joystick{
-	        display: block;
-	      }
-	      #btn-left,
-	      #btn-right{
-	        display: none;
-	      }
-	      .desktop-only{
-	        display: none;
-	      }
-	      .mobile-only{
-	        display: inline;
-	      }
-	    }
-	    .progress{
-	      color: #196D4E;
-	      display: none;
-	      width: 100%;
-	      max-width: 640px;
-	      margin: 10px auto 0;
-	      left: 50%;
-	      transform: translateX(-50%);
-	      position: relative;
-	      border: 3px solid #3cf3af;
-	      height: 43px;
-	      text-align: center;
-	      font-size: 24px;
-	      line-height: 43px;
-	    }
-	    .checkpoint1, .checkpoint2{
-	      background-color: #3cf3af;
-	      position: absolute;
-	      height: 100%;
-	      width: 5px;
-	    }
-	    .status{
-	      display: block;
-	      background-color:#3cf3af;
-	      height: 43px;
-	      top: 0;
-	      width: 0%;
-	      position: absolute;
-	      z-index: 3;
-	    }
-	    .display{
-	      z-index: 5;
-	      position: relative;
-	    }
-	    .maxScore{
-	      display: block;
-	      background-color: #3cf3af;
-	      opacity: .3;
-	      height: 43px;
-	      top: 0;
-	      width: 0%;
-	      position: absolute;
-	      z-index: 2;
-	    }
-	    .win, .death, .intro{
-	      width: 100%;
-	      max-width: 960px;
-	      margin-left: 0;
-	      left: 50%;
-	      top: 50%;
-	      transform: translate(-50%, -50%);
-	      font-size: 50px;
-	      text-align: center;
-	      position: fixed;
-	      height: auto;
-	      min-height: 0;
-	      display: none;
-	      background-color: rgba(0,0,0,.5);
-	      z-index: 1;
-	    }
-	    .overlay-inner{
-	      padding: 20px;
-	    }
-	    .intro{
-	      background-color: rgba(0,0,0,.9);
-	    }
-	    .intro h1{
-	      font-size: 50px;
-	    }
-	    .intro small{
-	      font-size: 25px;
-	      font-style: italic;
-	    }
-	    small{
-	      font-size: 25px;
-	      font-style: italic;
-	    }
-	    .credits{
-	      position: absolute;
-	      bottom: 10px;
-	      text-align: center;
-	      width: 100%;
-	    }
-	    a{
-	      color: white;
-	    }
-	    a:visited{
-	      color: white;
-	    }
-	</style>
+	<title>Marble Soccer</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
+	<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/cfbcdiidnfncmcomhfnfbpcpfikjemie"/>
 
-  <script src="libraries/lowLag.js"></script>
-  <script src="libraries/sm2/js/soundmanager2.js"></script>
-  <script src="libraries/jquery.js"></script>
+	<link rel='stylesheet' href="css/main.css"		/>
+	<link rel='stylesheet' href="css/osd.css"		/>
+	<link rel='stylesheet' href="css/pageLandingMain.css"	/>
+	<link rel='stylesheet' href="css/embedded.css"		/>
+	<link rel='stylesheet' href="css/overlay.css"		/>
+	<link rel='stylesheet' href="css/landingTimer.css"	/>
 
-
-
-	<!--<script type="text/javascript" src="lib/impact/impact.js"></script>-->
-  <!--<script type="text/javascript" src="lib/drop.js"></script>-->
-  <script type="text/javascript" src="game.min.js"></script>
-
-
+	<script type="text/javascript">
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-4037844-20']);
+	  _gaq.push(['_trackPageview']);
+	
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();		
+	</script>
 </head>
 <body>
-	<div id="frame">
-	    <div class="intro">
-	      <div class="overlay-inner">
-	        <h1>EKG Runner<br><small>Run for your life.... (groan)</small></h1>
-	        <small class="desktop-only">Left/Right to move, Up/Space to jump</small>
-	        <small class="mobile-only">Use the on-screen buttons to move and jump</small>
-	        <br>
-	        <small class="desktop-only">Press Enter to start</small>
-	        <small class="mobile-only">Tap Start to begin</small>
-	      </div>
-	    </div>
-	    <div class="win">
-	      <div class="overlay-inner">
-	        YOU WIN!
-	        <br>
-	        <br>
-	        <small>
-	          Total Time Played: <span class="totalTime"></span>
-	          <br>
-	          Score: <span class="score"></span>
-	        </small>
-	      </div>
-	    </div>
-	    <div class="death">
-	      <div class="overlay-inner">
-	        You Died.
-	        <br>
-	        <small>
-	          Total Time Played: <span class="totalTime"></span>
-	          <br>
-	          Score: <span class="score"></span>
-	        </small>
-	      </div>
-	    </div>
-    <div class="progress">
-      <div class="checkpoint1"></div>
-      <div class="checkpoint2"></div>
-      <div class="display"></div>
-      <div class="status"></div>
-      <div class="maxScore"></div>
-      <img src="media/progress.png">
-    </div>
-		<canvas id="canvas"></canvas>
-  	</div>
-	  <div id="mobile-controls">
-	    <div id="joystick"><div class="knob"></div></div>
-	    <button id="btn-left">Left</button>
-	    <button id="btn-right">Right</button>
-	    <button id="btn-start">Start</button>
-	  </div>
+	<body>
+		<!-- *****************************************************************************
+			canvasContainer
+		******************************************************************************** -->
+		<div id="canvasContainer"></div>
+		<!-- Blur/pause overlay -->
+		<div id="gameOverlay">
+			<div class="overlay-box">
+				<div class="overlay-title">Paused</div>
+				<div class="overlay-message">Time is up.</div>
+				<div class="overlay-hint">Tap to continue</div>
+			</div>
+		</div>
+		<!-- *****************************************************************************
+			virtualjoystickContainer
+		******************************************************************************** -->
+		<div id="virtualjoystickContainer"><div class="subContainer">
+		</div></div>
+		<!-- *****************************************************************************
+			OsdContainer
+		******************************************************************************** -->
+		<div id="osdContainer" style="display: none;"><div class="subContainer">
+			<div class="info"><a href="http://learningthreejs.com/blog/categories/tutorial3dgame/" target="_blank">
+				LearningThree.js</a> - Lets make a 3D Game
+				<br/>
+				Use Arrow keys to move - push yellow ball on red squares
+			</div> 
+			<div class="sidebarLeft">
+				<div class="score menuLine">
+					<span class="label">Score:</span>
+					<span class="value"></span>
+				</div>
+				<div class="lives menuLine">
+					<span class="label">Lives:</span>
+					<span class="value"></span>
+				</div>
+				<div class="timeout menuLine">
+					<span class="label">Time:</span>
+					<span class="value">12:45</span>
+				</div>
+			</div>
+			<!-- sidebarRight with help button removed -->
+			<!-- helpDialog -->
+			<div class="helpDialog jqmWindow">
+				<h3>Welcome in MarbleSoccer</h3>
+				<p>You are a marble in a field!</p>
+				<p>Use <strong>Arrows</strong> to move the player.</p>
+				<p>push the blue ball on the red squares.</p>
+				<p>That's it. Have fun :)</p>
+			</div>
+		</div></div>
+		<!-- *****************************************************************************
+			LandingContainer
+		******************************************************************************** -->
+		<div id="pageLandingContainer" style="display: none;"><div class="subContainer">
+			<div id="landingCountdown"></div>
+			<div class="pageTitle">
+				<a href="http://learningthreejs.com/blog/categories/tutorial3dgame/" target='_blank'>Marble Soccer</a>
+			</div>
+			<div class="chromeWebstoreInstall" style="display:none;">
+				Chrome Web App <span class="value"></span>
+			</div>
+			<!-- ******** menuDialog ******** -->
+			<div class="menuDialog jqmWindow">
+				<h3>Welcome in MarbleSoccer</h3>
+				<p>You are a marble in a field!</p>
+				<p>Use <strong>Arrows</strong> to move the player
+				And push the blue ball on the red squares.</p>
+				<div class="button play">Play</div>
+				<div class="button tutorial">Tutorial</div>
+			</div>
+			<!-- ******** tutorialDialog ******** -->
+			<div class="tutorialDialog jqmWindow">
+				<h3>Tutorial on MarbleSoccer</h3>
+				<p>You are a marble in a field!</p>
+				<p>Use <strong>Arrows</strong> to move the player
+				And push the blue ball on the red squares.</p>
+			</div>
+			<!-- ******** nowebglDialog ******** -->
+			<div class="nowebglDialog jqmWindow">
+				<h3>Ouch no WebGL :(</h3>
+				<p>
+					Sorry, WebGL is not available on your computer.
+					You can read <a href='http://notes.jetienne.com/2011/04/13/pacmaze-v1-release.html' target='_blank'>more help on Pacmaze</a>
+					or look at a video of the game.
+					You may try to <a href='http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation'>get a WebGL Implementation</a>.
+					<!--Go <a href='http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation'>get a WebGL Implementation</a>.
+					Or try <a href='?render=canvas'>super experimental/ugly canvas version</a>?-->
+				</p>
+				<center>
+					<span class="youtube"></span>
+				</center> 
+				<p style="font-size: 80%; float: right">
+					try an <b>experimental</b> <a href="/?render=canvas">canvas version</a>
+				</p>
+			</div>
+		</div></div>
 
-	  <script>
-	  (function(){
-	    if (window.parent === window) {
-	      window.addEventListener('load', function(){
-	        if (window.ig && ig.music) {
-	          ig.music.volume = 0;
-	        }
-	        if (window.soundManager && soundManager.mute) {
-	          soundManager.mute();
-	        }
-	      });
-	    }
-	    function setupJoystick(){
-	      var joy = document.getElementById('joystick');
-	      if (!joy || !window.ig || !ig.input) { return; }
-	      var knob = joy.querySelector('.knob');
-	      var radius = joy.offsetWidth / 2;
-	      var maxOffset = radius - (knob ? knob.offsetWidth / 2 : 0) - 2;
-	      function setState(dir, jump){
-	        ig.input.actions.left  = (dir === 'left');
-	        ig.input.actions.right = (dir === 'right');
-	        if (jump) {
-	          ig.input.actions.jump = true;
-	          ig.input.presses = ig.input.presses || {};
-	          ig.input.presses.jump = true;
-	        }
-	      }
-	      function clearState(){
-	        ig.input.actions.left = false;
-	        ig.input.actions.right = false;
-	        ig.input.actions.jump = false;
-	        if (knob) {
-	          knob.style.transform = 'translate(0, 0)';
-	        }
-	      }
-	      function handle(e){
-	        var t = e.touches ? e.touches[0] : e;
-	        var r = joy.getBoundingClientRect();
-	        var x = t.clientX - r.left - r.width / 2;
-	        var y = t.clientY - r.top - r.height / 2;
-	        var dir = x < 0 ? 'left' : 'right';
-	        var jump = (y < -r.height * 0.2); // upper area triggers jump
-	        setState(dir, jump);
-	        if (knob) {
-	          var dist = Math.sqrt(x * x + y * y) || 1;
-	          var scale = Math.min(maxOffset / dist, 1);
-	          var kx = x * scale;
-	          var ky = y * scale;
-	          knob.style.transform = 'translate(' + kx + 'px, ' + ky + 'px)';
-	        }
-	        if (e.cancelable) e.preventDefault();
-	      }
-	      joy.addEventListener('touchstart', handle, { passive: false });
-	      joy.addEventListener('touchmove', handle, { passive: false });
-	      joy.addEventListener('touchend', function(e){ clearState(); if (e.cancelable) e.preventDefault(); }, { passive: false });
-	    }
-	    if (document.readyState === 'complete') {
-	      setupJoystick();
-	    } else {
-	      window.addEventListener('load', setupJoystick);
-	    }
-	  })();
-	  </script>
+		<!-- include weinre client script to debug on mobile -->s
+<!--		<script src="http://192.168.0.10:8080/target/target-script-min.js#anonymous"></script>
+-->
+		<!-- include javascript files -->
+		<script src="vendor/jquery/jquery.min.js"></script>
+		<script src="vendor/jquery/jquery.url.js"></script>
+
+		<!-- **********************************	-->
+		<!-- jquery.jqModal for all the popups	-->
+		<!-- **********************************	-->
+		<script src='vendor/jquery/jqModal.js' 	type='text/javascript'></script>
+		<link  href='vendor/jquery/jqModal.css'	rel='stylesheet' type='text/css' />
+
+		<script src="vendor/three-r46.js/build/Three.js"></script>
+		<script src="vendor/three-r46.js/examples/js/Detector.js"></script>
+		<script src="vendor/three-r46.js/examples/js/Stats.js"></script>
+
+		<script src='vendor/es5-shim/es5-shim.min.js'></script>
+
+		<script src='vendor/underscore/underscore-min.js'></script>
+
+		<script src='vendor/microcache.js/microcache.js'></script>
+		<script src='vendor/microphysics.js/codeflow/physics.js'></script>
+		<script src='vendor/microphysics.js/THREEx.microphysics.js'></script>
+
+		<script src='vendor/THREEx/THREEx.WindowResize.js'></script>
+		<script src='vendor/THREEx/THREEx.SkyMap.js'></script>
+		<script src='vendor/THREEx/THREEx.KeyboardState.js'></script>
+		<script src='vendor/THREEx/THREEx.deviceOrientationState.js'></script>
+		<script src='vendor/THREEx/THREEx.requestAnimationFrame.js'></script>
+
+		<script src='vendor/soundmanager2/script/soundmanager2.js'></script>
+
+		<script src='./vendor/microevent.js/microevent.js'></script>
+		<script src='./vendor/excanvas.js'></script>
+
+		<script src='./vendor/virtualjoystick.js/virtualjoystick.js'></script>
+
+		<script src="https://myapps.mozillalabs.com/jsapi/include.js"></script>
+		<script src='./js/threex.mozillaWebStoreInstall.js'></script>
+
+
+		<script src='./js/threex.chromeWebStoreInstall.js'>	</script>
+		<script src='./js/threex.texturePoolBall.js'>		</script>
+		<script src='./js/threex.fullScreen.js'>		</script>
+		<script src='./js/threex.sparks.js'>			</script>
+		<script src='./js/threex.preloader.js'>			</script>
+
+		<script src="js/lib/core.js"></script>
+		<script src='js/lib/soundmanager2Config.js'></script>
+		<script src="js/lib/sound.js"></script>
+		<script src="js/lib/soundPool.js"></script>
+		<script src="js/lib/voxelMap.js"></script>
+		<script src="js/lib/voxelMapTest.js"></script>
+		<script src='js/lib/microphysics.frictionAccelerator.js'></script>
+		<script src='js/lib/microphysics.maxSpeedAccelerator.js'></script>
+		<script src='js/lib/microphysics.threexKeyboardAccelerator.js'></script>
+		<script src='js/lib/microphysics.threexDeviceOrientationAccelerator.js'></script>
+		<script src='js/lib/microphysics.virtualjoystickAccelerator.js'></script>
+		<script src="js/lib/visualFx.js"></script>
+
+		<script src='tmp/particles-emitter/threex.particlesemitter.js'></script>
+		<script src='tmp/particles-emitter/threex.particlesitem.js'></script>
+
+		<script src="js/map.js"></script>
+		<script src="js/voxel.js"></script>
+		<script src="js/visualFxLightNormal.js"></script>
+		<script src="js/visualFxLightRed.js"></script>
+		<script src="js/visualFxParticles.js"></script>
+		<script src="js/visualFxSparks.js"></script>
+		<script src="js/skymap.js"></script>
+		<script src="js/marble.js"></script>
+		<script src="js/player.js"></script>
+		<script src="js/playerFpsControl.js"></script>
+		<script src="js/enemy.js"></script>
+		<script src="js/ball.js"></script>
+		<script src="js/camera.js"></script>
+		<script src="js/gameLevel.js"></script>
+		<script src="js/osdLayer.js"></script>
+
+		<script src="js/poolBallUtils.js"></script>
+
+		<script src="js/pageLandingMain.js"></script>
+		<script src="js/pageGameMain.js"></script>
+		<script src="js/pageGameLife.js"></script>
+
+		<script src="./vendor/sparks.js/Sparks.js"></script>
+		<script src="./vendor/sparks.js/examples/js/Tween.js"></script>
+
+		<script>
+			jQuery(function(){
+				// TODO use the threex.embedded for that
+				
+				// prevent default actions for arrow keys
+				// - required if this window.document is embedded in another page as an iframe
+				// - it prevent the hosting page to scroll when you use arrows in the game page
+				document.addEventListener('keydown', function(event){
+					var isArrow	= event.keyCode >= 37 && event.keyCode <= 40;
+					if( !isArrow )	return;
+					event.preventDefault();
+				}, true);
+
+				new Marble.PageLandingMain();				
+			})
+
+		</script>
 	</body>
-	</html>
+</body>
+</html>
