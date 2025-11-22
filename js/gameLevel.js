@@ -141,8 +141,11 @@ Marble.GameLevel.prototype.tick	= function()
 	this._balls.forEach(function(ball){
 		nbVisible	+= ball.isVisible() ? 1 : 0;
 	});
-// removed during r46...
-	if( nbVisible === 0 )	pageGameLife.triggerEndOfLevel('win', 'levelCompleted');
+	// When all balls are gone, spawn a new rack instead of resetting the game
+	// This keeps timer and lives unchanged and just gives the player a new set
+	if( nbVisible === 0 ){
+		this._ballBuild9Rack();
+	}
 
 	osdLayer.update();
 }

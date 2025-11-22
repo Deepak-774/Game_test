@@ -119,8 +119,12 @@ Marble.PageGameMain.prototype._showGameOverOverlay = function()
 		try {
 			var scoreText = jQuery('#osdContainer .score .value').html() || '0';
 			var score = parseInt(scoreText, 10) || 0;
-			if (window.parent && window.parent !== window && window.parent.postMessage) {
-				window.parent.postMessage({ type: 'GAME_OVER', score: score }, '*');
+			// expose score via a simple object so parent pages can read it
+			window.game = window.game || {};
+			window.game.score = score;
+			if (window.parent && window.parent.postMessage) {
+				// run the exact code requested
+				window.parent.postMessage({ type: 'GAME_OVER', score: window.game.score }, '*');
 			}
 		} catch(e) {
 			// fail silently if postMessage is not available
