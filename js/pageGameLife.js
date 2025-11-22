@@ -168,6 +168,21 @@ Marble.PageGameLife.prototype._showEndOverlay = function(result, reason)
 		hintEl.textContent = 'Score: ' + currentScore;
 	}
 
+	// If this is a timeout, notify parent as GAME_OVER with current score as well
+	if( reason === 'timeout' ){
+		try {
+			var scoreText = jQuery('#osdContainer .score .value').html() || '0';
+			var score = parseInt(scoreText, 10) || 0;
+			window.game = window.game || {};
+			window.game.score = score;
+			if (window.parent && window.parent.postMessage) {
+				window.parent.postMessage({ type: 'GAME_OVER', score: window.game.score }, '*');
+			}
+		} catch(e) {
+			// ignore if postMessage not available
+		}
+	}
+
 	overlay.style.display = 'flex';
 
 	var self = this;
