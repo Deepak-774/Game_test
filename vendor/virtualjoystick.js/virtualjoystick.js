@@ -27,9 +27,10 @@ var VirtualJoystick	= function(opts)
 	this._$onTouchStart	= __bind(this._onTouchStart	, this);
 	this._$onTouchEnd	= __bind(this._onTouchEnd	, this);
 	this._$onTouchMove	= __bind(this._onTouchMove	, this);
-	this._container.addEventListener( 'touchstart'	, this._$onTouchStart	, false );
-	this._container.addEventListener( 'touchend'	, this._$onTouchEnd	, false );
-	this._container.addEventListener( 'touchmove'	, this._$onTouchMove	, false );
+	// Use non-passive listeners so preventDefault() can stop page scrolling on mobile
+	this._container.addEventListener( 'touchstart'	, this._$onTouchStart	, { passive: false } );
+	this._container.addEventListener( 'touchend'	, this._$onTouchEnd	, { passive: false } );
+	this._container.addEventListener( 'touchmove'	, this._$onTouchMove	, { passive: false } );
 	if( this._mouseSupport ){
 		this._$onMouseDown	= __bind(this._onMouseDown	, this);
 		this._$onMouseUp	= __bind(this._onMouseUp	, this);
