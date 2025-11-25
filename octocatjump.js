@@ -1067,8 +1067,20 @@
             var images = [];
             images = images.concat("title.png", "cratfy_logo.png", "github_logo.png");
             images = images.concat("bg.png", "octocat.png", "portal.png", "smoke_jump.png", "speaker.png", "mute.png");
+            var audioAssets = {
+                jump: ["jump.mp3", "jump.ogg", "jump.wav"].map(sndPath),
+                push: ["push.mp3", "push.ogg", "push.wav"].map(sndPath),
+                pull: ["pull.mp3", "pull.ogg", "pull.wav"].map(sndPath),
+                fork: ["fork.mp3", "fork.ogg", "fork.wav"].map(sndPath),
+                star: ["star.mp3", "star.ogg", "star.wav"].map(sndPath),
+                dead: ["dead.mp3", "dead.ogg", "dead.wav"].map(sndPath),
+                click: ["click.mp3", "click.ogg", "click.wav"].map(sndPath)
+            };
 
-            Crafty.load(images.map(imgPath), function onLoad() {
+            Crafty.load({
+                images: images.map(imgPath),
+                audio: audioAssets
+            }, function onLoad() {
                 $("#loader").remove();
 
 
@@ -1088,15 +1100,7 @@
                     Portal: [0, 0]
                 });
 
-                Crafty.audio.add({
-                    jump: ["jump.mp3", "jump.ogg", "jump.wav"].map(sndPath),
-                    push: ["push.mp3", "push.ogg", "push.wav"].map(sndPath),
-                    pull: ["pull.mp3", "pull.ogg", "pull.wav"].map(sndPath),
-                    fork: ["fork.mp3", "fork.ogg", "fork.wav"].map(sndPath),
-                    star: ["star.mp3", "star.ogg", "star.wav"].map(sndPath),
-                    dead: ["dead.mp3", "dead.ogg", "dead.wav"].map(sndPath),
-                    click: ["click.mp3", "click.ogg", "click.wav"].map(sndPath)
-                });
+                Crafty.audio.add(audioAssets);
 
                 // setTimeout(function () {
                 //     Crafty.scene("intro");
