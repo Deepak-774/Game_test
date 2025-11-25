@@ -17,7 +17,14 @@
             n = 10,
             isDead = false,
             IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768,
-            mobileInput = { left: false, right: false };
+            mobileInput = { left: false, right: false },
+            joystick = null,
+            joystickThumb = null,
+            joystickActive = false,
+            joystickPointerId = null,
+            joystickCenterX = 0,
+            joystickCenterY = 0,
+            joystickRadius = 50;
 
         Crafty.init(STAGE_WIDTH, STAGE_HEIGHT);
         Crafty.canvas.init();
@@ -29,28 +36,173 @@
         function setupMobileControls() {
             if(!IS_MOBILE) return;
 
-            if(!('DeviceOrientationEvent' in window)) {
-                return;
+            var stage = document.getElementById('cr-stage');
+            if(!stage) return;
+
+            joystick = document.createElement('div');
+            joystickThumb = document.createElement('div');
+
+            joystick.style.position = 'absolute';
+            joystick.style.width = (joystickRadius * 2) + 'px';
+            joystick.style.height = (joystickRadius * 2) + 'px';
+            joystick.style.marginLeft = -joystickRadius + 'px';
+            joystick.style.marginTop = -joystickRadius + 'px';
+            joystick.style.borderRadius = '50%';
+            joystick.style.background = 'rgba(0,0,0,0.2)';
+            joystick.style.border = '2px solid rgba(255,255,255,0.7)';
+            joystick.style.boxSizing = 'border-box';
+            joystick.style.display = 'none';
+            joystick.style.zIndex = 10000;
+
+            joystickThumb.style.position = 'absolute';
+            joystickThumb.style.width = joystickRadius + 'px';
+            joystickThumb.style.height = joystickRadius + 'px';
+            joystickThumb.style.left = (joystickRadius / 2) + 'px';
+            joystickThumb.style.top = (joystickRadius / 2) + 'px';
+            joystickThumb.style.borderRadius = '50%';
+            joystickThumb.style.background = 'rgba(255,255,255,0.5)';
+            joystickThumb.style.border = '2px solid rgba(0,0,0,0.4)';
+            joystickThumb.style.boxSizing = 'border-box';
+
+            joystick.appendChild(joystickThumb);
+            stage.appendChild(joystick);
+
+            function startJoystick(x, y, pointerId) {
+                joystickActive = true;
+                joystickPointerId = pointerId;
+                joystickCenterX = x;
+                joystickCenterY = y;
+                joystick.style.left = x + 'px';
+                joystick.style.top = y + 'px';
+                joystickThumb.style.left = (joystickRadius / 2) + 'px';
+                joystickThumb.style.top = (joystickRadius / 2) + 'px';
+                joystick.style.display = 'block';
+                mobileInput.left = false;
+                mobileInput.right = false;
             }
 
-            var threshold = 5;
+            function moveJoystick(x, y) {
+                if(!joystickActive) return;
 
-            window.addEventListener('deviceorientation', function (e) {
-                if(e && typeof e.gamma === 'number') {
-                    var g = e.gamma;
+                var dx = x - joystickCenterX;
+                if(dx < -joystickRadius) dx = -joystickRadius;
+                if(dx > joystickRadius) dx = joystickRadius;
 
-                    if(g < -threshold) {
-                        mobileInput.left = true;
-                        mobileInput.right = false;
-                    } else if(g > threshold) {
-                        mobileInput.left = false;
-                        mobileInput.right = true;
-                    } else {
-                        mobileInput.left = false;
-                        mobileInput.right = false;
-                    }
+                var thumbX = joystickRadius + dx - (joystickRadius / 2);
+                joystickThumb.style.left = thumbX + 'px';
+
+                var deadZone = 10;
+                if(dx < -deadZone) {
+                    mobileInput.left = true;
+                    mobileInput.right = false;
+                } else if(dx > deadZone) {
+                    mobileInput.left = false;
+                    mobileInput.right = true;
+                } else {
+                    mobileInput.left = false;
+                    mobileInput.right = false;
                 }
-            }, true);
+            }
+
+            function endJoystick() {
+                joystickActive = false;
+                joystickPointerId = null;
+                mobileInput.left = false;
+                mobileInput.right = false;
+                if(joystick) {
+                    joystick.style.display = 'none';
+                }
+            }
+
+            function getPositionFromEvent(e) {
+                var rect = stage.getBoundingClientRect();
+                var clientX;
+                var clientY;
+
+                if(e.touches && e.touches.length) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else if(e.changedTouches && e.changedTouches.length) {
+                    clientX = e.changedTouches[0].clientX;
+                    clientY = e.changedTouches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
+            function handleStart(e) {
+                if(e.preventDefault) e.preventDefault();
+
+                var pos;
+                var pointerId = null;
+
+                if(e.touches && e.touches.length) {
+                    var touch = e.touches[0];
+                    var rect = stage.getBoundingClientRect();
+                    pos = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+                    pointerId = touch.identifier;
+                } else {
+                    pos = getPositionFromEvent(e);
+                }
+
+                startJoystick(pos.x, pos.y, pointerId);
+            }
+
+            function handleMove(e) {
+                if(!joystickActive) return;
+
+                if(e.preventDefault) e.preventDefault();
+
+                if(e.touches && e.touches.length && joystickPointerId !== null) {
+                    var i;
+                    var rect = stage.getBoundingClientRect();
+                    for(i = 0; i < e.touches.length; i++) {
+                        if(e.touches[i].identifier === joystickPointerId) {
+                            moveJoystick(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
+                            break;
+                        }
+                    }
+                } else {
+                    var pos = getPositionFromEvent(e);
+                    moveJoystick(pos.x, pos.y);
+                }
+            }
+
+            function handleEnd(e) {
+                if(!joystickActive) return;
+
+                if(e.preventDefault) e.preventDefault();
+
+                if(e.changedTouches && e.changedTouches.length && joystickPointerId !== null) {
+                    var i;
+                    for(i = 0; i < e.changedTouches.length; i++) {
+                        if(e.changedTouches[i].identifier === joystickPointerId) {
+                            endJoystick();
+                            break;
+                        }
+                    }
+                } else {
+                    endJoystick();
+                }
+            }
+
+            stage.addEventListener('touchstart', handleStart, { passive: false, capture: true });
+            stage.addEventListener('touchmove', handleMove, { passive: false, capture: true });
+            stage.addEventListener('touchend', handleEnd, { passive: false, capture: true });
+            stage.addEventListener('touchcancel', handleEnd, { passive: false, capture: true });
+
+            stage.addEventListener('mousedown', handleStart, true);
+            window.addEventListener('mousemove', handleMove, true);
+            window.addEventListener('mouseup', handleEnd, true);
         }
 
         function initLevel() {
