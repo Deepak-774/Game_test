@@ -17,7 +17,8 @@
             n = 10,
             isDead = false,
             IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768,
-            mobileInput = { left: false, right: false };
+            mobileInput = { left: false, right: false },
+            mobileZones = null;
 
         Crafty.init(STAGE_WIDTH, STAGE_HEIGHT);
         Crafty.canvas.init();
@@ -47,6 +48,7 @@
             leftZone.style.height = '100%';
             leftZone.style.zIndex = '9999';
             leftZone.style.background = 'rgba(0,0,0,0)';
+            leftZone.style.pointerEvents = 'none';
 
             rightZone.style.position = 'absolute';
             rightZone.style.right = '0';
@@ -56,6 +58,7 @@
             rightZone.style.height = '100%';
             rightZone.style.zIndex = '9999';
             rightZone.style.background = 'rgba(0,0,0,0)';
+            rightZone.style.pointerEvents = 'none';
 
             function bindZone(el, dir) {
                 function activate(e) {
@@ -97,6 +100,8 @@
             var stageElem = document.getElementById('cr-stage') || document.body;
             stageElem.appendChild(leftZone);
             stageElem.appendChild(rightZone);
+
+            mobileZones = { left: leftZone, right: rightZone };
         }
 
         function initLevel() {
@@ -650,6 +655,11 @@
 
         Crafty.scene("main", function mainScene() {
             initState();
+
+            if(IS_MOBILE && mobileZones) {
+                mobileZones.left.style.pointerEvents = 'auto';
+                mobileZones.right.style.pointerEvents = 'auto';
+            }
 
             var bg = Crafty.e("2D, Canvas, Image, Background").attr({
                 x: 0,
