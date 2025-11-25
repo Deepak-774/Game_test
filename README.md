@@ -1,16 +1,41 @@
-Monster Wants Candy demo
-========================
+Octocat Jump
+============
 
-Monster Wants Candy demo is a simple HTML5 game created with Phaser 2.0.7 and available at: http://candy-demo.enclavegames.com/
+Playable on the [gh-pages branch](http://ogoshen.github.com/game-off-2012/)
 
-You can read the detailed tutorial about the demo at Tuts+ Game Development: http://gamedevelopment.tutsplus.com/tutorials/getting-started-with-phaser-building-monster-wants-candy--cms-21723
+<img src="http://i.imgur.com/rCRrx.png" style="border:0;">
+<img src="http://i.imgur.com/QOGtr.png" style="border:0;">
 
-![Monster Wants Candy - screen](https://cms-assets.tutsplus.com/uploads/users/22/posts/21723/image/monster-demo-screens.jpg)
+About
+-----
+A Doodle Jump clone for the **Github Game Off 2012**.
 
-You can also play the full game at: http://enclavegames.com/games/monster-wants-candy/
+Use the arrow keys to navigate your ever-jumping Octocat and collect stars for extra points.
+Push higher with the green platforms, watch out from the red, they'll be pulled from under you.
+Forks will teleport you around 100 lines of code further.
 
-## Licensing
 
-This game demo is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International** (CC BY-NC 4.0). See the [human-readable summary](http://creativecommons.org/licenses/by-nc/4.0/) or [legalcode](http://creativecommons.org/licenses/by-nc/4.0/legalcode) for details.
+Technicals
+----------
+Best playable on Chrome, works in FF (less FPS), fails on IE9 (getter\setters) and untested on others...
+I've used the Octicons font instead of sprites for the pickups, saves bandwidth and scales better,
+at the prices of more CSS3 effects.
+Overall, not a lot of canvas is used, which means less performance, as the DOM gets updated often.
 
-Under this license you are permitted to remix/reuse/redistribute my work as long as you credit me ([Andrzej Mazur](http://end3r.com/)) for the original work and don’t use it for commercial purposes. If someone does wish to use it in a commercial context, they should e-mail me at andrzej.mazur@end3r.com to discuss the terms of use.
+Credits
+-------
+Louis Stowasser for his awesome framework [Crafty](http://craftyjs.com).  
+[The Octocat sprite](https://github.com/mozilla/BrowserQuest/blob/master/client/img/3/octocat.png) by [sork](https://github.com/sork).  
+[Pow Studio](http://powstudios.com/content/smoke-animation-pack-1) - for the smoke jump sprite.  
+Font Diner's [Chewy](http://www.google.com/webfonts/specimen/Chewy).  
+And Github's @bryanveloso, @jonrohan, @jsncostello, @kneath, and @cameronmcefee for the [Octicons](https://github.com/styleguide/css/7.0) font.  
+
+Any other assets were either photomanipulated with GIMP or synthesize with SFXR.
+
+To do:
+------
+* Game doesn't restart when you die, have to refresh the page.
+* There's a clone chasing you, but I haven't figured how to deal with that yet... maybe raise an issue or sync to get rid of it...
+* Split the .js, follow Crafty's boilerplate
+* Scoreboard
+* Level editor

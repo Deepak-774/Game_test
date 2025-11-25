@@ -1,49 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
-	<title>Monster Wants Candy demo</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<style>
-	 html, body { height: 100%; }
-	 body { margin: 0; background: #000; overflow: hidden; overscroll-behavior: none; }
-	 #game { position: fixed; left: 0; top: 0; width: 100vw; height: 100dvh; background: #000; }
-	 canvas { display: block; }
-	</style>
-	<script src="src/phaser-2.0.7.min.js"></script>
-	<script src="src/Boot.js"></script>
-	<script src="src/Preloader.js"></script>
-	<script src="src/MainMenu.js"></script>
-	<script src="src/Game.js"></script>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <!-- <link href='http://fonts.googleapis.com/css?family=Chewy' rel='stylesheet' type='text/css'> -->
+  <title>Octocat Jump</title>
+  <style>
+    @font-face {
+        font-family: 'Chewy';
+        src: url('assets/fonts/chewy-webfont.eot');
+        src: url('assets/fonts/chewy-webfont.eot?#iefix') format('embedded-opentype'),
+             url('assets/fonts/chewy-webfont.woff') format('woff'),
+             url('assets/fonts/chewy-webfont.ttf') format('truetype'),
+             url('assets/fonts/chewy-webfont.svg#ChewyRegular') format('svg');
+        font-weight: normal;
+        font-style: normal;
+
+    }
+
+    @font-face {
+        font-family: 'Octicons';
+        font-weight: normal;
+        font-style: normal;
+        src: 
+          url("assets/fonts/octicons-regular-webfont.woff#OcticonsRegular") format("woff"),
+          url("assets/fonts/octicons-regular-webfont.ttf#OcticonsRegular") format("truetype"),
+          url("assets/fonts/octicons-regular-webfont.svg#OcticonsRegular") format("svg"),
+        ;
+      }
+
+/*    @font-face {
+      font-family: 'Octicons Regular';
+      src: url("https://a248.e.akamai.net/assets.github.com/fonts/octicons/octicons-regular-webfont.eot?ade8e027");
+      src: url("https://a248.e.akamai.net/assets.github.com/fonts/octicons/octicons-regular-webfont.eot?ade8e027#iefix") format("embedded-opentype")
+         , url("https://a248.e.akamai.net/assets.github.com/fonts/octicons/octicons-regular-webfont.woff?fca05081") format("woff")
+         , url("https://a248.e.akamai.net/assets.github.com/fonts/octicons/octicons-regular-webfont.ttf?b2778fb1") format("truetype")
+         , url("https://a248.e.akamai.net/assets.github.com/fonts/octicons/octicons-regular-webfont.svg?b5c3b089#newFontRegular") format("svg")
+         ;
+      font-weight: normal;
+      font-style: normal;
+    }*/
+
+
+    * {
+      margin: 0;
+      padding: 0;
+      cursor: default;
+    }
+
+    body, html { margin:0; padding: 0; overflow:hidden; height: 100%; font-family: Chewy, Arial; font-size:20px; display:flex; align-items:center; justify-content:center }
+    body, html {
+      background: rgb(224,226,228); /* Old browsers */
+      background: -moz-linear-gradient(top,  rgba(224,226,228,1) 0%, rgba(185,187,189,1) 100%); /* FF3.6+ */
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(224,226,228,1)), color-stop(100%,rgba(185,187,189,1))); /* Chrome,Safari4+ */
+      background: -webkit-linear-gradient(top,  rgba(224,226,228,1) 0%,rgba(185,187,189,1) 100%); /* Chrome10+,Safari5.1+ */
+      background: -o-linear-gradient(top,  rgba(224,226,228,1) 0%,rgba(185,187,189,1) 100%); /* Opera 11.10+ */
+      background: -ms-linear-gradient(top,  rgba(224,226,228,1) 0%,rgba(185,187,189,1) 100%); /* IE10+ */
+      background: linear-gradient(to bottom,  rgba(224,226,228,1) 0%,rgba(185,187,189,1) 100%); /* W3C */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0e2e4', endColorstr='#b9bbbd',GradientType=0 ); /* IE6-9 */
+    }
+    #cr-stage,
+    #loader {
+      width: 400px;
+      height: 640px;
+      margin: 0;
+      border: none;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+      color: white;
+    }
+
+    #loader { 
+      background: url('assets/images/octocat-spinner-128.gif') no-repeat center center #fff;
+    }
+
+    #scoreboard td, th {
+      padding: 0;
+      text-align: center;
+      border-bottom: 1px solid #aaa;
+      padding: 0 20px;
+      width: 100%;
+    }
+    #scoreboard tr:last-child td{
+      border-bottom: none;
+    }
+
+    #scoreboard th {
+      color: #666;
+      background: #ccc;
+    }
+    #scoreboard th:first-child {
+      border-top-left-radius: 8px;
+      border-right: 1px solid #888;
+    }
+    #scoreboard th:last-child {
+      border-top-right-radius: 8px;
+    }
+    #scoreboard td:first-child {
+      border-right: 1px solid gray;
+    }
+  </style>
 </head>
 <body>
-<div id="game"></div>
-<script>
-(function() {
-	// initialize the framework
-	window.game = new Phaser.Game(640, 960, Phaser.AUTO, 'game');
-	// add game states
-	game.state.add('Boot', Candy.Boot);
-	game.state.add('Preloader', Candy.Preloader);
-	game.state.add('MainMenu', Candy.MainMenu);
-	game.state.add('Game', Candy.Game);
-	// start the Boot state
-	game.state.start('Boot');
-
-	function setViewportSize(){
-		var el = document.getElementById('game');
-		var vv = window.visualViewport;
-		var w = vv && vv.width ? vv.width : window.innerWidth;
-		var h = vv && vv.height ? vv.height : window.innerHeight;
-		el.style.width = w + 'px';
-		el.style.height = h + 'px';
-		if (window.game && window.game.scale && window.game.scale.refresh) { window.game.scale.refresh(); }
-	}
-	setViewportSize();
-	window.addEventListener('resize', setViewportSize);
-	window.addEventListener('orientationchange', setViewportSize);
-})();
-</script>
+  <div id="loader"></div>
+  <script type="text/javascript" src="jquery.js"></script>
+  <script type="text/javascript" src="crafty.js"></script>
+  <script type="text/javascript" src="octocatjump.js"></script>
 </body>
 </html>
