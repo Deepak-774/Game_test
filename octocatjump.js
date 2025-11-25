@@ -17,8 +17,7 @@
             n = 10,
             isDead = false,
             IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768,
-            mobileInput = { left: false, right: false },
-            mobileZones = null;
+            mobileInput = { left: false, right: false };
 
         Crafty.init(STAGE_WIDTH, STAGE_HEIGHT);
         Crafty.canvas.init();
@@ -30,78 +29,28 @@
         function setupMobileControls() {
             if(!IS_MOBILE) return;
 
-            document.body.style.touchAction = 'none';
-            document.body.style.msTouchAction = 'none';
-            document.body.style.webkitTouchAction = 'none';
+            if(!('DeviceOrientationEvent' in window)) {
+                return;
+            }
 
-            var leftZone = document.createElement('div');
-            var rightZone = document.createElement('div');
+            var threshold = 5;
 
-            leftZone.id = 'octocat-mobile-left';
-            rightZone.id = 'octocat-mobile-right';
+            window.addEventListener('deviceorientation', function (e) {
+                if(e && typeof e.gamma === 'number') {
+                    var g = e.gamma;
 
-            leftZone.style.position = 'absolute';
-            leftZone.style.left = '0';
-            leftZone.style.top = '0';
-            leftZone.style.bottom = '0';
-            leftZone.style.width = '50%';
-            leftZone.style.height = '100%';
-            leftZone.style.zIndex = '9999';
-            leftZone.style.background = 'rgba(0,0,0,0)';
-            leftZone.style.pointerEvents = 'none';
-
-            rightZone.style.position = 'absolute';
-            rightZone.style.right = '0';
-            rightZone.style.top = '0';
-            rightZone.style.bottom = '0';
-            rightZone.style.width = '50%';
-            rightZone.style.height = '100%';
-            rightZone.style.zIndex = '9999';
-            rightZone.style.background = 'rgba(0,0,0,0)';
-            rightZone.style.pointerEvents = 'none';
-
-            function bindZone(el, dir) {
-                function activate(e) {
-                    if(e && e.cancelable) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                    if(dir === 'left') {
+                    if(g < -threshold) {
                         mobileInput.left = true;
-                    } else {
-                        mobileInput.right = true;
-                    }
-                }
-
-                function deactivate(e) {
-                    if(e && e.cancelable) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                    if(dir === 'left') {
+                        mobileInput.right = false;
+                    } else if(g > threshold) {
                         mobileInput.left = false;
+                        mobileInput.right = true;
                     } else {
+                        mobileInput.left = false;
                         mobileInput.right = false;
                     }
                 }
-
-                ['touchstart', 'pointerdown', 'mousedown'].forEach(function (type) {
-                    el.addEventListener(type, activate, { passive: false });
-                });
-
-                ['touchend', 'touchcancel', 'pointerup', 'pointercancel', 'mouseup', 'mouseleave'].forEach(function (type) {
-                    el.addEventListener(type, deactivate, { passive: false });
-                });
-            }
-
-            bindZone(leftZone, 'left');
-            bindZone(rightZone, 'right');
-
-            var stageElem = document.getElementById('cr-stage') || document.body;
-            stageElem.appendChild(leftZone);
-            stageElem.appendChild(rightZone);
-
-            mobileZones = { left: leftZone, right: rightZone };
+            }, true);
         }
 
         function initLevel() {
