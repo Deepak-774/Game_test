@@ -39,19 +39,21 @@
             leftZone.id = 'octocat-mobile-left';
             rightZone.id = 'octocat-mobile-right';
 
-            leftZone.style.position = 'fixed';
+            leftZone.style.position = 'absolute';
             leftZone.style.left = '0';
+            leftZone.style.top = '0';
             leftZone.style.bottom = '0';
             leftZone.style.width = '50%';
-            leftZone.style.height = '35%';
+            leftZone.style.height = '100%';
             leftZone.style.zIndex = '9999';
             leftZone.style.background = 'rgba(0,0,0,0)';
 
-            rightZone.style.position = 'fixed';
+            rightZone.style.position = 'absolute';
             rightZone.style.right = '0';
+            rightZone.style.top = '0';
             rightZone.style.bottom = '0';
             rightZone.style.width = '50%';
-            rightZone.style.height = '35%';
+            rightZone.style.height = '100%';
             rightZone.style.zIndex = '9999';
             rightZone.style.background = 'rgba(0,0,0,0)';
 
@@ -92,8 +94,9 @@
             bindZone(leftZone, 'left');
             bindZone(rightZone, 'right');
 
-            document.body.appendChild(leftZone);
-            document.body.appendChild(rightZone);
+            var stageElem = document.getElementById('cr-stage') || document.body;
+            stageElem.appendChild(leftZone);
+            stageElem.appendChild(rightZone);
         }
 
         function initLevel() {
