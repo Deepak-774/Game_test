@@ -22,6 +22,11 @@ var gameStartTime = null
 var score = 0
 var gameOverSent = false
 
+if (!window.game) {
+  window.game = { score: 0 }
+}
+var game = window.game
+
 function jumpPlayer() {
   if (isJumping) return
   isJumping = true
@@ -39,7 +44,7 @@ function addPit() {
   p.className = 'pit'
   p.onanimationend = function(){     
     pits++
-    score++
+    score += 10
     if (scoreEl) {
       scoreEl.textContent = 'Score: ' + score
     }
@@ -101,12 +106,8 @@ function sendGameOverMessage() {
   gameOverSent = true
 
   try {
-    if (!window.game) {
-      window.game = { score: score }
-    } else {
-      window.game.score = score
-    }
-    window.parent.postMessage({ type: "GAME_OVER", score: window.game.score }, "*")
+    game.score = score
+    window.parent.postMessage({ type: "GAME_OVER", score: game.score }, "*")
   } catch (e) {
   }
 }
